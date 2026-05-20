@@ -41,7 +41,7 @@
                     ],
                     'Travel' => [
                         'icon' => 'fas fa-car',
-                        'items' => ['Driver', 'Rental Motor', 'Rental Mobil'],
+                        'items' => ['Driver Only', 'Rental Motor', 'Rental Mobil'],
                     ],
                     'Editing' => [
                         'icon' => 'fas fa-camera',
