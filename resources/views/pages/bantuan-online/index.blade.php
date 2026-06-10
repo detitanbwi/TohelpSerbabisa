@@ -13,9 +13,9 @@
                 <div class="col-md-4">
                     <div class="card h-100">
                         <div class="card-body">
-                            <h5 class="card-title">Stalker</h5>
+                            <h5 class="card-title">Paid Promote SW</h5>
                             <h3 class="card-text text-primary mb-4">Start from <br>Rp 10.000</h3>
-                            <a href="#" class="btn btn-success w-100 order-btn" data-service="Stalker"
+                            <a href="#" class="btn btn-success w-100 order-btn" data-service="Paid Promote SW"
                                 data-price="10.000">
                                 <i class="fab fa-whatsapp"></i> Pesan Sekarang
                             </a>
@@ -41,8 +41,7 @@
                         <div class="card-body">
                             <h5 class="card-title">Buzzer</h5>
                             <h3 class="card-text text-primary mb-4">Start from <br>Rp 50.000</h3>
-                            <a href="#" class="btn btn-success w-100 order-btn" data-service="Buzzer"
-                                data-price="50.000">
+                            <a href="#" class="btn btn-success w-100 order-btn" data-service="Buzzer" data-price="50.000">
                                 <i class="fab fa-whatsapp"></i> Pesan Sekarang
                             </a>
                         </div>
@@ -68,8 +67,8 @@
 
 @push('scripts')
     <script>
-        $(document).ready(function() {
-            $('.order-btn').click(function(e) {
+        $(document).ready(function () {
+            $('.order-btn').click(function (e) {
                 e.preventDefault();
 
                 const service = $(this).data('service');
@@ -93,7 +92,7 @@
                                 _token: '{{ csrf_token() }}',
                                 jasa: service,
                             },
-                            success: function(response) {
+                            success: function (response) {
                                 if (response.status === 'success') {
                                     Swal.fire({
                                         title: 'Berhasil',
@@ -122,7 +121,7 @@
                                     });
                                 }
                             },
-                            error: function() {
+                            error: function () {
                                 Swal.fire({
                                     title: 'Gagal',
                                     text: 'Pesanan gagal dibuat, silahkan coba lagi',

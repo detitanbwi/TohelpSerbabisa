@@ -9,38 +9,74 @@
             </div>
 
             <div class="row g-4">
-                <div class="col-md-6">
+                <!-- Bantuan Ringan -->
+                <div class="col-md-4">
                     <div class="card h-100">
-                        <div class="card-body">
-                            <h5 class="card-title">Paket Durasi</h5>
-                            <h2 class="card-text text-primary mb-3">Start from Rp 15.000*</h2>
-                            <p class="card-text mb-4">
-                                Ketentuan:<br>
-                                - Rp 15.000/jam<br>
-                                - Transport 2rb/km (jika menggunakan kendaraan help man untuk menuju lokasi orderan)
-                            </p>
-                            <a href="#" class="btn btn-success w-100 order-btn" data-service="Paket Durasi"
-                                data-price="15.000">
-                                <i class="fab fa-whatsapp"></i> Pesan Sekarang
-                            </a>
+                        <div class="card-body text-center d-flex flex-column justify-content-center py-4">
+                            <h5 class="card-title fw-bold text-dark mb-3">Bantuan Ringan</h5>
+                            <h2 class="card-text text-primary mb-0">5k/helpman</h2>
                         </div>
                     </div>
                 </div>
-                <div class="col-md-6">
+
+                <!-- Bantuan Sedang -->
+                <div class="col-md-4">
                     <div class="card h-100">
-                        <div class="card-body">
-                            <h5 class="card-title">Paket Berat & Ringan</h5>
-                            <h2 class="card-text text-primary mb-3">Start from Rp 5.000*</h2>
-                            <p class="card-text mb-4">
-                                Ketentuan:<br>
-                                - Transport 2rb/km (jika menggunakan kendaraan help man untuk menuju lokasi orderan)
-                            </p>
-                            <a href="#" class="btn btn-success w-100 order-btn" data-service="Paket Berat & Ringan"
-                                data-price="5.000">
-                                <i class="fab fa-whatsapp"></i> Pesan Sekarang
-                            </a>
+                        <div class="card-body text-center d-flex flex-column justify-content-center py-4">
+                            <h5 class="card-title fw-bold text-dark mb-3">Bantuan Sedang</h5>
+                            <h2 class="card-text text-primary mb-0">10k/helpman</h2>
                         </div>
                     </div>
+                </div>
+
+                <!-- Bantuan Berat -->
+                <div class="col-md-4">
+                    <div class="card h-100">
+                        <div class="card-body text-center d-flex flex-column justify-content-center py-4">
+                            <h5 class="card-title fw-bold text-dark mb-3">Bantuan Berat</h5>
+                            <h2 class="card-text text-primary mb-0"><small class="text-muted fs-6">start from</small> 15k/helpman</h2>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Bantuan Durasi -->
+                <div class="col-md-6">
+                    <div class="card h-100">
+                        <div class="card-body text-center d-flex flex-column justify-content-center py-4">
+                            <h5 class="card-title fw-bold text-dark mb-3">Bantuan Durasi</h5>
+                            <h2 class="card-text text-primary mb-0">10k/30 menit, 15k/jam</h2>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Transport -->
+                <div class="col-md-6">
+                    <div class="card h-100">
+                        <div class="card-body text-center d-flex flex-column justify-content-center py-4">
+                            <h5 class="card-title fw-bold text-dark mb-3">Transport</h5>
+                            <h2 class="card-text text-primary mb-2">2k/km</h2>
+                            <p class="card-text text-muted mb-0">(jarak > 3km dari lokasi helpman)</p>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- NB Card -->
+                <div class="col-12">
+                    <div class="card">
+                        <div class="card-body">
+                            <h5 class="card-title mb-3 fw-bold text-dark">NB :</h5>
+                            <ul class="mb-0">
+                                <li>Tarif menyesuaikan kondisi lapangan, tarif pasti ditentukan sebelum pengerjaan</li>
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Center Order Button -->
+                <div class="text-center mt-4">
+                    <a href="#" class="btn btn-success btn-lg px-5 order-btn" data-service="Daily Activity">
+                        <i class="fab fa-whatsapp"></i> PESAN SEKARANG
+                    </a>
                 </div>
 
             </div>
@@ -55,7 +91,6 @@
                 e.preventDefault();
 
                 const service = $(this).data('service');
-                const price = $(this).data('price');
 
                 Swal.fire({
                     title: "Apakah anda yakin?",
@@ -86,7 +121,7 @@
                                             `Hii kak, saya ingin meminta bantuan To Help\n\n` +
                                             `ID Order : ${response.order_id}\n` +
                                             `Jenis Jasa : Daily Activity\n` +
-                                            `Paket : ${service}\n` +
+                                            `Paket : (Durasi/Berat Ringan) \n` +
                                             `Masalah Yang Sedang Dihadapi : \n` +
                                             `Bantuan yang di inginkan : \n` +
                                             `Hari/tanggal Bantuan : \n` +
