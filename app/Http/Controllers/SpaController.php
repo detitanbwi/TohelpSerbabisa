@@ -35,7 +35,7 @@ class SpaController extends Controller
             DB::commit();
             return response()->json([
                 'status' => 'success',
-                'message' => 'Berhasil memesan jasa spa',
+                'message' => 'Berhasil memesan jasa titip barang',
                 'order_id' => $data['order_id']
             ]);
         } catch (Exception $e) {
@@ -43,7 +43,7 @@ class SpaController extends Controller
             DB::rollBack();
             return response()->json([
                 'status' => 'error',
-                'message' => 'Terjadi kesalahan saat memesan jasa spa'
+                'message' => 'Terjadi kesalahan saat memesan jasa titip barang'
             ], 500);
         }
     }

@@ -304,10 +304,10 @@
                         'isAnchor' => true,
                         'route' => route('teknisi'),
                     ],
-                    'SPA' => [
-                        'icon' => 'fas fa-spa',
+                    'Titip Barang' => [
+                        'icon' => 'fas fa-boxes',
                         'color' => '#3498DB', // Light Blue
-                        'items' => ['Massage', 'Scrub', 'Refleksi', 'Dan Lain-Lain'],
+                        'items' => ['Per jam', 'Harian', 'Bulanan'],
                         'isAnchor' => true,
                         'route' => route('spa'),
                     ],
