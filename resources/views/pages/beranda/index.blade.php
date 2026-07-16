@@ -304,12 +304,17 @@
                         'isAnchor' => true,
                         'route' => route('teknisi'),
                     ],
-                    'Titip Barang' => [
+                    'Penitipan Barang' => [
                         'icon' => 'fas fa-boxes',
                         'color' => '#3498DB', // Light Blue
-                        'items' => ['Per jam', 'Harian', 'Bulanan'],
+                        'items' => [
+                            'Packing',
+                            'Unboxing',
+                            'Titip Barang',
+                            'Titip Kendaraan',
+                        ],
                         'isAnchor' => true,
-                        'route' => route('spa'),
+                        'route' => route('penitipan'),
                     ],
                     'Jasa IT' => [
                         'icon' => 'fas fa-laptop',

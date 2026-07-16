@@ -4,58 +4,105 @@
     <section class="padding-small">
         <div class="container">
             <div class="text-center mb-5">
-                <h2 class="display-4 fw-bold">Titip Barang</h2>
-                <p class="lead">Layanan penitipan barang aman dan terpercaya untuk kenyamanan Anda.</p>
+                <h2 class="display-4 fw-bold">Jasa Penitipan Barang</h2>
+                <p class="lead">Layanan packing, unboxing, serta penitipan barang dan kendaraan aman terpercaya.</p>
             </div>
 
-            <div class="row g-4">
-                <!-- Per Jam -->
-                <div class="col-md-4">
-                    <div class="card h-100">
-                        <div class="card-body text-center d-flex flex-column justify-content-center py-4">
-                            <h5 class="card-title fw-bold text-dark mb-3">Per jam</h5>
-                            <h2 class="card-text text-primary mb-0"><small class="text-muted fs-6">mulai dari</small> Rp 4.000/jam</h2>
+            <div class="row g-4 justify-content-center">
+                <!-- Packing -->
+                <div class="col-md-6 col-lg-3">
+                    <div class="card h-100 shadow-sm border-0">
+                        <div class="card-body text-center d-flex flex-column justify-content-between py-4">
+                            <div>
+                                <div class="mb-3 text-primary">
+                                    <i class="fas fa-box fa-3x"></i>
+                                </div>
+                                <h5 class="card-title fw-bold text-dark mb-2">Packing</h5>
+                                <p class="text-muted small">Jasa pembungkusan barang secara rapi dan aman menggunakan kardus/bubble wrap.</p>
+                            </div>
+                            <div>
+                                <h4 class="card-text text-primary fw-bold my-3"><small class="text-muted fs-6">mulai dari</small><br>Rp 15.000<span class="fs-6 text-muted">/kardus</span></h4>
+                                <a href="#" class="btn btn-success w-100 order-btn" data-service="Packing">
+                                    <i class="fab fa-whatsapp"></i> PESAN
+                                </a>
+                            </div>
                         </div>
                     </div>
                 </div>
 
-                <!-- Harian -->
-                <div class="col-md-4">
-                    <div class="card h-100">
-                        <div class="card-body text-center d-flex flex-column justify-content-center py-4">
-                            <h5 class="card-title fw-bold text-dark mb-3">Harian</h5>
-                            <h2 class="card-text text-primary mb-0"><small class="text-muted fs-6">mulai dari</small> Rp 10.000/hari</h2>
+                <!-- Unboxing -->
+                <div class="col-md-6 col-lg-3">
+                    <div class="card h-100 shadow-sm border-0">
+                        <div class="card-body text-center d-flex flex-column justify-content-between py-4">
+                            <div>
+                                <div class="mb-3 text-primary">
+                                    <i class="fas fa-box-open fa-3x"></i>
+                                </div>
+                                <h5 class="card-title fw-bold text-dark mb-2">Unboxing</h5>
+                                <p class="text-muted small">Jasa pembongkaran paket belanja atau barang pindahan dengan hati-hati.</p>
+                            </div>
+                            <div>
+                                <h4 class="card-text text-primary fw-bold my-3"><small class="text-muted fs-6">mulai dari</small><br>Rp 5.000<span class="fs-6 text-muted">/paket</span></h4>
+                                <a href="#" class="btn btn-success w-100 order-btn" data-service="Unboxing">
+                                    <i class="fab fa-whatsapp"></i> PESAN
+                                </a>
+                            </div>
                         </div>
                     </div>
                 </div>
 
-                <!-- Bulanan -->
-                <div class="col-md-4">
-                    <div class="card h-100">
-                        <div class="card-body text-center d-flex flex-column justify-content-center py-4">
-                            <h5 class="card-title fw-bold text-dark mb-3">Bulanan</h5>
-                            <h2 class="card-text text-primary mb-0"><small class="text-muted fs-6">mulai dari</small> Rp 40.000/bulan</h2>
+                <!-- Titip Barang -->
+                <div class="col-md-6 col-lg-3">
+                    <div class="card h-100 shadow-sm border-0">
+                        <div class="card-body text-center d-flex flex-column justify-content-between py-4">
+                            <div>
+                                <div class="mb-3 text-primary">
+                                    <i class="fas fa-boxes fa-3x"></i>
+                                </div>
+                                <h5 class="card-title fw-bold text-dark mb-2">Titip Barang</h5>
+                                <p class="text-muted small">Penitipan barang/paket harian yang aman dan terpantau dengan baik.</p>
+                            </div>
+                            <div>
+                                <h4 class="card-text text-primary fw-bold my-3"><small class="text-muted fs-6">mulai dari</small><br>Rp 20.000<span class="fs-6 text-muted">/hari</span></h4>
+                                <a href="#" class="btn btn-success w-100 order-btn" data-service="Titip Barang">
+                                    <i class="fab fa-whatsapp"></i> PESAN
+                                </a>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Titip Kendaraan -->
+                <div class="col-md-6 col-lg-3">
+                    <div class="card h-100 shadow-sm border-0">
+                        <div class="card-body text-center d-flex flex-column justify-content-between py-4">
+                            <div>
+                                <div class="mb-3 text-primary">
+                                    <i class="fas fa-motorcycle fa-3x"></i>
+                                </div>
+                                <h5 class="card-title fw-bold text-dark mb-2">Titip Kendaraan</h5>
+                                <p class="text-muted small">Penitipan kendaraan (motor/mobil) harian di area yang aman dan teduh.</p>
+                            </div>
+                            <div>
+                                <h4 class="card-text text-primary fw-bold my-3"><small class="text-muted fs-6">mulai dari</small><br>Rp 10.000<span class="fs-6 text-muted">/hari</span></h4>
+                                <a href="#" class="btn btn-success w-100 order-btn" data-service="Titip Kendaraan">
+                                    <i class="fab fa-whatsapp"></i> PESAN
+                                </a>
+                            </div>
                         </div>
                     </div>
                 </div>
 
                 <!-- NB Card -->
-                <div class="col-12">
-                    <div class="card">
+                <div class="col-12 mt-4">
+                    <div class="card border-0 shadow-sm">
                         <div class="card-body">
                             <h5 class="card-title mb-3 fw-bold text-dark">NB :</h5>
-                            <ul class="mb-0">
-                                <li>Perhitungan harga berdasarkan waktu, berat dan ukuran barang. Untuk informasi harga fix bisa menghubungi admin</li>
+                            <ul class="mb-0 text-muted">
+                                <li>Perhitungan harga berdasarkan volume, berat, ukuran barang, serta jenis kendaraan. Untuk informasi harga pasti silakan hubungi admin.</li>
                             </ul>
                         </div>
                     </div>
-                </div>
-
-                <!-- Center Order Button -->
-                <div class="text-center mt-4">
-                    <a href="#" class="btn btn-success btn-lg px-5 order-btn" data-service="Titip Barang">
-                        <i class="fab fa-whatsapp"></i> PESAN SEKARANG
-                    </a>
                 </div>
 
             </div>
@@ -73,7 +120,7 @@
 
                 Swal.fire({
                     title: "Apakah anda yakin?",
-                    text: "Apakah anda yakin ingin memesan jasa ini?",
+                    text: `Apakah anda yakin ingin memesan layanan ${service}?`,
                     icon: "warning",
                     showCancelButton: true,
                     confirmButtonText: "Ya, pesan!",
@@ -86,7 +133,7 @@
                         };
 
                         $.ajax({
-                            url: `{{ route('spa.pesan') }}`,
+                            url: `{{ route('penitipan.pesan') }}`,
                             method: 'POST',
                             data: data,
                             success: function(response) {
@@ -99,13 +146,13 @@
                                         const message =
                                             `Hii kak, saya ingin meminta bantuan To Help\n\n` +
                                             `ID Order : ${response.order_id}\n` +
-                                            `Jenis Jasa : Titip Barang\n` +
-                                            `Paket : (Per Jam/Harian/Bulanan)\n` +
-                                            `Nama Barang / Jumlah : \n` +
-                                            `Estimasi Waktu Titip : \n` +
-                                            `Nama : \n` +
+                                            `Jenis Jasa : SPA\n` +
+                                            `Layanan : ${service}\n` +
+                                            `Nama / Deskripsi Barang : \n` +
+                                            `Estimasi Durasi / Jumlah : \n` +
+                                            `Nama Pelanggan : \n` +
                                             `Nomor WhatsApp : \n` +
-                                            `Alamat Jemput/Titip : `;
+                                            `Alamat Lengkap : `;
 
                                         window.open(
                                             `https://api.whatsapp.com/send?phone=6285695908981&text=${encodeURIComponent(message)}`,

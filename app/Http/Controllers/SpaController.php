@@ -22,7 +22,7 @@ class SpaController extends Controller
 
         try {
             $data = [
-                'order_id' => OrderHelper::generateOrderId('SPA-'),
+                'order_id' => OrderHelper::generateOrderId('TIP-'),
                 'jenis' => 'spa',
                 'jasa' => $request->jasa,
             ];

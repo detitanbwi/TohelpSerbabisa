@@ -109,8 +109,8 @@ Route::post('/joki-tugas/pesan', [JokiTugasController::class, 'pesan'])->name('j
 Route::get('/teknisi', [TeknisiController::class, 'index'])->name('teknisi');
 Route::post('/teknisi/pesan', [TeknisiController::class, 'pesan'])->name('teknisi.pesan');
 
-Route::get('/spa', [SpaController::class, 'index'])->name('spa');
-Route::post('/spa/pesan', [SpaController::class, 'pesan'])->name('spa.pesan');
+Route::get('/penitipan', [SpaController::class, 'index'])->name('penitipan');
+Route::post('/penitipan/pesan', [SpaController::class, 'pesan'])->name('penitipan.pesan');
 
 Route::get('/jasa-kustom', [JasaCustomController::class, 'index'])->name('kustom');
 Route::post('/jasa-kustom/pesan', [JasaCustomController::class, 'pesan'])->name('kustom.pesan');
