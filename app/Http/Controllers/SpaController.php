@@ -23,7 +23,7 @@ class SpaController extends Controller
         try {
             $data = [
                 'order_id' => OrderHelper::generateOrderId('TIP-'),
-                'jenis' => 'spa',
+                'jenis' => 'penitipan',
                 'jasa' => $request->jasa,
             ];
             if ($request->has('total_harga')) {

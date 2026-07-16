@@ -146,7 +146,7 @@
                                         const message =
                                             `Hii kak, saya ingin meminta bantuan To Help\n\n` +
                                             `ID Order : ${response.order_id}\n` +
-                                            `Jenis Jasa : SPA\n` +
+                                            `Jenis Jasa : Penitipan\n` +
                                             `Layanan : ${service}\n` +
                                             `Nama / Deskripsi Barang : \n` +
                                             `Estimasi Durasi / Jumlah : \n` +
