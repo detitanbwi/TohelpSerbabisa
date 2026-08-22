@@ -24,7 +24,7 @@ class DailyActivityController extends Controller
             $data = [
                 'order_id' => OrderHelper::generateOrderId('DAI-'),
                 'jenis' => 'daily-activity',
-                'jasa' => $request->jasa,
+                'jasa' => $request->jasa ?? 'Daily Activity',
             ];
 
             Transaksi::create($data);
