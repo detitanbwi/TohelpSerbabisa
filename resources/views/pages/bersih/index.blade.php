@@ -15,7 +15,7 @@
                     <div class="card h-100">
                         <div class="card-body">
                             <h5 class="card-title">Rumah Subsidi</h5>
-                            <h2 class="card-text text-primary mb-3">Rp 170.000</h2>
+                            <h2 class="card-text text-primary mb-3">Rp 200.000</h2>
                             <p class="card-text mb-4">
                                 Include:<br>
                                 - 2 kamar tidur<br>
@@ -25,7 +25,7 @@
                                 - Halaman depan
                             </p>
                             <a href="#" class="btn btn-success w-100 order-btn" data-service="Rumah Subsidi"
-                                data-price="170.000">
+                                data-price="200.000">
                                 <i class="fab fa-whatsapp"></i> Pesan Sekarang
                             </a>
                         </div>
@@ -37,7 +37,7 @@
                     <div class="card h-100">
                         <div class="card-body">
                             <h5 class="card-title">Rumah Komersil</h5>
-                            <h2 class="card-text text-primary mb-3">Rp 300.000</h2>
+                            <h2 class="card-text text-primary mb-3">Rp 350.000</h2>
                             <p class="card-text mb-4">
                                 Include:<br>
                                 - 3 kamar tidur<br>
@@ -48,7 +48,7 @@
                                 - Halaman depan
                             </p>
                             <a href="#" class="btn btn-success w-100 order-btn" data-service="Rumah Komersil"
-                                data-price="300.000">
+                                data-price="350.000">
                                 <i class="fab fa-whatsapp"></i> Pesan Sekarang
                             </a>
                         </div>
@@ -97,7 +97,8 @@
                     <div class="card h-100">
                         <div class="card-body">
                             <h5 class="card-title">Halaman</h5>
-                            <h2 class="card-text text-primary mb-4">Rp 5.000/m²</h2>
+                            <h2 class="card-text text-primary mb-1">Rp 5.000/m²</h2>
+                            <p class="card-text text-muted mb-3">(start from 50rb)</p>
                             <a href="#" class="btn btn-success w-100 order-btn" data-service="Halaman"
                                 data-price="5.000/m²">
                                 <i class="fab fa-whatsapp"></i> Pesan Sekarang
