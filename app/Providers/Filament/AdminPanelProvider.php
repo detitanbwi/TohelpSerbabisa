@@ -15,6 +15,7 @@ use Filament\Navigation\NavigationGroup;
 use Filament\Http\Middleware\Authenticate;
 use Filament\Navigation\NavigationBuilder;
 use App\Filament\Admin\Pages\AbsensiBasePage;
+use App\Filament\Admin\Pages\TarifTransportasiPage;
 use Illuminate\Session\Middleware\StartSession;
 use Illuminate\Cookie\Middleware\EncryptCookies;
 use App\Filament\Admin\Resources\KaryawanResource;
@@ -106,6 +107,7 @@ class AdminPanelProvider extends PanelProvider
                         ->items([
                             ...KaryawanResource::getNavigationItems(),
                             ...AbsensiBasePage::getNavigationItems(),
+                            ...TarifTransportasiPage::getNavigationItems(),
                         ]),
                         NavigationGroup::make('Settings')
                         ->items([
