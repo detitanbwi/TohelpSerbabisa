@@ -17,12 +17,8 @@ use Filament\Navigation\NavigationBuilder;
 use App\Filament\Admin\Pages\AbsensiBasePage;
 use Illuminate\Session\Middleware\StartSession;
 use Illuminate\Cookie\Middleware\EncryptCookies;
-use App\Filament\Admin\Resources\VoucherResource;
 use App\Filament\Admin\Resources\KaryawanResource;
-use App\Filament\Admin\Pages\TarifTransportasiPage;
-use App\Filament\Admin\Resources\TestimoniResource;
 use App\Filament\Admin\Resources\TransaksiResource;
-use App\Filament\Admin\Resources\TarifDasarResource;
 use BezhanSalleh\FilamentShield\FilamentShieldPlugin;
 use FilipFonal\FilamentLogManager\FilamentLogManager;
 use GeoSot\FilamentEnvEditor\FilamentEnvEditorPlugin;
@@ -30,7 +26,6 @@ use Illuminate\Routing\Middleware\SubstituteBindings;
 use Illuminate\Session\Middleware\AuthenticateSession;
 use Illuminate\View\Middleware\ShareErrorsFromSession;
 use Filament\Http\Middleware\DisableBladeIconComponents;
-use App\Filament\Admin\Resources\WithdrawRequestResource;
 use Filament\Http\Middleware\DispatchServingFilamentEvent;
 use Illuminate\Foundation\Http\Middleware\VerifyCsrfToken;
 use Illuminate\Cookie\Middleware\AddQueuedCookiesToResponse;
@@ -103,24 +98,14 @@ class AdminPanelProvider extends PanelProvider
                     ->navigation(function (NavigationBuilder $builder): NavigationBuilder {
                 return $builder->groups([
                     NavigationGroup::make('')
-                    ->items([
+                        ->items([
                             ...Dashboard::getNavigationItems(),
-                            ...VoucherResource::getNavigationItems(),
-                            ...TarifTransportasiPage::getNavigationItems(),
                             ...TransaksiResource::getNavigationItems(),
-                            ...WithdrawRequestResource::getNavigationItems(),
-                            ...TestimoniResource::getNavigationItems(),
-                            // ...PageResource::getNavigationItems(),
-                            // ...CategoryResource::getNavigationItems(),
-                            // ...HomePageSettings::getNavigationItems(),
                         ]),
-                        NavigationGroup::make('Master Data')
+                    NavigationGroup::make('Master Data')
                         ->items([
                             ...KaryawanResource::getNavigationItems(),
                             ...AbsensiBasePage::getNavigationItems(),
-                            // ...PageResource::getNavigationItems(),
-                            // ...CategoryResource::getNavigationItems(),
-                            // ...HomePageSettings::getNavigationItems(),
                         ]),
                         NavigationGroup::make('Settings')
                         ->items([
