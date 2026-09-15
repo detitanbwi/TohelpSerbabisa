@@ -16,11 +16,17 @@ use Illuminate\Support\Facades\Log;
 
 class MobilController extends Controller
 {
-    public function index()
+    public function index(Request $request)
     {
+        $cabang = Cabang::all();
+        $cabangId = $request->get('cabang_id') ?? session('selected_cabang_id') ?? ($cabang->first()?->id ?? 1);
+        $activeCabang = Cabang::find($cabangId) ?? $cabang->first();
+
         return view('pages.taxi.index', [
             'tarifDasar' => TarifDasar::whereJenis('Mobil')->first(),
             'tarifJarak' => TarifJarak::whereJenis('Mobil')->first(),
+            'cabang' => $cabang,
+            'activeCabang' => $activeCabang,
         ]);
     }
 

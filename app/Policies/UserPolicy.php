@@ -18,7 +18,7 @@ class UserPolicy
      */
     public function viewAny(User $user): bool
     {
-        return $user->can('view_any_karyawan');
+        return $user->hasRole('manager_cabang') || $user->can('view_any_karyawan');
     }
 
     /**
@@ -29,7 +29,7 @@ class UserPolicy
      */
     public function view(User $user): bool
     {
-        return $user->can('view_karyawan');
+        return $user->hasRole('manager_cabang') || $user->can('view_karyawan');
     }
 
     /**
@@ -40,7 +40,7 @@ class UserPolicy
      */
     public function create(User $user): bool
     {
-        return $user->can('create_karyawan');
+        return $user->hasRole('manager_cabang') || $user->can('create_karyawan');
     }
 
     /**
@@ -51,7 +51,7 @@ class UserPolicy
      */
     public function update(User $user): bool
     {
-        return $user->can('update_karyawan');
+        return $user->hasRole('manager_cabang') || $user->can('update_karyawan');
     }
 
     /**
@@ -62,7 +62,7 @@ class UserPolicy
      */
     public function delete(User $user): bool
     {
-        return $user->can('delete_karyawan');
+        return $user->hasRole('manager_cabang') || $user->can('delete_karyawan');
     }
 
     /**

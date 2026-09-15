@@ -64,6 +64,24 @@
     <section id="quote" class="padding-small">
         <div class="container text-center">
             <h3 class="display-6 fw-semibold mb-4">Tentukan Lokasi</h3>
+
+            @if(isset($cabang) && $cabang->count() > 0)
+                <div class="row justify-content-center mb-4">
+                    <div class="col-md-6 col-lg-5 text-start">
+                        <label for="selectCabangTaxi" class="form-label fw-bold text-secondary mb-1">
+                            <i class="fas fa-map-marker-alt text-danger me-1"></i> Pilih Wilayah / Cabang Operasional:
+                        </label>
+                        <select id="selectCabangTaxi" class="form-select py-2 shadow-sm rounded" onchange="window.location.href='?cabang_id=' + this.value">
+                            @foreach($cabang as $cb)
+                                <option value="{{ $cb->id }}" {{ ($activeCabang->id ?? null) == $cb->id ? 'selected' : '' }}>
+                                    📍 Cabang {{ $cb->nama }} (Basecamp: {{ number_format($cb->lat, 4) }}, {{ number_format($cb->lng, 4) }})
+                                </option>
+                            @endforeach
+                        </select>
+                    </div>
+                </div>
+            @endif
+
             <div id="map" style="height: 400px; width: 100%; margin-bottom: 20px;"></div>
 
             <button id="useMyLocation" class="btn btn-primary mb-3">
@@ -118,9 +136,10 @@
 
     <script>
         $(document).ready(function() {
-            // Constants
-            const BASECAMP_LAT = parseFloat("{{ env('BASECAMP_LAT') }}");
-            const BASECAMP_LNG = parseFloat("{{ env('BASECAMP_LONG') }}");
+            // Constants from dynamic Active Cabang / City Basecamp
+            const BASECAMP_LAT = parseFloat("{{ $activeCabang->lat ?? config('services.location.basecamp_lat', -8.1711) }}");
+            const BASECAMP_LNG = parseFloat("{{ $activeCabang->lng ?? $activeCabang->long ?? config('services.location.basecamp_long', 113.7233) }}");
+            const CABANG_ID = {{ $activeCabang->id ?? 1 }};
             const BASE_FEE = parseFloat("{{ $tarifDasar->harga }}"); // Base fee for car
 
             // Tiered pricing for cars
@@ -727,48 +746,9 @@
                 });
             }
 
-            // Determine cabang based on location
+            // Determine cabang based on location or active branch
             async function determineCabang(lat, lng) {
-                return new Promise((resolve) => {
-                    const geocoder = new google.maps.Geocoder();
-                    geocoder.geocode({
-                        location: {
-                            lat: parseFloat(lat),
-                            lng: parseFloat(lng)
-                        }
-                    }, (results, status) => {
-                        if (status === 'OK' && results[0]) {
-                            // Get the address components
-                            const addressComponents = results[0].address_components;
-                            let city = '';
-
-                            // Find the city component
-                            for (const component of addressComponents) {
-                                if (component.types.includes('locality')) {
-                                    city = component.long_name.toLowerCase();
-                                    break;
-                                }
-                            }
-
-                            // Determine cabang based on city
-                            let cabangId = null;
-                            switch (city) {
-                                case 'malang':
-                                    cabangId = 1; // Assuming 1 is Malang's cabang ID
-                                    break;
-                                case 'surabaya':
-                                    cabangId = 2; // Assuming 2 is Surabaya's cabang ID
-                                    break;
-                                    // Add more cities as needed
-                                default:
-                                    cabangId = 1; // Default to Malang or handle as needed
-                            }
-                            resolve(cabangId);
-                        } else {
-                            resolve(1); // Default to Malang if geocoding fails
-                        }
-                    });
-                });
+                return CABANG_ID;
             }
 
             // Modify the order click handler

@@ -34,10 +34,11 @@ class KaryawanPanelProvider extends PanelProvider
         return $panel
             ->id('karyawan')
             ->path('karyawan')
+            ->favicon(asset('images/logo-tohelp-kecil.png'))
             ->colors([
                 'primary' => Color::Amber,
             ])
-            ->login()
+            ->login(\App\Filament\Pages\Auth\Login::class)
             ->discoverResources(in: app_path('Filament/Karyawan/Resources'), for: 'App\\Filament\\Karyawan\\Resources')
             ->discoverPages(in: app_path('Filament/Karyawan/Pages'), for: 'App\\Filament\\Karyawan\\Pages')
             ->pages([
@@ -59,7 +60,7 @@ class KaryawanPanelProvider extends PanelProvider
                 DispatchServingFilamentEvent::class,
             ])
             ->authMiddleware([
-                Authenticate::class,
+                \App\Http\Middleware\FilamentAuthenticate::class,
             ])
             ->plugins([
                 FilamentEditProfilePlugin::make()
@@ -85,10 +86,6 @@ class KaryawanPanelProvider extends PanelProvider
                             ...AbsensiResource::getNavigationItems(),
                         ]),
                 ]);
-            })
-            ->renderHook(
-                PanelsRenderHook::AUTH_LOGIN_FORM_AFTER,
-                fn() => view('filament.karyawan.components.change-admin-panel')
-            );
+            });
     }
 }

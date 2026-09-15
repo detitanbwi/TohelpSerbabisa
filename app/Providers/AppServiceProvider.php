@@ -28,5 +28,11 @@ class AppServiceProvider extends ServiceProvider
         Gate::before(function ($user, $ability) {
             return $user->hasRole('super_admin') ? true : null;
         });
+
+        // Register custom edit profile form with username support
+        \Livewire\Livewire::component('edit_profile_form', \App\Livewire\CustomEditProfileForm::class);
+
+        // Register custom login Livewire component
+        \Livewire\Livewire::component('app.filament.pages.auth.login', \App\Filament\Pages\Auth\Login::class);
     }
 }

@@ -64,6 +64,24 @@
     <section class="padding-small" id="quote">
         <div class="container text-center">
             <h3 class="display-6 fw-semibold mb-4">Tentukan Lokasi</h3>
+
+            @if(isset($cabang) && $cabang->count() > 0)
+                <div class="row justify-content-center mb-4">
+                    <div class="col-md-6 col-lg-5 text-start">
+                        <label for="selectCabang" class="form-label fw-bold text-secondary mb-1">
+                            <i class="fas fa-map-marker-alt text-danger me-1"></i> Pilih Wilayah / Cabang Operasional:
+                        </label>
+                        <select id="selectCabang" class="form-select py-2 shadow-sm rounded" onchange="window.location.href='?cabang_id=' + this.value">
+                            @foreach($cabang as $cb)
+                                <option value="{{ $cb->id }}" {{ ($activeCabang->id ?? null) == $cb->id ? 'selected' : '' }}>
+                                    📍 Cabang {{ $cb->nama }} (Basecamp: {{ number_format($cb->lat, 4) }}, {{ number_format($cb->lng, 4) }})
+                                </option>
+                            @endforeach
+                        </select>
+                    </div>
+                </div>
+            @endif
+
             <div id="map" style="height: 400px; width: 100%; margin-bottom: 20px;"></div>
 
             <button class="btn btn-primary mb-3" id="useMyLocation">
@@ -139,9 +157,10 @@
 
     <script>
         $(document).ready(function() {
-            // Constants
-            const BASECAMP_LAT = {{ config('services.location.basecamp_lat') }};
-            const BASECAMP_LNG = {{ config('services.location.basecamp_long') }};
+            // Constants from dynamic Active Cabang / City Basecamp
+            const BASECAMP_LAT = parseFloat("{{ $activeCabang->lat ?? config('services.location.basecamp_lat', -8.1711) }}");
+            const BASECAMP_LNG = parseFloat("{{ $activeCabang->lng ?? $activeCabang->long ?? config('services.location.basecamp_long', 113.7233) }}");
+            const CABANG_ID = {{ $activeCabang->id ?? 1 }};
             const BASE_FEE = {{ $tarifDasar->harga }}; // Base fee for car
 
             // New pricing model
@@ -858,6 +877,7 @@
                                         titik_tujuan: $(
                                                 '#lokasi_akhir')
                                             .val(),
+                                        cabang: CABANG_ID,
                                     },
                                     success: function(response) {
                                         if (response.status ===

@@ -23,6 +23,28 @@ use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Route;
 
+Route::middleware([
+    \Illuminate\Cookie\Middleware\EncryptCookies::class,
+    \Illuminate\Cookie\Middleware\AddQueuedCookiesToResponse::class,
+    \Illuminate\Session\Middleware\StartSession::class,
+    \Illuminate\Session\Middleware\AuthenticateSession::class,
+    \Illuminate\View\Middleware\ShareErrorsFromSession::class,
+    \Illuminate\Foundation\Http\Middleware\VerifyCsrfToken::class,
+    \Illuminate\Routing\Middleware\SubstituteBindings::class,
+    \Filament\Http\Middleware\DisableBladeIconComponents::class,
+    \Filament\Http\Middleware\DispatchServingFilamentEvent::class,
+])->group(function () {
+    Route::get('/login', \App\Filament\Pages\Auth\Login::class)->name('login');
+});
+
+Route::get('/admin/login', function () {
+    return redirect()->to('/login');
+})->name('filament.admin.auth.login');
+
+Route::get('/karyawan/login', function () {
+    return redirect()->to('/login');
+})->name('filament.karyawan.auth.login');
+
 Route::get('/', function () {
     return view('pages.beranda.index', [
         'testimonis' => Testimoni::latest()->get()

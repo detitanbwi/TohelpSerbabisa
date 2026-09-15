@@ -24,6 +24,7 @@ class DatabaseSeeder extends Seeder
             RoleSeeder::class,
             CabangSeeder::class,
             TarifDasarSeeder::class,
+            UserSeeder::class,
         ]);
     }
 }

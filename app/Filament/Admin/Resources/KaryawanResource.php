@@ -17,11 +17,13 @@ use Illuminate\Support\Facades\Hash;
 use Filament\Forms\Components\Select;
 use Filament\Forms\Components\TextInput;
 use Filament\Notifications\Notification;
-use Filament\Tables\Columns\ImageColumn;
-use Filament\Tables\Enums\FiltersLayout;
 use Filament\Forms\Components\DatePicker;
 use Filament\Forms\Components\FileUpload;
+use Filament\Forms\Components\Toggle;
+use Filament\Tables\Columns\ToggleColumn;
+use Filament\Tables\Enums\FiltersLayout;
 use Filament\Tables\Filters\SelectFilter;
+use Filament\Tables\Filters\TernaryFilter;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\SoftDeletingScope;
 use App\Filament\Admin\Resources\KaryawanResource\Pages;
@@ -45,8 +47,12 @@ class KaryawanResource extends Resource
                     ->schema([
                         TextInput::make('name')
                             ->label('Nama Karyawan')
-                            ->required()
-                            ->unique(ignoreRecord: true),
+                            ->required(),
+                        TextInput::make('username')
+                            ->label('Username Unik')
+                            ->placeholder('Contoh: helpman01 atau 001_ANDI')
+                            ->unique(ignoreRecord: true)
+                            ->nullable(),
                         TextInput::make('email')
                             ->label('Email')
                             ->required()
@@ -55,6 +61,9 @@ class KaryawanResource extends Resource
                         Select::make('cabang_id')
                             ->label('Cabang')
                             ->options(Cabang::all()->pluck('nama', 'id'))
+                            ->default(fn () => auth()->user()?->hasRole('manager_cabang') ? auth()->user()->cabang_id : null)
+                            ->disabled(fn () => auth()->user()?->hasRole('manager_cabang'))
+                            ->dehydrated()
                             ->required(),
                         TextInput::make('password')
                             ->password()
@@ -65,6 +74,10 @@ class KaryawanResource extends Resource
                             ->label('Tanggal Lahir')
                             ->required(fn(string $operation): bool => $operation === 'create')
                             ->locale('id'),
+                        Toggle::make('is_visible')
+                            ->label('Status Siaga / Aktif')
+                            ->helperText('Jika dinonaktifkan (cuti/libur), personil tidak akan muncul dalam daftar siaga tugas.')
+                            ->default(true),
                         FileUpload::make('avatar_url')
                             ->label('Foto')
                             ->maxFiles(1),
@@ -75,19 +88,55 @@ class KaryawanResource extends Resource
     public static function table(Table $table): Table
     {
         return $table
-            ->query(User::query()->with('media')->whereNot('name', 'Admin')->whereHas('roles', fn (Builder $query) => $query->where('name', 'karyawan')))
+            ->modifyQueryUsing(function (Builder $query) {
+                $query->with(['media', 'roles', 'cabang'])
+                    ->whereNot('name', 'Admin')
+                    ->whereNot('email', 'admin@gmail.com');
+
+                if (auth()->user()?->hasRole('manager_cabang')) {
+                    $query->where('cabang_id', auth()->user()->cabang_id)
+                          ->whereHas('roles', fn (Builder $q) => $q->where('name', 'karyawan'));
+                }
+            })
             ->columns([
                 Tables\Columns\TextColumn::make('name')
-                    ->label('Nama Karyawan')
+                    ->label('Nama Personil')
+                    ->searchable()
+                    ->sortable()
+                    ->weight('bold'),
+                Tables\Columns\TextColumn::make('username')
+                    ->label('Username')
+                    ->badge()
+                    ->color('info')
                     ->searchable()
                     ->sortable(),
                 Tables\Columns\TextColumn::make('email')
                     ->label('Email')
                     ->searchable()
                     ->sortable(),
+                Tables\Columns\TextColumn::make('roles.name')
+                    ->label('Jabatan')
+                    ->badge()
+                    ->color(fn (?string $state): string => match ($state) {
+                        'super_admin' => 'danger',
+                        'manager_cabang' => 'warning',
+                        'karyawan' => 'success',
+                        default => 'gray',
+                    })
+                    ->formatStateUsing(fn (?string $state): string => match ($state) {
+                        'super_admin' => 'Owner',
+                        'manager_cabang' => 'Manager Cabang',
+                        'karyawan' => 'Helpman',
+                        default => ucfirst($state ?? '-'),
+                    }),
                 Tables\Columns\TextColumn::make('cabang.nama')
                     ->label('Cabang')
+                    ->badge()
+                    ->color('primary')
                     ->searchable()
+                    ->sortable(),
+                ToggleColumn::make('is_visible')
+                    ->label('Siaga (Aktif)')
                     ->sortable(),
                 Tables\Columns\TextColumn::make('tanggal_lahir')
                     ->label('Tanggal Lahir')
@@ -100,13 +149,19 @@ class KaryawanResource extends Resource
                         $usia = date_diff(date_create($tanggal_lahir), date_create('now'))->y;
                         return $usia . ' tahun';
                     }),
-                ImageColumn::make('avatar_url')
+                Tables\Columns\ImageColumn::make('avatar_url')
                     ->label('Foto'),
             ])
             ->filters([
                 SelectFilter::make('cabang_id')
-                    ->label('Cabang')
-                    ->options(Cabang::all()->pluck('nama', 'id')),
+                    ->label('Filter Cabang')
+                    ->options(Cabang::all()->pluck('nama', 'id'))
+                    ->visible(fn() => auth()->user()?->hasRole('super_admin') ?? false),
+                TernaryFilter::make('is_visible')
+                    ->label('Status Siaga')
+                    ->placeholder('Semua Status')
+                    ->trueLabel('Hanya yang Siaga (Aktif)')
+                    ->falseLabel('Hanya yang Nonaktif (Cuti)'),
             ], layout: FiltersLayout::AboveContent)
             ->actions([
                 Tables\Actions\Action::make('lihatAbsensi')
@@ -121,8 +176,12 @@ class KaryawanResource extends Resource
                         ->schema([
                             TextInput::make('name')
                                 ->label('Nama Karyawan')
-                                ->required()
-                                ->unique(ignoreRecord: true),
+                                ->required(),
+                            TextInput::make('username')
+                                ->label('Username Unik')
+                                ->placeholder('Contoh: helpman01 atau 001_ANDI')
+                                ->unique(ignoreRecord: true)
+                                ->nullable(),
                             TextInput::make('email')
                                 ->label('Email')
                                 ->required()
@@ -138,7 +197,13 @@ class KaryawanResource extends Resource
                             Select::make('cabang_id')
                                 ->label('Cabang')
                                 ->options(Cabang::all()->pluck('nama', 'id'))
+                                ->default(fn () => auth()->user()?->hasRole('manager_cabang') ? auth()->user()->cabang_id : null)
+                                ->disabled(fn () => auth()->user()?->hasRole('manager_cabang'))
+                                ->dehydrated()
                                 ->required(),
+                            Toggle::make('is_visible')
+                                ->label('Status Siaga / Aktif')
+                                ->default(true),
                             FileUpload::make('avatar_url')
                                 ->label('Foto')
                                 ->maxFiles(1),
@@ -146,15 +211,20 @@ class KaryawanResource extends Resource
                     ])
                     ->using(function(User $user, array $data)
                     {
-                        // dd($data);
                         DB::beginTransaction();
                         try
                         {
+                            $cabangId = auth()->user()?->hasRole('manager_cabang') 
+                                ? auth()->user()->cabang_id 
+                                : ($data['cabang_id'] ?? $user->cabang_id);
+
                             $user->update([
                                 'name' => $data['name'],
+                                'username' => $data['username'] ?? null,
                                 'email' => $data['email'],
-                                'avatar_url' => $data['avatar_url'],
-                                'cabang_id' => $data['cabang_id'],
+                                'avatar_url' => $data['avatar_url'] ?? $user->avatar_url,
+                                'cabang_id' => $cabangId,
+                                'is_visible' => $data['is_visible'] ?? true,
                             ]);
 
                             if(isset($data['password']))

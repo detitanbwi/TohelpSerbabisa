@@ -18,6 +18,7 @@ use App\Filament\Admin\Pages\AbsensiBasePage;
 use App\Filament\Admin\Pages\TarifTransportasiPage;
 use Illuminate\Session\Middleware\StartSession;
 use Illuminate\Cookie\Middleware\EncryptCookies;
+use App\Filament\Admin\Resources\CabangResource;
 use App\Filament\Admin\Resources\KaryawanResource;
 use App\Filament\Admin\Resources\TransaksiResource;
 use BezhanSalleh\FilamentShield\FilamentShieldPlugin;
@@ -41,7 +42,8 @@ class AdminPanelProvider extends PanelProvider
             ->default()
             ->id('admin')
             ->path('admin')
-            ->login()
+            ->favicon(asset('images/logo-tohelp-kecil.png'))
+            ->login(\App\Filament\Pages\Auth\Login::class)
             ->colors([
                 'primary' => Color::Amber,
             ])
@@ -67,7 +69,7 @@ class AdminPanelProvider extends PanelProvider
                 DispatchServingFilamentEvent::class,
             ])
             ->authMiddleware([
-                Authenticate::class,
+                \App\Http\Middleware\FilamentAuthenticate::class,
             ])
             ->plugins([
                 FilamentEditProfilePlugin::make()
@@ -105,6 +107,7 @@ class AdminPanelProvider extends PanelProvider
                         ]),
                     NavigationGroup::make('Master Data')
                         ->items([
+                            ...(CabangResource::canAccess() ? CabangResource::getNavigationItems() : []),
                             ...KaryawanResource::getNavigationItems(),
                             ...AbsensiBasePage::getNavigationItems(),
                             ...TarifTransportasiPage::getNavigationItems(),
@@ -129,11 +132,6 @@ class AdminPanelProvider extends PanelProvider
                         ]),
                         
                     ]);
-                })
-                ->renderHook(
-                    PanelsRenderHook::AUTH_LOGIN_FORM_AFTER,
-                    fn() => view('filament.admin.components.change-karyawan-panel')
-                )
-            ;
+                });
     }
 }

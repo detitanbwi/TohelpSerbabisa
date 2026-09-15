@@ -29,11 +29,36 @@ class User extends Authenticatable implements HasAvatar, FilamentUser, HasMedia,
      */
     protected $fillable = [
         'name',
+        'username',
         'email',
         'password',
+        'cabang_id',
+        'is_visible',
         'avatar_url',
         'custom_fields',
     ];
+
+    protected static function booted(): void
+    {
+        static::creating(function ($user) {
+            if (empty($user->cabang_id)) {
+                $randomCabangId = Cabang::inRandomOrder()->value('id') ?? Cabang::value('id');
+                if ($randomCabangId) {
+                    $user->cabang_id = $randomCabangId;
+                }
+            }
+        });
+    }
+
+    public function scopeVisible($query)
+    {
+        return $query->where('is_visible', true);
+    }
+
+    public function managedCabang()
+    {
+        return $this->hasOne(Cabang::class, 'manager_id');
+    }
 
     public function getFilamentAvatarUrl(): ?string
     {
@@ -61,6 +86,7 @@ class User extends Authenticatable implements HasAvatar, FilamentUser, HasMedia,
             'email_verified_at' => 'datetime',
             'password' => 'hashed',
             'custom_fields' => 'json',
+            'is_visible' => 'boolean',
         ];
     }
 
@@ -83,7 +109,7 @@ class User extends Authenticatable implements HasAvatar, FilamentUser, HasMedia,
     {
         if($panel->getId() == 'admin')
         {
-            return $this->hasRole('super_admin');
+            return $this->hasAnyRole(['super_admin', 'manager_cabang']);
         }
         if($panel->getId() == 'karyawan')
         {

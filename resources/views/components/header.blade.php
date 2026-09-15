@@ -2,7 +2,7 @@
     <nav class="navbar navbar-expand-lg navbar-dark" style="background-color: #05213C;">
         <div class="container">
             <a class="navbar-brand py-2" href="#">
-                <img src="{{ asset('images/logo.png') }}" alt="Logo" height="60">
+                <img src="{{ asset('images/logo-tohelp.png') }}" alt="ToHelp SerbaBisa Logo" height="60" style="max-height: 50px; width: auto; object-fit: contain;">
             </a>
             <button class="navbar-toggler border-0" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav"
                 aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">

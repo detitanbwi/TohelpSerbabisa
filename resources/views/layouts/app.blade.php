@@ -11,7 +11,7 @@
     <meta name="author" content="templatesjungle">
     <meta name="keywords" content="website template">
     <meta name="description" content="website template">
-    <link rel="icon" type="image/x-icon" href="{{ asset('images/logo-tohelp.jpg') }}">
+    <link rel="icon" type="image/png" href="{{ asset('images/logo-tohelp-kecil.png') }}">
 
     <!--Bootstrap ================================================== -->
     <link rel="stylesheet" type="text/css" href="{{ asset('css/bootstrap.min.css') }}">

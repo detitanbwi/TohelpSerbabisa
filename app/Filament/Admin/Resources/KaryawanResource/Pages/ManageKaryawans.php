@@ -24,15 +24,21 @@ class ManageKaryawans extends ManageRecords
                     DB::beginTransaction();
                     try
                     {
+                        $cabangId = auth()->user()?->hasRole('manager_cabang') 
+                            ? auth()->user()->cabang_id 
+                            : ($data['cabang_id'] ?? null);
+
                         $karyawan = User::create([
                             'name' => $data['name'],
+                            'username' => $data['username'] ?? null,
                             'email' => $data['email'],
                             'password' => $data['password'],
                             'custom_fields' => [
-                                'tanggal_lahir' => $data['tanggal_lahir'],
+                                'tanggal_lahir' => $data['tanggal_lahir'] ?? null,
                             ],
-                            'avatar_url' => $data['avatar_url'],
-                            'cabang_id' => $data['cabang_id'],
+                            'avatar_url' => $data['avatar_url'] ?? null,
+                            'cabang_id' => $cabangId,
+                            'is_visible' => $data['is_visible'] ?? true,
                         ]);
     
                         $karyawan->assignRole('karyawan');

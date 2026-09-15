@@ -16,12 +16,17 @@ use Illuminate\Support\Facades\Log;
 
 class OjekController extends Controller
 {
-    public function index()
+    public function index(Request $request)
     {
+        $cabang = Cabang::all();
+        $cabangId = $request->get('cabang_id') ?? session('selected_cabang_id') ?? ($cabang->first()?->id ?? 1);
+        $activeCabang = Cabang::find($cabangId) ?? $cabang->first();
+
         return view('pages.transportasi.index', [
             'tarifDasar' => TarifDasar::whereJenis('Motor')->first(),
             'tarifJarak' => TarifJarak::whereJenis('Motor')->first(),
-            'cabang' => Cabang::all(),
+            'cabang' => $cabang,
+            'activeCabang' => $activeCabang,
         ]);
     }
 
