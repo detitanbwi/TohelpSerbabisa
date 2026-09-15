@@ -39,6 +39,7 @@ class ManageKaryawans extends ManageRecords
                             'avatar_url' => $data['avatar_url'] ?? null,
                             'cabang_id' => $cabangId,
                             'is_visible' => $data['is_visible'] ?? true,
+                            'tipe_karyawan' => $data['tipe_karyawan'] ?? 'helpman',
                         ]);
     
                         $karyawan->assignRole('karyawan');

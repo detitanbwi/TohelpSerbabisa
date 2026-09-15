@@ -26,7 +26,9 @@ class KaryawanController extends Controller
                     'name' => $user->name,
                     'email' => $user->email,
                     'avatar_url' => $user->avatar_url,
-                    'age' => $age
+                    'age' => $age,
+                    'tipe_karyawan' => $user->tipe_karyawan ?? 'helpman',
+                    'cabang' => $user->cabang->nama ?? null,
                 ];
             });
 

@@ -65,6 +65,14 @@ class KaryawanResource extends Resource
                             ->disabled(fn () => auth()->user()?->hasRole('manager_cabang'))
                             ->dehydrated()
                             ->required(),
+                        Select::make('tipe_karyawan')
+                            ->label('Tipe Personil')
+                            ->options([
+                                'helpman' => 'Helpman (Lapangan)',
+                                'joki' => 'Joki (Tugas / Digital)',
+                            ])
+                            ->default('helpman')
+                            ->required(),
                         TextInput::make('password')
                             ->password()
                             ->dehydrateStateUsing(fn ($state) => Hash::make($state))
@@ -126,8 +134,19 @@ class KaryawanResource extends Resource
                     ->formatStateUsing(fn (?string $state): string => match ($state) {
                         'super_admin' => 'Owner',
                         'manager_cabang' => 'Manager Cabang',
-                        'karyawan' => 'Helpman',
+                        'karyawan' => 'Karyawan',
                         default => ucfirst($state ?? '-'),
+                    }),
+                Tables\Columns\TextColumn::make('tipe_karyawan')
+                    ->label('Tipe')
+                    ->badge()
+                    ->color(fn (?string $state): string => match ($state) {
+                        'joki' => 'warning',
+                        default => 'info',
+                    })
+                    ->formatStateUsing(fn (?string $state): string => match ($state) {
+                        'joki' => 'Joki',
+                        default => 'Helpman',
                     }),
                 Tables\Columns\TextColumn::make('cabang.nama')
                     ->label('Cabang')
@@ -157,6 +176,12 @@ class KaryawanResource extends Resource
                     ->label('Filter Cabang')
                     ->options(Cabang::all()->pluck('nama', 'id'))
                     ->visible(fn() => auth()->user()?->hasRole('super_admin') ?? false),
+                SelectFilter::make('tipe_karyawan')
+                    ->label('Filter Tipe Personil')
+                    ->options([
+                        'helpman' => 'Helpman',
+                        'joki' => 'Joki',
+                    ]),
                 TernaryFilter::make('is_visible')
                     ->label('Status Siaga')
                     ->placeholder('Semua Status')
@@ -201,6 +226,14 @@ class KaryawanResource extends Resource
                                 ->disabled(fn () => auth()->user()?->hasRole('manager_cabang'))
                                 ->dehydrated()
                                 ->required(),
+                            Select::make('tipe_karyawan')
+                                ->label('Tipe Personil')
+                                ->options([
+                                    'helpman' => 'Helpman (Lapangan)',
+                                    'joki' => 'Joki (Tugas / Digital)',
+                                ])
+                                ->default('helpman')
+                                ->required(),
                             Toggle::make('is_visible')
                                 ->label('Status Siaga / Aktif')
                                 ->default(true),
@@ -225,6 +258,7 @@ class KaryawanResource extends Resource
                                 'avatar_url' => $data['avatar_url'] ?? $user->avatar_url,
                                 'cabang_id' => $cabangId,
                                 'is_visible' => $data['is_visible'] ?? true,
+                                'tipe_karyawan' => $data['tipe_karyawan'] ?? 'helpman',
                             ]);
 
                             if(isset($data['password']))

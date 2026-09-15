@@ -34,6 +34,7 @@ class User extends Authenticatable implements HasAvatar, FilamentUser, HasMedia,
         'password',
         'cabang_id',
         'is_visible',
+        'tipe_karyawan',
         'avatar_url',
         'custom_fields',
     ];
