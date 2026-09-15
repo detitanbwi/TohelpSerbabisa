@@ -107,13 +107,27 @@
       <div class="max-w-md w-full mx-auto my-auto flex flex-col justify-center py-8">
         
         <!-- Header & Custom Logo ToHelp (Enlarged) -->
+        @php
+            $loginLogoSrc = asset('images/logo-tohelp.png');
+            $loginLogoPaths = [
+                public_path('images/logo-tohelp.png'),
+                public_path('logo-tohelp.png'),
+                base_path('public/images/logo-tohelp.png'),
+                base_path('public/logo-tohelp.png'),
+            ];
+            foreach ($loginLogoPaths as $p) {
+                if (file_exists($p)) {
+                    $loginLogoSrc = 'data:image/png;base64,' . base64_encode(file_get_contents($p));
+                    break;
+                }
+            }
+        @endphp
         <div class="mb-8">
           <div class="mb-6 flex items-center">
             <img 
-              src="{{ asset('images/logo-tohelp.png') }}" 
+              src="{{ $loginLogoSrc }}" 
               alt="ToHelp SerbaBisa Logo" 
               class="h-12 sm:h-14 w-auto object-contain"
-              onerror="if(!this.dataset.triedFallback){ this.dataset.triedFallback=1; this.src='{{ asset('logo-tohelp.png') }}'; }"
             >
           </div>
           <h1 class="text-2xl sm:text-3xl font-bold text-on-surface tracking-tight mb-2">Masuk ke Akun Anda</h1>

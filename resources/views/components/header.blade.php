@@ -1,8 +1,23 @@
+@php
+    $logoSrc = asset('images/logo-tohelp.png');
+    $logoPaths = [
+        public_path('images/logo-tohelp.png'),
+        public_path('logo-tohelp.png'),
+        base_path('public/images/logo-tohelp.png'),
+        base_path('public/logo-tohelp.png'),
+    ];
+    foreach ($logoPaths as $p) {
+        if (file_exists($p)) {
+            $logoSrc = 'data:image/png;base64,' . base64_encode(file_get_contents($p));
+            break;
+        }
+    }
+@endphp
 <header class="sticky-top">
     <nav class="navbar navbar-expand-lg navbar-dark" style="background-color: #05213C;">
         <div class="container">
-            <a class="navbar-brand py-2" href="#">
-                <img src="{{ asset('images/logo-tohelp.png') }}" alt="ToHelp SerbaBisa Logo" height="60" style="max-height: 50px; width: auto; object-fit: contain;" onerror="if(!this.dataset.triedFallback){ this.dataset.triedFallback=1; this.src='{{ asset('logo-tohelp.png') }}'; }">
+            <a class="navbar-brand py-2" href="{{ route('index') }}">
+                <img src="{{ $logoSrc }}" alt="ToHelp SerbaBisa Logo" height="60" style="max-height: 50px; width: auto; object-fit: contain;">
             </a>
             <button class="navbar-toggler border-0" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav"
                 aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">

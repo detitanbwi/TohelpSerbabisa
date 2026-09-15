@@ -10,8 +10,22 @@
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="author" content="templatesjungle">
     <meta name="keywords" content="website template">
-    <meta name="description" content="website template">
-    <link rel="icon" type="image/png" href="{{ asset('images/logo-tohelp-kecil.png') }}">
+    @php
+        $faviconSrc = asset('images/logo-tohelp-kecil.png');
+        $favPaths = [
+            public_path('images/logo-tohelp-kecil.png'),
+            public_path('logo-tohelp-kecil.png'),
+            base_path('public/images/logo-tohelp-kecil.png'),
+            base_path('public/logo-tohelp-kecil.png'),
+        ];
+        foreach ($favPaths as $fp) {
+            if (file_exists($fp)) {
+                $faviconSrc = 'data:image/png;base64,' . base64_encode(file_get_contents($fp));
+                break;
+            }
+        }
+    @endphp
+    <link rel="icon" type="image/png" href="{{ $faviconSrc }}">
 
     <!--Bootstrap ================================================== -->
     <link rel="stylesheet" type="text/css" href="{{ asset('css/bootstrap.min.css') }}">
