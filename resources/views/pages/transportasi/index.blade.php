@@ -155,10 +155,11 @@
 @endsection
 
 @push('scripts')
-    <script src="https://maps.googleapis.com/maps/api/js?key={{ config('services.google_maps.api_key') }}&libraries=places">
+    <script src="https://maps.googleapis.com/maps/api/js?key={{ config('services.google_maps.api_key') ?? env('GMAP_API_KEY') }}&libraries=places">
     </script>
 
     <script>
+        $(document).ready(function() {
             // Variables from dynamic Active Cabang / City Basecamp
             let BASECAMP_LAT = parseFloat("{{ $activeCabang->lat ?? config('services.location.basecamp_lat', -8.1711) }}");
             let BASECAMP_LNG = parseFloat("{{ $activeCabang->lng ?? $activeCabang->long ?? config('services.location.basecamp_long', 113.7233) }}");

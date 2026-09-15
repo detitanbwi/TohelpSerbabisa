@@ -135,7 +135,7 @@
 @endsection
 
 @push('scripts')
-    <script src="https://maps.googleapis.com/maps/api/js?key={{ env('GMAP_API_KEY') }}&libraries=places"></script>
+    <script src="https://maps.googleapis.com/maps/api/js?key={{ config('services.google_maps.api_key') ?? env('GMAP_API_KEY') }}&libraries=places"></script>
 
     <script>
         $(document).ready(function() {
