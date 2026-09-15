@@ -110,10 +110,10 @@
         <div class="mb-8">
           <div class="mb-6 flex items-center">
             <img 
-              src="{{ asset('images/logo-tohelp.png') }}?v={{ time() }}" 
+              src="{{ asset('images/logo-tohelp.png') }}" 
               alt="ToHelp SerbaBisa Logo" 
               class="h-12 sm:h-14 w-auto object-contain"
-              onerror="this.onerror=null; this.src='{{ asset('logo-tohelp.png') }}';"
+              onerror="if(!this.dataset.triedFallback){ this.dataset.triedFallback=1; this.src='{{ asset('logo-tohelp.png') }}'; }"
             >
           </div>
           <h1 class="text-2xl sm:text-3xl font-bold text-on-surface tracking-tight mb-2">Masuk ke Akun Anda</h1>
