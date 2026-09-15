@@ -40,9 +40,9 @@
                                     <span class="city-tile-name fw-bold">{{ $cb->nama }}</span>
                                     
                                     @if($isActive)
-                                        <span class="position-absolute top-0 end-0 m-1.5 badge rounded-pill bg-warning text-dark px-1.5 py-0.5" style="font-size: 0.65rem;" title="Lokasi Aktif">
+                                        <div class="city-tile-check" title="Lokasi Aktif">
                                             <i class="fas fa-check"></i>
-                                        </span>
+                                        </div>
                                     @endif
                                 </a>
                             </div>
@@ -68,6 +68,7 @@
             min-height: 84px;
             box-shadow: 0 1px 3px rgba(0, 0, 0, 0.04);
             cursor: pointer;
+            overflow: hidden;
         }
         .city-tile-btn:hover {
             transform: translateY(-2px);
@@ -96,6 +97,22 @@
         }
         .city-tile-btn.active .city-tile-icon {
             color: #f59e0b !important;
+        }
+        .city-tile-check {
+            position: absolute;
+            top: 7px;
+            right: 7px;
+            width: 20px;
+            height: 20px;
+            background: #f59e0b;
+            color: #ffffff;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 10px;
+            box-shadow: 0 2px 5px rgba(245, 158, 11, 0.4);
+            z-index: 2;
         }
     </style>
 

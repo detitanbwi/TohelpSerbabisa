@@ -19,11 +19,11 @@
             <a class="navbar-brand py-2" href="{{ route('index') }}">
                 <img src="{{ $logoSrc }}" alt="ToHelp SerbaBisa Logo" height="60" style="max-height: 50px; width: auto; object-fit: contain;">
             </a>
-            <div class="d-flex align-items-center gap-2">
-                <button type="button" class="btn btn-sm text-white rounded-pill px-3 py-1.5 fw-semibold d-inline-flex align-items-center gap-1.5 shadow-sm location-nav-btn" data-bs-toggle="modal" data-bs-target="#modalGlobalPilihLokasi" style="background: rgba(255, 255, 255, 0.12); border: 1px solid rgba(255, 255, 255, 0.25); backdrop-filter: blur(4px);">
-                    <i class="fas fa-map-marker-alt text-warning"></i>
-                    <span style="font-size: 0.85rem;">{{ $globalActiveCabang->nama ?? 'Pilih Lokasi' }}</span>
-                    <i class="fas fa-chevron-down ms-0.5 opacity-75" style="font-size: 0.65rem;"></i>
+            <div class="d-flex align-items-center gap-3">
+                <button type="button" class="location-header-pill" data-bs-toggle="modal" data-bs-target="#modalGlobalPilihLokasi">
+                    <span class="location-pill-icon"><i class="fas fa-map-marker-alt"></i></span>
+                    <span class="location-pill-text">{{ $globalActiveCabang->nama ?? 'Pilih Lokasi' }}</span>
+                    <span class="location-pill-arrow"><i class="fas fa-chevron-down"></i></span>
                 </button>
                 <button class="navbar-toggler border-0" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav"
                     aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
@@ -73,6 +73,48 @@
     .navbar .nav-link:hover::after,
     .navbar .nav-link.active::after {
         width: 100%;
+    }
+
+    .location-header-pill {
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+        padding: 6px 14px;
+        border-radius: 9999px;
+        background: rgba(255, 255, 255, 0.12);
+        border: 1px solid rgba(255, 255, 255, 0.25);
+        color: #ffffff;
+        font-weight: 600;
+        font-size: 0.85rem;
+        letter-spacing: 0.3px;
+        cursor: pointer;
+        transition: all 0.2s ease;
+        backdrop-filter: blur(6px);
+        text-decoration: none;
+    }
+    .location-header-pill:hover {
+        background: rgba(255, 255, 255, 0.22);
+        border-color: #f59e0b;
+        color: #ffffff;
+        transform: translateY(-1px);
+    }
+    .location-header-pill .location-pill-icon {
+        color: #f59e0b;
+        font-size: 0.92rem;
+        display: flex;
+        align-items: center;
+        margin-right: 2px;
+    }
+    .location-header-pill .location-pill-text {
+        font-weight: 600;
+        line-height: 1;
+    }
+    .location-header-pill .location-pill-arrow {
+        color: rgba(255, 255, 255, 0.7);
+        font-size: 0.65rem;
+        display: flex;
+        align-items: center;
+        margin-left: 4px;
     }
 
     @media (max-width: 991.98px) {
