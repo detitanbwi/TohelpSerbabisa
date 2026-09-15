@@ -19,6 +19,10 @@ class OjekController extends Controller
     public function index(Request $request)
     {
         $cabang = Cabang::all();
+        if ($request->has('cabang_id')) {
+            session(['selected_cabang_id' => (int) $request->get('cabang_id')]);
+        }
+        $hasSelectedCabang = session()->has('selected_cabang_id') || $request->has('cabang_id');
         $cabangId = $request->get('cabang_id') ?? session('selected_cabang_id') ?? ($cabang->first()?->id ?? 1);
         $activeCabang = Cabang::find($cabangId) ?? $cabang->first();
 
@@ -27,6 +31,7 @@ class OjekController extends Controller
             'tarifJarak' => TarifJarak::whereJenis('Motor')->first(),
             'cabang' => $cabang,
             'activeCabang' => $activeCabang,
+            'hasSelectedCabang' => $hasSelectedCabang,
         ]);
     }
 

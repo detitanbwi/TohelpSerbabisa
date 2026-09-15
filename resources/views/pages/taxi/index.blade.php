@@ -67,17 +67,20 @@
 
             @if(isset($cabang) && $cabang->count() > 0)
                 <div class="row justify-content-center mb-4">
-                    <div class="col-md-6 col-lg-5 text-start">
-                        <label for="selectCabangTaxi" class="form-label fw-bold text-secondary mb-1">
-                            <i class="fas fa-map-marker-alt text-danger me-1"></i> Pilih Wilayah / Cabang Operasional:
-                        </label>
-                        <select id="selectCabangTaxi" class="form-select py-2 shadow-sm rounded" onchange="window.location.href='?cabang_id=' + this.value">
-                            @foreach($cabang as $cb)
-                                <option value="{{ $cb->id }}" {{ ($activeCabang->id ?? null) == $cb->id ? 'selected' : '' }}>
-                                    📍 Cabang {{ $cb->nama }} (Basecamp: {{ number_format($cb->lat, 4) }}, {{ number_format($cb->lng, 4) }})
-                                </option>
-                            @endforeach
-                        </select>
+                    <div class="col-md-8 col-lg-6">
+                        <div class="card border-0 shadow-sm rounded-4 p-3" style="background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);">
+                            <div class="d-flex flex-wrap align-items-center justify-content-between gap-2">
+                                <div class="text-start">
+                                    <small class="text-muted d-block fw-semibold text-uppercase" style="font-size: 0.72rem; letter-spacing: 0.5px;">Wilayah Operasional</small>
+                                    <span class="fw-bold text-dark fs-5">
+                                        <i class="fas fa-map-marker-alt text-danger me-1"></i> Cabang {{ $activeCabang->nama ?? 'Pilih Wilayah' }}
+                                    </span>
+                                </div>
+                                <button type="button" class="btn btn-outline-primary rounded-pill px-3 py-1 btn-sm fw-semibold shadow-sm" data-bs-toggle="modal" data-bs-target="#modalPilihLokasiTaxi">
+                                    <i class="fas fa-exchange-alt me-1"></i> Ganti Wilayah
+                                </button>
+                            </div>
+                        </div>
                     </div>
                 </div>
             @endif
@@ -906,6 +909,63 @@
                 resetVoucher();
                 $(this).hide();
             });
+
+            // Auto show modal lokasi jika belum memilih cabang
+            @if(!($hasSelectedCabang ?? false))
+                const modalElTaxi = document.getElementById('modalPilihLokasiTaxi');
+                if (modalElTaxi && !sessionStorage.getItem('tohelp_cabang_selected')) {
+                    const modalTaxi = new bootstrap.Modal(modalElTaxi);
+                    modalTaxi.show();
+                }
+            @endif
         });
     </script>
+
+    <!-- Modal Popup Pemilihan Lokasi / Cabang Operasional -->
+    @if(isset($cabang) && $cabang->count() > 0)
+        <div class="modal fade" id="modalPilihLokasiTaxi" tabindex="-1" aria-labelledby="modalPilihLokasiTaxiLabel" aria-hidden="true" {{ !($hasSelectedCabang ?? false) ? 'data-bs-backdrop=static data-bs-keyboard=false' : '' }}>
+            <div class="modal-dialog modal-dialog-centered">
+                <div class="modal-content border-0 shadow-lg rounded-4 overflow-hidden">
+                    <div class="modal-header border-0 pb-0 pt-4 px-4">
+                        <div>
+                            <h5 class="modal-title fw-bold text-dark fs-4" id="modalPilihLokasiTaxiLabel">
+                                <i class="fas fa-map-marked-alt text-primary me-2"></i>Pilih Wilayah Operasional
+                            </h5>
+                            <p class="text-muted small mb-0 mt-1">Silakan tentukan kota/wilayah operasional layanan ToHelp SerbaBisa untuk mendapatkan driver terdekat:</p>
+                        </div>
+                        @if($hasSelectedCabang ?? false)
+                            <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                        @endif
+                    </div>
+                    <div class="modal-body p-4">
+                        <div class="d-flex flex-column gap-2.5">
+                            @foreach($cabang as $cb)
+                                <a href="?cabang_id={{ $cb->id }}" onclick="sessionStorage.setItem('tohelp_cabang_selected', 'true')" class="list-group-item list-group-item-action d-flex align-items-center justify-content-between p-3 rounded-3 border {{ ($activeCabang->id ?? null) == $cb->id ? 'border-primary bg-primary-subtle text-primary fw-bold shadow-sm' : 'border-light-subtle bg-white text-dark' }} text-decoration-none transition-all" style="transition: all 0.2s ease;">
+                                    <div class="d-flex align-items-center gap-3">
+                                        <div class="rounded-circle p-2 {{ ($activeCabang->id ?? null) == $cb->id ? 'bg-primary text-white' : 'bg-light text-secondary' }}" style="width: 42px; height: 42px; display: flex; align-items: center; justify-content: center; font-size: 1.1rem;">
+                                            <i class="fas fa-city"></i>
+                                        </div>
+                                        <div class="text-start">
+                                            <div class="fs-6 fw-bold">Cabang {{ $cb->nama }}</div>
+                                            <small class="text-muted fw-normal">Wilayah Operasional Area {{ $cb->nama }}</small>
+                                        </div>
+                                    </div>
+                                    @if(($activeCabang->id ?? null) == $cb->id)
+                                        <span class="badge bg-primary rounded-pill px-3 py-1.5"><i class="fas fa-check me-1"></i>Aktif</span>
+                                    @else
+                                        <i class="fas fa-chevron-right text-muted"></i>
+                                    @endif
+                                </a>
+                            @endforeach
+                        </div>
+                    </div>
+                    <div class="modal-footer border-0 pt-0 pb-4 px-4 justify-content-center text-center">
+                        <small class="text-muted">
+                            <i class="fas fa-info-circle me-1"></i> Anda dapat mengganti wilayah sewaktu-waktu sebelum memesan.
+                        </small>
+                    </div>
+                </div>
+            </div>
+        </div>
+    @endif
 @endpush
