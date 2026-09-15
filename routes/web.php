@@ -45,6 +45,19 @@ Route::get('/karyawan/login', function () {
     return redirect()->to('/login');
 })->name('filament.karyawan.auth.login');
 
+Route::get('/set-cabang/{id}', function ($id, Request $request) {
+    $cabang = \App\Models\Cabang::find($id);
+    if ($cabang) {
+        session(['selected_cabang_id' => $cabang->id]);
+    }
+    $redirectUrl = $request->get('redirect') ?? url()->previous();
+    // remove previous cabang_id query param to prevent conflict
+    $redirectUrl = preg_replace('/([?&])cabang_id=[^&]+(&|$)/', '$1', $redirectUrl);
+    $redirectUrl = rtrim($redirectUrl, '?&');
+    $delimiter = strpos($redirectUrl, '?') === false ? '?' : '&';
+    return redirect($redirectUrl . $delimiter . 'cabang_id=' . $id);
+})->name('set-cabang');
+
 Route::get('/', function () {
     return view('pages.beranda.index', [
         'testimonis' => Testimoni::latest()->get()

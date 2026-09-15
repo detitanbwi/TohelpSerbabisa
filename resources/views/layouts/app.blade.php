@@ -61,6 +61,8 @@
 
     @include('components.footer')
 
+    @include('components.location-modal')
+
     <script src="{{ asset('js/jquery-1.11.0.min.js') }}"></script>
     <script type="text/javascript" src="{{ asset('js/bootstrap.bundle.min.js') }}"></script>
     <script type="text/javascript" src="{{ asset('js/plugins.js') }}"></script>

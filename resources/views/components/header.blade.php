@@ -19,10 +19,17 @@
             <a class="navbar-brand py-2" href="{{ route('index') }}">
                 <img src="{{ $logoSrc }}" alt="ToHelp SerbaBisa Logo" height="60" style="max-height: 50px; width: auto; object-fit: contain;">
             </a>
-            <button class="navbar-toggler border-0" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav"
-                aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
-                <span class="navbar-toggler-icon"></span>
-            </button>
+            <div class="d-flex align-items-center gap-2">
+                <button type="button" class="btn btn-sm text-white rounded-pill px-3 py-1.5 fw-semibold d-inline-flex align-items-center gap-1.5 shadow-sm location-nav-btn" data-bs-toggle="modal" data-bs-target="#modalGlobalPilihLokasi" style="background: rgba(255, 255, 255, 0.12); border: 1px solid rgba(255, 255, 255, 0.25); backdrop-filter: blur(4px);">
+                    <i class="fas fa-map-marker-alt text-warning"></i>
+                    <span style="font-size: 0.85rem;">{{ $globalActiveCabang->nama ?? 'Pilih Lokasi' }}</span>
+                    <i class="fas fa-chevron-down ms-0.5 opacity-75" style="font-size: 0.65rem;"></i>
+                </button>
+                <button class="navbar-toggler border-0" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav"
+                    aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
+                    <span class="navbar-toggler-icon"></span>
+                </button>
+            </div>
             <div class="collapse navbar-collapse justify-content-end" id="navbarNav">
                 <ul class="navbar-nav">
                     <li class="nav-item">
