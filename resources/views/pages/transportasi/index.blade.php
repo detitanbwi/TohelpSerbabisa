@@ -73,7 +73,7 @@
                                 <div class="text-start">
                                     <small class="text-muted d-block fw-semibold text-uppercase" style="font-size: 0.72rem; letter-spacing: 0.5px;">Wilayah Operasional</small>
                                     <span class="fw-bold text-dark fs-5">
-                                        <i class="fas fa-map-marker-alt text-danger me-1"></i> Cabang {{ $activeCabang->nama ?? 'Pilih Wilayah' }}
+                                        <i class="fas fa-map-marker-alt text-danger me-1"></i> <span class="active-cabang-name">Cabang {{ $activeCabang->nama ?? 'Pilih Wilayah' }}</span>
                                     </span>
                                 </div>
                                 <button type="button" class="btn btn-outline-primary rounded-pill px-3 py-1 btn-sm fw-semibold shadow-sm" data-bs-toggle="modal" data-bs-target="#modalGlobalPilihLokasi">
@@ -159,12 +159,29 @@
     </script>
 
     <script>
-        $(document).ready(function() {
-            // Constants from dynamic Active Cabang / City Basecamp
-            const BASECAMP_LAT = parseFloat("{{ $activeCabang->lat ?? config('services.location.basecamp_lat', -8.1711) }}");
-            const BASECAMP_LNG = parseFloat("{{ $activeCabang->lng ?? $activeCabang->long ?? config('services.location.basecamp_long', 113.7233) }}");
-            const CABANG_ID = {{ $activeCabang->id ?? 1 }};
-            const BASE_FEE = {{ $tarifDasar->harga }}; // Base fee for car
+            // Variables from dynamic Active Cabang / City Basecamp
+            let BASECAMP_LAT = parseFloat("{{ $activeCabang->lat ?? config('services.location.basecamp_lat', -8.1711) }}");
+            let BASECAMP_LNG = parseFloat("{{ $activeCabang->lng ?? $activeCabang->long ?? config('services.location.basecamp_long', 113.7233) }}");
+            let CABANG_ID = {{ $activeCabang->id ?? 1 }};
+            const BASE_FEE = {{ $tarifDasar->harga }}; // Base fee for motor
+
+            // Listen for non-reload branch changes
+            window.addEventListener('tohelp:cabang-changed', function(e) {
+                if (e.detail && e.detail.lat && e.detail.lng) {
+                    BASECAMP_LAT = parseFloat(e.detail.lat);
+                    BASECAMP_LNG = parseFloat(e.detail.lng);
+                    CABANG_ID = parseInt(e.detail.id);
+
+                    if (typeof map !== 'undefined' && map) {
+                        map.panTo({ lat: BASECAMP_LAT, lng: BASECAMP_LNG });
+                    }
+
+                    // If route is plotted, recalculate with new basecamp
+                    if ($('#lat_awal').val() && $('#lat_akhir').val()) {
+                        calculateDistances();
+                    }
+                }
+            });
 
             // New pricing model
             const RATE_PER_KM = 2000; // 2rb/km for motorcycle

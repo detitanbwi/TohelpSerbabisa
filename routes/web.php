@@ -50,6 +50,13 @@ Route::get('/set-cabang/{id}', function ($id, Request $request) {
     if ($cabang) {
         session(['selected_cabang_id' => $cabang->id]);
     }
+    if ($request->ajax() || $request->wantsJson()) {
+        return response()->json([
+            'status' => 'success',
+            'message' => 'Cabang berhasil diubah',
+            'cabang' => $cabang,
+        ]);
+    }
     $redirectUrl = $request->get('redirect') ?? url()->previous();
     // remove previous cabang_id query param to prevent conflict
     $redirectUrl = preg_replace('/([?&])cabang_id=[^&]+(&|$)/', '$1', $redirectUrl);

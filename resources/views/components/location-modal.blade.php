@@ -28,10 +28,13 @@
                         @foreach($cabangs as $cb)
                             @php
                                 $isActive = ($activeId == $cb->id);
+                                $cbLat = $cb->lat ?? 0;
+                                $cbLng = $cb->lng ?? $cb->long ?? 0;
                             @endphp
                             <div class="col">
-                                <a href="{{ route('set-cabang', ['id' => $cb->id, 'redirect' => url()->current()]) }}" 
-                                   onclick="sessionStorage.setItem('tohelp_cabang_selected', 'true')"
+                                <button type="button" 
+                                   onclick="switchCabangAjax({{ $cb->id }}, '{{ addslashes($cb->nama) }}', {{ $cbLat }}, {{ $cbLng }}, this)"
+                                   data-cabang-id="{{ $cb->id }}"
                                    class="city-tile-btn text-decoration-none d-flex flex-column align-items-center justify-content-center p-3 rounded-3 border text-center position-relative w-100 {{ $isActive ? 'active' : '' }}">
                                     
                                     <div class="city-tile-icon mb-1.5">
@@ -39,12 +42,10 @@
                                     </div>
                                     <span class="city-tile-name fw-bold">{{ $cb->nama }}</span>
                                     
-                                    @if($isActive)
-                                        <div class="city-tile-check" title="Lokasi Aktif">
-                                            <i class="fas fa-check"></i>
-                                        </div>
-                                    @endif
-                                </a>
+                                    <div class="city-tile-check {{ $isActive ? '' : 'd-none' }}" title="Lokasi Aktif">
+                                        <i class="fas fa-check"></i>
+                                    </div>
+                                </button>
                             </div>
                         @endforeach
                     </div>
@@ -69,6 +70,7 @@
             box-shadow: 0 1px 3px rgba(0, 0, 0, 0.04);
             cursor: pointer;
             overflow: hidden;
+            outline: none;
         }
         .city-tile-btn:hover {
             transform: translateY(-2px);
@@ -117,6 +119,70 @@
     </style>
 
     <script>
+        function switchCabangAjax(cabangId, cabangNama, lat, lng, clickedEl) {
+            sessionStorage.setItem('tohelp_cabang_selected', 'true');
+            
+            // Immediate UI update in Modal
+            document.querySelectorAll('.city-tile-btn').forEach(btn => {
+                btn.classList.remove('active');
+                const check = btn.querySelector('.city-tile-check');
+                if (check) check.classList.add('d-none');
+            });
+            if (clickedEl) {
+                clickedEl.classList.add('active');
+                const activeCheck = clickedEl.querySelector('.city-tile-check');
+                if (activeCheck) activeCheck.classList.remove('d-none');
+            }
+
+            // Update Header Pill Text
+            document.querySelectorAll('.location-pill-text').forEach(el => {
+                el.textContent = cabangNama;
+            });
+
+            // Update in-page active cabang text labels
+            document.querySelectorAll('.active-cabang-name').forEach(el => {
+                el.textContent = 'Cabang ' + cabangNama;
+            });
+
+            // Close Modal with smooth animation
+            const modalEl = document.getElementById('modalGlobalPilihLokasi');
+            if (modalEl) {
+                const modalInstance = bootstrap.Modal.getInstance(modalEl);
+                if (modalInstance) {
+                    modalInstance.hide();
+                }
+            }
+
+            // Notify listeners (Map, Dynamic Order logic)
+            window.dispatchEvent(new CustomEvent('tohelp:cabang-changed', {
+                detail: {
+                    id: cabangId,
+                    nama: cabangNama,
+                    lat: parseFloat(lat),
+                    lng: parseFloat(lng)
+                }
+            }));
+
+            // Subtle toast message
+            if (typeof toastr !== 'undefined') {
+                toastr.options = {
+                    "closeButton": false,
+                    "progressBar": true,
+                    "positionClass": "toast-top-right",
+                    "timeOut": "2000"
+                };
+                toastr.success('Wilayah operasional diubah ke ' + cabangNama);
+            }
+
+            // Send async background request to persist in session
+            fetch('{{ url('/set-cabang') }}/' + cabangId, {
+                headers: {
+                    'X-Requested-With': 'XMLHttpRequest',
+                    'Accept': 'application/json'
+                }
+            }).catch(err => console.error('Error persisting cabang session:', err));
+        }
+
         document.addEventListener('DOMContentLoaded', function () {
             const hasSelected = {{ $hasSelected ? 'true' : 'false' }};
             const isServicePage = {{ in_array(request()->route()?->getName(), ['ojek', 'taxi', 'bersih', 'pindahan', 'bantuan', 'jastip', 'daily', 'nemenin', 'service', 'travel', 'editing', 'joki-tugas', 'teknisi', 'penitipan', 'kustom']) ? 'true' : 'false' }};
