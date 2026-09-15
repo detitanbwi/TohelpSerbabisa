@@ -120,7 +120,7 @@
 
     <script>
         function switchCabangAjax(cabangId, cabangNama, lat, lng, clickedEl) {
-            sessionStorage.setItem('tohelp_cabang_selected', 'true');
+            sessionStorage.setItem('tohelp_cabang_confirmed', '1');
             
             // Immediate UI update in Modal
             document.querySelectorAll('.city-tile-btn').forEach(btn => {
@@ -184,14 +184,16 @@
         }
 
         document.addEventListener('DOMContentLoaded', function () {
-            const hasSelected = {{ $hasSelected ? 'true' : 'false' }};
-            const isServicePage = {{ in_array(request()->route()?->getName(), ['ojek', 'taxi', 'bersih', 'pindahan', 'bantuan', 'jastip', 'daily', 'nemenin', 'service', 'travel', 'editing', 'joki-tugas', 'teknisi', 'penitipan', 'kustom']) ? 'true' : 'false' }};
+            const isConfirmed = sessionStorage.getItem('tohelp_cabang_confirmed');
             
-            if (isServicePage && !hasSelected && !sessionStorage.getItem('tohelp_cabang_selected')) {
+            // Show popup modal automatically if user has not confirmed branch in this session
+            if (!isConfirmed) {
                 const modalEl = document.getElementById('modalGlobalPilihLokasi');
                 if (modalEl) {
-                    const modal = new bootstrap.Modal(modalEl);
-                    modal.show();
+                    setTimeout(function() {
+                        const modal = bootstrap.Modal.getOrCreateInstance(modalEl);
+                        modal.show();
+                    }, 250);
                 }
             }
         });
