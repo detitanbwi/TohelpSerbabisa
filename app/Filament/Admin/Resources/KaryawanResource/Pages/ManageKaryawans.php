@@ -30,8 +30,8 @@ class ManageKaryawans extends ManageRecords
 
                         $karyawan = User::create([
                             'name' => $data['name'],
-                            'username' => $data['username'] ?? null,
-                            'email' => $data['email'],
+                            'username' => $data['username'],
+                            'email' => !empty($data['email']) ? $data['email'] : null,
                             'password' => $data['password'],
                             'custom_fields' => [
                                 'tanggal_lahir' => $data['tanggal_lahir'] ?? null,
@@ -57,8 +57,8 @@ class ManageKaryawans extends ManageRecords
 
                         Notification::make()
                             ->title('Gagal!')
-                            ->body('Tambah karyawan gagal!')
-                            ->error()
+                            ->body('Tambah karyawan gagal! ' . $e->getMessage())
+                            ->danger()
                             ->send();
                     }
                 }),

@@ -88,7 +88,7 @@ class AuthController extends Controller
             ],
             'email' => [
                 'sometimes',
-                'required',
+                'nullable',
                 'email',
                 'max:255',
                 Rule::unique('users', 'email')->ignore($user->id),

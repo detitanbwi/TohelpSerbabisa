@@ -2,41 +2,41 @@
 
 namespace App\Filament\Admin\Resources;
 
+use App\Filament\Admin\Resources\KaryawanResource\Pages;
+use App\Filament\Admin\Resources\KaryawanResource\RelationManagers;
+use App\Models\Cabang;
+use App\Models\User;
 use Exception;
 use Filament\Forms;
-use App\Models\User;
-use Filament\Tables;
-use App\Models\Cabang;
-use App\Models\Karyawan;
-use Filament\Forms\Form;
-use Filament\Tables\Table;
-use Filament\Resources\Resource;
-use Illuminate\Support\Facades\DB;
-use Filament\Forms\Components\Grid;
-use Illuminate\Support\Facades\Hash;
-use Filament\Forms\Components\Select;
-use Filament\Forms\Components\TextInput;
-use Filament\Notifications\Notification;
 use Filament\Forms\Components\DatePicker;
 use Filament\Forms\Components\FileUpload;
+use Filament\Forms\Components\Grid;
+use Filament\Forms\Components\Select;
+use Filament\Forms\Components\TextInput;
 use Filament\Forms\Components\Toggle;
+use Filament\Forms\Form;
+use Filament\Notifications\Notification;
+use Filament\Resources\Resource;
+use Filament\Tables;
 use Filament\Tables\Columns\ToggleColumn;
 use Filament\Tables\Enums\FiltersLayout;
 use Filament\Tables\Filters\SelectFilter;
 use Filament\Tables\Filters\TernaryFilter;
+use Filament\Tables\Table;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\SoftDeletingScope;
-use App\Filament\Admin\Resources\KaryawanResource\Pages;
-use Filament\Tables\Columns\SpatieMediaLibraryImageColumn;
-use Filament\Forms\Components\SpatieMediaLibraryFileUpload;
-use App\Filament\Admin\Resources\KaryawanResource\RelationManagers;
+use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Hash;
 
 class KaryawanResource extends Resource
 {
     protected static ?string $model = User::class;
 
-    protected static ?string $navigationIcon = 'heroicon-o-rectangle-stack';
-    protected static ?string $navigationLabel = 'Karyawan';
+    protected static ?string $modelLabel = 'Karyawan';
+
+    protected static ?string $navigationIcon = 'heroicon-o-identification';
+
+    protected static ?string $navigationGroup = 'Manajemen Pengguna';
 
     public static function form(Form $form): Form
     {
@@ -51,11 +51,11 @@ class KaryawanResource extends Resource
                         TextInput::make('username')
                             ->label('Username Unik')
                             ->placeholder('Contoh: helpman01 atau 001_ANDI')
-                            ->unique(ignoreRecord: true)
-                            ->nullable(),
-                        TextInput::make('email')
-                            ->label('Email')
                             ->required()
+                            ->unique(ignoreRecord: true),
+                        TextInput::make('email')
+                            ->label('Email (Opsional)')
+                            ->nullable()
                             ->email()
                             ->unique(ignoreRecord: true),
                         Select::make('cabang_id')
@@ -108,43 +108,28 @@ class KaryawanResource extends Resource
             })
             ->columns([
                 Tables\Columns\TextColumn::make('name')
-                    ->label('Nama Personil')
+                    ->label('Nama Karyawan')
                     ->searchable()
-                    ->sortable()
-                    ->weight('bold'),
+                    ->sortable(),
                 Tables\Columns\TextColumn::make('username')
                     ->label('Username')
                     ->badge()
-                    ->color('info')
+                    ->color('warning')
                     ->searchable()
                     ->sortable(),
                 Tables\Columns\TextColumn::make('email')
                     ->label('Email')
                     ->searchable()
-                    ->sortable(),
-                Tables\Columns\TextColumn::make('roles.name')
-                    ->label('Jabatan')
-                    ->badge()
-                    ->color(fn (?string $state): string => match ($state) {
-                        'super_admin' => 'danger',
-                        'manager_cabang' => 'warning',
-                        'karyawan' => 'success',
-                        default => 'gray',
-                    })
-                    ->formatStateUsing(fn (?string $state): string => match ($state) {
-                        'super_admin' => 'Owner',
-                        'manager_cabang' => 'Manager Cabang',
-                        'karyawan' => 'Karyawan',
-                        default => ucfirst($state ?? '-'),
-                    }),
+                    ->sortable()
+                    ->placeholder('-'),
                 Tables\Columns\TextColumn::make('tipe_karyawan')
-                    ->label('Tipe')
+                    ->label('Tipe Personil')
                     ->badge()
-                    ->color(fn (?string $state): string => match ($state) {
-                        'joki' => 'warning',
+                    ->color(fn (string $state): string => match ($state) {
+                        'joki' => 'success',
                         default => 'info',
                     })
-                    ->formatStateUsing(fn (?string $state): string => match ($state) {
+                    ->formatStateUsing(fn (string $state): string => match ($state) {
                         'joki' => 'Joki',
                         default => 'Helpman',
                     }),
@@ -205,11 +190,11 @@ class KaryawanResource extends Resource
                             TextInput::make('username')
                                 ->label('Username Unik')
                                 ->placeholder('Contoh: helpman01 atau 001_ANDI')
-                                ->unique(ignoreRecord: true)
-                                ->nullable(),
-                            TextInput::make('email')
-                                ->label('Email')
                                 ->required()
+                                ->unique(ignoreRecord: true),
+                            TextInput::make('email')
+                                ->label('Email (Opsional)')
+                                ->nullable()
                                 ->email()
                                 ->unique(ignoreRecord: true),
                             TextInput::make('password')
@@ -253,8 +238,8 @@ class KaryawanResource extends Resource
 
                             $user->update([
                                 'name' => $data['name'],
-                                'username' => $data['username'] ?? null,
-                                'email' => $data['email'],
+                                'username' => $data['username'],
+                                'email' => !empty($data['email']) ? $data['email'] : null,
                                 'avatar_url' => $data['avatar_url'] ?? $user->avatar_url,
                                 'cabang_id' => $cabangId,
                                 'is_visible' => $data['is_visible'] ?? true,

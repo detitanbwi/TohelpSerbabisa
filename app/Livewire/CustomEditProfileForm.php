@@ -41,11 +41,11 @@ class CustomEditProfileForm extends BaseEditProfileForm
                             ->label('Username Unik')
                             ->placeholder('Contoh: andiganteng01 atau 001_ANDI')
                             ->unique($this->userClass, ignorable: $this->user)
-                            ->nullable(),
+                            ->required(),
                         TextInput::make('email')
-                            ->label(__('filament-edit-profile::default.email'))
+                            ->label(__('filament-edit-profile::default.email') . ' (Opsional)')
                             ->email()
-                            ->required()
+                            ->nullable()
                             ->unique($this->userClass, ignorable: $this->user),
                     ]),
             ])
