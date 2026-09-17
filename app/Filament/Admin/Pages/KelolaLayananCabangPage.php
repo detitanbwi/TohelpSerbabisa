@@ -6,28 +6,13 @@ use App\Models\Cabang;
 use App\Models\CabangLayanan;
 use App\Models\Layanan;
 use App\Models\SubLayanan;
-use Filament\Forms\Components\Grid;
-use Filament\Forms\Components\Textarea;
-use Filament\Forms\Components\TextInput;
-use Filament\Forms\Components\Toggle;
-use Filament\Forms\Concerns\InteractsWithForms;
-use Filament\Forms\Contracts\HasForms;
 use Filament\Notifications\Notification;
 use Filament\Pages\Page;
-use Filament\Tables;
-use Filament\Tables\Columns\IconColumn;
-use Filament\Tables\Columns\TextColumn;
-use Filament\Tables\Concerns\InteractsWithTable;
-use Filament\Tables\Contracts\HasTable;
-use Filament\Tables\Table;
 use Illuminate\Contracts\Support\Htmlable;
-use Illuminate\Database\Eloquent\Builder;
-use Illuminate\Database\Eloquent\Collection;
+use Illuminate\Support\Facades\DB;
 
-class KelolaLayananCabangPage extends Page implements HasTable, HasForms
+class KelolaLayananCabangPage extends Page
 {
-    use InteractsWithTable, InteractsWithForms;
-
     protected static ?string $navigationIcon = 'heroicon-o-building-storefront';
     protected static ?string $navigationGroup = 'Master Data';
     protected static ?string $navigationLabel = 'Layanan & Tarif Cabang';
@@ -36,6 +21,7 @@ class KelolaLayananCabangPage extends Page implements HasTable, HasForms
     protected static string $view = 'filament.admin.pages.kelola-layanan-cabang-page';
 
     public ?int $selectedCabangId = null;
+    public array $items = [];
 
     public static function canAccess(): bool
     {
@@ -74,229 +60,157 @@ class KelolaLayananCabangPage extends Page implements HasTable, HasForms
         } else {
             $this->selectedCabangId = Cabang::first()?->id;
         }
+
+        $this->loadBranchData();
     }
 
     public function updatedSelectedCabangId(): void
     {
-        $this->resetTable();
+        $this->loadBranchData();
     }
 
-    public function table(Table $table): Table
+    public function loadBranchData(): void
     {
-        return $table
-            ->query(
-                SubLayanan::query()
-                    ->with(['layanan', 'cabangLayanans'])
-                    ->where('is_active', true)
-                    ->whereHas('layanan', fn ($q) => $q->where('is_active', true))
-                    ->orderBy('layanan_id')
-                    ->orderBy('urutan')
-            )
-            ->defaultGroup('layanan.nama')
-            ->columns([
-                TextColumn::make('nama')
-                    ->label('Sub-Layanan / Paket')
-                    ->weight('bold')
-                    ->description(fn (SubLayanan $record) => $record->deskripsi)
-                    ->searchable()
-                    ->sortable(),
+        if (!$this->selectedCabangId) {
+            $this->items = [];
+            return;
+        }
 
-                TextColumn::make('default_harga')
-                    ->label('Tarif Default Superadmin')
-                    ->getStateUsing(fn (SubLayanan $record) => $record->getFormattedDisplayPrice())
-                    ->badge()
-                    ->color('gray'),
+        $existingPivots = CabangLayanan::where('cabang_id', $this->selectedCabangId)
+            ->get()
+            ->keyBy('sub_layanan_id');
 
-                IconColumn::make('is_tersedia')
-                    ->label('Ketersediaan')
-                    ->boolean()
-                    ->getStateUsing(fn (SubLayanan $record) => $record->isTersediaForCabang($this->selectedCabangId)),
+        $allSubLayanans = SubLayanan::with('layanan')
+            ->whereHas('layanan', fn ($q) => $q->where('is_active', true))
+            ->where('is_active', true)
+            ->orderBy('layanan_id')
+            ->orderBy('urutan')
+            ->get();
 
-                TextColumn::make('tarif_efektif')
-                    ->label('Tarif Berlaku di Cabang Ini')
-                    ->getStateUsing(function (SubLayanan $record) {
-                        $pivot = $record->cabangLayanans()->where('cabang_id', $this->selectedCabangId)->first();
-                        $isCustom = $pivot && ($pivot->custom_harga !== null || !empty($pivot->custom_satuan) || !empty($pivot->custom_label));
-                        $isTersedia = $record->isTersediaForCabang($this->selectedCabangId);
+        $loaded = [];
+        foreach ($allSubLayanans as $sub) {
+            $pivot = $existingPivots->get($sub->id);
+            $loaded[$sub->id] = [
+                'sub_layanan_id' => $sub->id,
+                'layanan_id' => $sub->layanan_id,
+                'layanan_nama' => $sub->layanan->nama,
+                'sub_nama' => $sub->nama,
+                'default_harga' => $sub->default_harga,
+                'default_satuan' => $sub->default_satuan,
+                'default_label' => $sub->label_harga_custom,
+                'default_catatan_nb' => $sub->catatan_nb,
+                'is_tersedia' => $pivot ? (bool) $pivot->is_tersedia : true,
+                'custom_harga' => $pivot && $pivot->custom_harga !== null ? (float) $pivot->custom_harga : null,
+                'custom_satuan' => $pivot ? $pivot->custom_satuan : null,
+                'custom_label' => $pivot ? $pivot->custom_label : null,
+                'custom_catatan_nb' => $pivot ? $pivot->custom_catatan_nb : null,
+            ];
+        }
 
-                        if (!$isTersedia) {
-                            return '❌ Dinonaktifkan di Cabang Ini';
-                        }
+        $this->items = $loaded;
+    }
 
-                        $formatted = $record->getFormattedDisplayPrice($this->selectedCabangId);
-                        return $isCustom ? "{$formatted} (Tarif Khusus)" : "{$formatted} (Default)";
-                    })
-                    ->badge()
-                    ->color(function (string $state) {
-                        if (str_contains($state, 'Dinonaktifkan')) {
-                            return 'danger';
-                        }
-                        if (str_contains($state, 'Tarif Khusus')) {
-                            return 'warning';
-                        }
-                        return 'success';
-                    }),
+    public function getLayanansProperty()
+    {
+        return Layanan::with(['subLayanans' => function ($q) {
+            $q->where('is_active', true)->orderBy('urutan');
+        }])
+        ->where('is_active', true)
+        ->orderBy('urutan')
+        ->get();
+    }
 
-                TextColumn::make('catatan_cabang')
-                    ->label('Catatan/NB Cabang')
-                    ->getStateUsing(function (SubLayanan $record) {
-                        $pivot = $record->cabangLayanans()->where('cabang_id', $this->selectedCabangId)->first();
-                        return $pivot?->custom_catatan_nb ?: ($record->catatan_nb ?: '-');
-                    })
-                    ->limit(35)
-                    ->toggleable(),
-            ])
-            ->filters([
-                Tables\Filters\SelectFilter::make('layanan')
-                    ->relationship('layanan', 'nama')
-                    ->label('Kategori Layanan')
-                    ->preload(),
-            ])
-            ->actions([
-                Tables\Actions\Action::make('editTarif')
-                    ->label('Atur Tarif & Status')
-                    ->icon('heroicon-o-pencil-square')
-                    ->button()
-                    ->color('primary')
-                    ->modalHeading(fn (SubLayanan $record) => "Pengaturan Cabang: {$record->nama} ({$this->selectedCabangNama})")
-                    ->fillForm(function (SubLayanan $record): array {
-                        $pivot = CabangLayanan::where('cabang_id', $this->selectedCabangId)
-                            ->where('sub_layanan_id', $record->id)
-                            ->first();
+    public function toggleAll(bool $status): void
+    {
+        foreach ($this->items as $id => $item) {
+            $this->items[$id]['is_tersedia'] = $status;
+        }
 
-                        return [
-                            'is_tersedia' => $pivot ? (bool) $pivot->is_tersedia : true,
-                            'custom_harga' => $pivot?->custom_harga,
-                            'custom_satuan' => $pivot?->custom_satuan,
-                            'custom_label' => $pivot?->custom_label,
-                            'custom_catatan_nb' => $pivot?->custom_catatan_nb,
-                        ];
-                    })
-                    ->form([
-                        Toggle::make('is_tersedia')
-                            ->label('Tersedia di Cabang Ini')
-                            ->helperText('Jika dinonaktifkan, paket/layanan ini tidak akan muncul di website saat pengunjung memilih cabang ini.')
-                            ->default(true),
+        Notification::make()
+            ->title('Status Diperbarui')
+            ->body($status ? 'Semua sub-layanan telah diaktifkan.' : 'Semua sub-layanan telah dinonaktifkan.')
+            ->info()
+            ->send();
+    }
 
-                        Grid::make(2)
-                            ->schema([
-                                TextInput::make('custom_harga')
-                                    ->label('Harga Khusus Cabang (Rp)')
-                                    ->numeric()
-                                    ->prefix('Rp')
-                                    ->placeholder(fn (SubLayanan $record) => 'Default: Rp ' . number_format($record->default_harga, 0, ',', '.'))
-                                    ->helperText('Kosongkan jika ingin menggunakan harga default Superadmin.'),
+    public function toggleLayananGroup(int $layananId, bool $status): void
+    {
+        $layanan = Layanan::with('subLayanans')->find($layananId);
+        if ($layanan) {
+            foreach ($layanan->subLayanans as $sub) {
+                if (isset($this->items[$sub->id])) {
+                    $this->items[$sub->id]['is_tersedia'] = $status;
+                }
+            }
 
-                                TextInput::make('custom_satuan')
-                                    ->label('Satuan Khusus')
-                                    ->placeholder(fn (SubLayanan $record) => 'Default: ' . ($record->default_satuan ?: '-'))
-                                    ->helperText('Contoh: / jam, / paket. Kosongkan untuk pakai default.'),
-                            ]),
+            Notification::make()
+                ->title("Grup {$layanan->nama}")
+                ->body($status ? "Semua paket pada {$layanan->nama} diaktifkan." : "Semua paket pada {$layanan->nama} dinonaktifkan.")
+                ->info()
+                ->send();
+        }
+    }
 
-                        Grid::make(2)
-                            ->schema([
-                                TextInput::make('custom_label')
-                                    ->label('Label Awalan Khusus')
-                                    ->placeholder(fn (SubLayanan $record) => 'Default: ' . ($record->label_harga_custom ?: 'Kosong'))
-                                    ->helperText('Contoh: Start from, Mulai dari.'),
+    public function resetSubLayanan(int $subId): void
+    {
+        if (isset($this->items[$subId])) {
+            $this->items[$subId]['custom_harga'] = null;
+            $this->items[$subId]['custom_satuan'] = null;
+            $this->items[$subId]['custom_label'] = null;
+            $this->items[$subId]['custom_catatan_nb'] = null;
 
-                                Textarea::make('custom_catatan_nb')
-                                    ->label('Catatan Khusus Cabang')
-                                    ->rows(2)
-                                    ->placeholder('Catatan khusus untuk cabang ini...'),
-                            ]),
-                    ])
-                    ->action(function (array $data, SubLayanan $record): void {
-                        CabangLayanan::updateOrCreate(
-                            [
-                                'cabang_id' => $this->selectedCabangId,
-                                'sub_layanan_id' => $record->id,
-                            ],
-                            [
-                                'is_tersedia' => (bool) $data['is_tersedia'],
-                                'custom_harga' => ($data['custom_harga'] !== '' && $data['custom_harga'] !== null) ? (float) $data['custom_harga'] : null,
-                                'custom_satuan' => !empty($data['custom_satuan']) ? trim($data['custom_satuan']) : null,
-                                'custom_label' => !empty($data['custom_label']) ? trim($data['custom_label']) : null,
-                                'custom_catatan_nb' => !empty($data['custom_catatan_nb']) ? trim($data['custom_catatan_nb']) : null,
-                            ]
-                        );
+            Notification::make()
+                ->title('Direset')
+                ->body('Tarif dikembalikan ke default Superadmin.')
+                ->success()
+                ->send();
+        }
+    }
 
-                        Notification::make()
-                            ->title('Berhasil Disimpan')
-                            ->body("Pengaturan untuk {$record->nama} di Cabang {$this->selectedCabangNama} berhasil diperbarui.")
-                            ->success()
-                            ->send();
-                    }),
+    public function save(): void
+    {
+        if (!$this->selectedCabangId) {
+            Notification::make()
+                ->title('Error')
+                ->body('Pilih cabang terlebih dahulu.')
+                ->danger()
+                ->send();
+            return;
+        }
 
-                Tables\Actions\Action::make('resetDefault')
-                    ->label('Reset')
-                    ->icon('heroicon-o-arrow-path')
-                    ->color('gray')
-                    ->requiresConfirmation()
-                    ->modalHeading('Reset ke Tarif Default?')
-                    ->modalDescription('Harga dan satuan khusus cabang ini akan dihapus dan kembali mengikuti nilai default dari Superadmin.')
-                    ->action(function (SubLayanan $record): void {
-                        CabangLayanan::where('cabang_id', $this->selectedCabangId)
-                            ->where('sub_layanan_id', $record->id)
-                            ->update([
-                                'custom_harga' => null,
-                                'custom_satuan' => null,
-                                'custom_label' => null,
-                                'custom_catatan_nb' => null,
-                            ]);
+        DB::beginTransaction();
+        try {
+            foreach ($this->items as $subId => $data) {
+                CabangLayanan::updateOrCreate(
+                    [
+                        'cabang_id' => $this->selectedCabangId,
+                        'sub_layanan_id' => $subId,
+                    ],
+                    [
+                        'is_tersedia' => (bool) ($data['is_tersedia'] ?? true),
+                        'custom_harga' => ($data['custom_harga'] !== '' && $data['custom_harga'] !== null) ? (float) $data['custom_harga'] : null,
+                        'custom_satuan' => !empty($data['custom_satuan']) ? trim($data['custom_satuan']) : null,
+                        'custom_label' => !empty($data['custom_label']) ? trim($data['custom_label']) : null,
+                        'custom_catatan_nb' => !empty($data['custom_catatan_nb']) ? trim($data['custom_catatan_nb']) : null,
+                    ]
+                );
+            }
 
-                        Notification::make()
-                            ->title('Direset')
-                            ->body("Tarif {$record->nama} dikembalikan ke default Superadmin.")
-                            ->info()
-                            ->send();
-                    }),
-            ])
-            ->bulkActions([
-                Tables\Actions\BulkAction::make('aktifkanSemua')
-                    ->label('Aktifkan yang Dipilih')
-                    ->icon('heroicon-o-check-circle')
-                    ->color('success')
-                    ->action(function (Collection $records): void {
-                        foreach ($records as $record) {
-                            CabangLayanan::updateOrCreate(
-                                [
-                                    'cabang_id' => $this->selectedCabangId,
-                                    'sub_layanan_id' => $record->id,
-                                ],
-                                ['is_tersedia' => true]
-                            );
-                        }
+            DB::commit();
 
-                        Notification::make()
-                            ->title('Berhasil Diaktifkan')
-                            ->body('Layanan yang dipilih telah diaktifkan untuk cabang ini.')
-                            ->success()
-                            ->send();
-                    }),
-
-                Tables\Actions\BulkAction::make('nonaktifkanSemua')
-                    ->label('Nonaktifkan yang Dipilih')
-                    ->icon('heroicon-o-x-circle')
-                    ->color('danger')
-                    ->action(function (Collection $records): void {
-                        foreach ($records as $record) {
-                            CabangLayanan::updateOrCreate(
-                                [
-                                    'cabang_id' => $this->selectedCabangId,
-                                    'sub_layanan_id' => $record->id,
-                                ],
-                                ['is_tersedia' => false]
-                            );
-                        }
-
-                        Notification::make()
-                            ->title('Berhasil Dinonaktifkan')
-                            ->body('Layanan yang dipilih telah dinonaktifkan untuk cabang ini.')
-                            ->danger()
-                            ->send();
-                    }),
-            ]);
+            Notification::make()
+                ->title('Berhasil Disimpan')
+                ->body("Seluruh pengaturan layanan dan tarif Cabang {$this->selectedCabangNama} berhasil diperbarui.")
+                ->success()
+                ->send();
+        } catch (\Exception $e) {
+            DB::rollBack();
+            Notification::make()
+                ->title('Gagal Menyimpan')
+                ->body('Terjadi kesalahan: ' . $e->getMessage())
+                ->danger()
+                ->send();
+        }
     }
 
     public function getCabangOptionsProperty(): array
