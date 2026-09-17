@@ -109,8 +109,11 @@ class KaryawanResource extends Resource
         return $table
             ->modifyQueryUsing(function (Builder $query) {
                 $query->with(['media', 'roles', 'cabang'])
-                    ->whereNot('name', 'Admin')
-                    ->whereNot('email', 'admin@gmail.com');
+                    ->whereDoesntHave('roles', fn (Builder $q) => $q->where('name', 'super_admin'))
+                    ->where(function (Builder $q) {
+                        $q->where('email', '!=', 'admin@gmail.com')
+                          ->orWhereNull('email');
+                    });
 
                 if (auth()->user()?->hasRole('manager_cabang')) {
                     $query->where('cabang_id', auth()->user()->cabang_id)
