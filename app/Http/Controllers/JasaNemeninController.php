@@ -2,46 +2,26 @@
 
 namespace App\Http\Controllers;
 
-use Exception;
-use App\Models\Transaksi;
-use App\Helpers\OrderHelper;
+use App\Services\LayananService;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\DB;
-use Illuminate\Support\Facades\Log;
 
 class JasaNemeninController extends Controller
 {
-    public function index()
+    public function index(Request $request)
     {
-        return view('pages.jasa-nemenin.index');
+        $cabangId = session('selected_cabang_id') ?? $request->cabang_id;
+        $layanan = LayananService::getLayanan('jasa-nemenin', $cabangId);
+
+        return view('pages.jasa-nemenin.index', [
+            'layanan' => $layanan,
+        ]);
     }
 
     public function pesan(Request $request)
     {
-        DB::beginTransaction();
+        $cabangId = session('selected_cabang_id') ?? $request->cabang_id;
+        $result = LayananService::processPesan($request, 'jasa-nemenin', $cabangId);
 
-        try {
-            $data = [
-                'order_id' => OrderHelper::generateOrderId('JSN-'),
-                'jenis' => 'jasa-nemenin',
-                'jasa' => $request->jasa,
-            ];
-
-            Transaksi::create($data);
-
-            DB::commit();
-            return response()->json([
-                'status' => 'success',
-                'message' => 'Berhasil memesan jasa nemenin',
-                'order_id' => $data['order_id']
-            ]);
-        } catch (Exception $e) {
-            Log::error($e->getMessage());
-            DB::rollBack();
-            return response()->json([
-                'status' => 'error',
-                'message' => 'Terjadi kesalahan saat memesan jasa nemenin'
-            ], 500);
-        }
+        return response()->json($result);
     }
 }

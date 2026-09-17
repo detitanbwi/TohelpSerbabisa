@@ -110,4 +110,16 @@ class Cabang extends Model
     {
         return $this->hasMany(Transaksi::class, 'cabang_id');
     }
+
+    public function cabangLayanans(): HasMany
+    {
+        return $this->hasMany(CabangLayanan::class, 'cabang_id');
+    }
+
+    public function subLayanans(): \Illuminate\Database\Eloquent\Relations\BelongsToMany
+    {
+        return $this->belongsToMany(SubLayanan::class, 'cabang_layanan', 'cabang_id', 'sub_layanan_id')
+            ->withPivot(['is_tersedia', 'custom_harga', 'custom_satuan', 'custom_label', 'custom_catatan_nb'])
+            ->withTimestamps();
+    }
 }

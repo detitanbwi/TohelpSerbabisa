@@ -235,6 +235,11 @@ class CabangResource extends Resource
                 //
             ])
             ->actions([
+                Tables\Actions\Action::make('aturLayanan')
+                    ->label('Layanan & Tarif')
+                    ->icon('heroicon-o-adjustments-horizontal')
+                    ->color('info')
+                    ->url(fn (Cabang $record) => \App\Filament\Admin\Pages\KelolaLayananCabangPage::getUrl(['cabang' => $record->id])),
                 Tables\Actions\EditAction::make(),
                 Tables\Actions\DeleteAction::make()
                     ->visible(fn () => $isSuperAdmin),

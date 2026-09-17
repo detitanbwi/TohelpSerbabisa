@@ -2,46 +2,26 @@
 
 namespace App\Http\Controllers;
 
-use Exception;
-use App\Models\Transaksi;
-use App\Helpers\OrderHelper;
+use App\Services\LayananService;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\DB;
-use Illuminate\Support\Facades\Log;
 
 class TravelController extends Controller
 {
-    public function index()
+    public function index(Request $request)
     {
-        return view('pages.travel.index');
+        $cabangId = session('selected_cabang_id') ?? $request->cabang_id;
+        $layanan = LayananService::getLayanan('travel', $cabangId);
+
+        return view('pages.travel.index', [
+            'layanan' => $layanan,
+        ]);
     }
 
     public function pesan(Request $request)
     {
-        DB::beginTransaction();
+        $cabangId = session('selected_cabang_id') ?? $request->cabang_id;
+        $result = LayananService::processPesan($request, 'travel', $cabangId);
 
-        try {
-            $data = [
-                'order_id' => OrderHelper::generateOrderId('TRV-'),
-                'jenis' => 'travel',
-                'jasa' => $request->jasa,
-            ];
-
-            Transaksi::create($data);
-
-            DB::commit();
-            return response()->json([
-                'status' => 'success',
-                'message' => 'Berhasil memesan jasa travel',
-                'order_id' => $data['order_id']
-            ]);
-        } catch (Exception $e) {
-            Log::error($e->getMessage());
-            DB::rollBack();
-            return response()->json([
-                'status' => 'error',
-                'message' => 'Terjadi kesalahan saat memesan jasa travel'
-            ], 500);
-        }
+        return response()->json($result);
     }
 }

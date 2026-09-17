@@ -2,47 +2,26 @@
 
 namespace App\Http\Controllers;
 
-use Exception;
-use App\Models\Transaksi;
-use Illuminate\Support\Str;
-use App\Helpers\OrderHelper;
+use App\Services\LayananService;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\DB;
-use Illuminate\Support\Facades\Log;
 
 class PindahanController extends Controller
 {
-    public function index()
+    public function index(Request $request)
     {
-        return view('pages.pindahan.index');
+        $cabangId = session('selected_cabang_id') ?? $request->cabang_id;
+        $layanan = LayananService::getLayanan('pindahan', $cabangId);
+
+        return view('pages.pindahan.index', [
+            'layanan' => $layanan,
+        ]);
     }
 
     public function pesan(Request $request)
     {
-        DB::beginTransaction();
+        $cabangId = session('selected_cabang_id') ?? $request->cabang_id;
+        $result = LayananService::processPesan($request, 'pindahan', $cabangId);
 
-        try {
-            $data = [
-                'order_id' => OrderHelper::generateOrderId('P-'),
-                'jenis' => 'angkutan',
-                'jasa' => $request->jasa,
-                'total_harga' => $request->total_harga,
-            ];
-            Transaksi::create($data);
-
-            DB::commit();
-            return response()->json([
-                'status' => 'success',
-                'message' => 'Berhasil memesan jasa pindahan',
-                'order_id' => $data['order_id']
-            ]);
-        } catch (Exception $e) {
-            Log::error($e->getMessage());
-            DB::rollBack();
-            return response()->json([
-                'status' => 'error',
-                'message' => 'Terjadi kesalahan saat memesan jasa pindahan'
-            ], 500);
-        }
+        return response()->json($result);
     }
 }
