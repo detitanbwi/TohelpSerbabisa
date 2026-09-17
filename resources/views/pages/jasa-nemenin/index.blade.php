@@ -140,8 +140,9 @@
                                             `Dijemput / Menjemput : (tulis alamat kalian apabila ingin dijemput)\n` +
                                             `Noted : (untuk cek talent, bisa kunjungi website di menu bagian profile. Bingung? Tanya admin)`;
 
+                                        let CABANG_WA = "{{ $globalActiveCabang->formatted_no_wa ?? '6285695908981' }}";
                                         window.open(
-                                            `https://api.whatsapp.com/send?phone=6285695908981&text=${encodeURIComponent(message)}`,
+                                            `https://api.whatsapp.com/send?phone=${CABANG_WA}&text=${encodeURIComponent(message)}`,
                                             '_blank');
                                     });
                                 } else {

@@ -89,6 +89,23 @@ class Cabang extends Model
             ->where('is_visible', true);
     }
 
+    /**
+     * Get clean international format for WhatsApp (e.g. 6285695908981)
+     */
+    public function getFormattedNoWaAttribute(): string
+    {
+        $raw = $this->no_wa ?: '6285695908981';
+        $digits = preg_replace('/[^0-9]/', '', $raw);
+
+        if (str_starts_with($digits, '08')) {
+            $digits = '628' . substr($digits, 2);
+        } elseif (str_starts_with($digits, '8')) {
+            $digits = '628' . substr($digits, 1);
+        }
+
+        return $digits ?: '6285695908981';
+    }
+
     public function transaksis(): HasMany
     {
         return $this->hasMany(Transaksi::class, 'cabang_id');

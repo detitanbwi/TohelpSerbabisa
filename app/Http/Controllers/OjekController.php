@@ -50,7 +50,8 @@ class OjekController extends Controller
                 ], 404);
             }
         }
-        $harga = getPricing('Motor', $request->jarakBaseCampKeTitikJemput, $request->jarakTitikJemputKeTitikTujuan, $request->jarakBaseCampKeTitikTujuan, $request->jarakTitikTujuanKeTitikJemput, $discount->persentase ?? null);
+        $cabangId = $request->cabang ?? $request->cabang_id ?? session('selected_cabang_id');
+        $harga = getPricing('Motor', $request->jarakBaseCampKeTitikJemput, $request->jarakTitikJemputKeTitikTujuan, $request->jarakBaseCampKeTitikTujuan, $request->jarakTitikTujuanKeTitikJemput, $discount->persentase ?? null, $cabangId);
 
         return response()->json([
             'status' => 'success',
@@ -64,15 +65,29 @@ class OjekController extends Controller
         DB::beginTransaction();
 
         try {
+            $cabangId = $request->cabang ?? $request->cabang_id ?? session('selected_cabang_id') ?? Cabang::first()?->id;
+            $tip = max(0, (int) ($request->tip ?? 0));
+            $basePrice = getPricing(
+                'Motor',
+                $request->jarakBaseCampKeTitikJemput,
+                $request->jarak,
+                $request->jarakBaseCampKeTitikTujuan,
+                $request->jarakTitikTujuanKeTitikJemput,
+                Voucher::whereNama($request->voucher)->first()?->persentase ?? null,
+                $cabangId
+            );
+            $totalHarga = $basePrice + $tip;
+
             $data = [
                 'order_id' => OrderHelper::generateOrderId('OJK-'),
                 'jenis' => 'ojek',
-                'voucher_id' => Voucher::whereNama($request->voucher)->first()->id ?? null,
+                'voucher_id' => Voucher::whereNama($request->voucher)->first()?->id ?? null,
                 'jarak' => $request->jarak,
                 'titik_jemput' => $request->titik_jemput,
                 'titik_tujuan' => $request->titik_tujuan,
-                'cabang_id' => $request->cabang ?? Cabang::first()->id,
-                'total_harga' => getPricing('Motor',  $request->jarakBaseCampKeTitikJemput, $request->jarak, $request->jarakBaseCampKeTitikTujuan, $request->jarakTitikTujuanKeTitikJemput, Voucher::whereNama($request->voucher)->first()->persentase ?? null),
+                'cabang_id' => $cabangId,
+                'tip' => $tip,
+                'total_harga' => $totalHarga,
             ];
             Transaksi::create($data);
 
@@ -82,6 +97,7 @@ class OjekController extends Controller
                 'message' => 'Berhasil memesan jasa ojek',
                 'order_id' => $data['order_id'],
                 'harga' => $data['total_harga'],
+                'tip' => $tip,
             ]);
         } catch (Exception $e) {
             Log::error($e->getMessage());

@@ -15,6 +15,7 @@ use Filament\Forms\Components\Grid;
 use Filament\Tables\Columns\TextColumn;
 use App\Models\User;
 use Illuminate\Database\Eloquent\Builder;
+use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\HtmlString;
 
 class CabangResource extends Resource
@@ -28,16 +29,50 @@ class CabangResource extends Resource
 
     public static function canAccess(): bool
     {
-        return auth()->user()?->hasRole('super_admin') ?? false;
+        return auth()->user()?->hasAnyRole(['super_admin', 'manager_cabang']) ?? false;
     }
 
     public static function shouldRegisterNavigation(): bool
     {
+        return auth()->user()?->hasAnyRole(['super_admin', 'manager_cabang']) ?? false;
+    }
+
+    public static function canCreate(): bool
+    {
         return auth()->user()?->hasRole('super_admin') ?? false;
+    }
+
+    public static function canDelete(Model $record): bool
+    {
+        return auth()->user()?->hasRole('super_admin') ?? false;
+    }
+
+    public static function canDeleteAny(): bool
+    {
+        return auth()->user()?->hasRole('super_admin') ?? false;
+    }
+
+    public static function getEloquentQuery(): Builder
+    {
+        $query = parent::getEloquentQuery();
+        $user = auth()->user();
+
+        if ($user && $user->hasRole('manager_cabang') && ! $user->hasRole('super_admin')) {
+            $query->where(function ($q) use ($user) {
+                if ($user->cabang_id) {
+                    $q->where('id', $user->cabang_id);
+                }
+                $q->orWhere('manager_id', $user->id);
+            });
+        }
+
+        return $query;
     }
 
     public static function form(Form $form): Form
     {
+        $isSuperAdmin = auth()->user()?->hasRole('super_admin') ?? false;
+
         return $form
             ->schema([
                 Grid::make(2)
@@ -47,6 +82,17 @@ class CabangResource extends Resource
                             ->placeholder('Contoh: Cabang Banyuwangi')
                             ->required()
                             ->unique(ignoreRecord: true)
+                            ->disabled(! $isSuperAdmin)
+                            ->columnSpanFull(),
+
+                        TextInput::make('no_wa')
+                            ->label('Nomor WhatsApp Operasional Cabang')
+                            ->placeholder('Contoh: 085695908981 atau 6285695908981')
+                            ->tel()
+                            ->prefixIcon('heroicon-o-phone')
+                            ->helperText('Nomor WhatsApp resmi cabang yang menerima pesan pemesanan langsung dari wa.me.')
+                            ->required()
+                            ->default('6285695908981')
                             ->columnSpanFull(),
 
                         TextInput::make('lat')
@@ -61,11 +107,21 @@ class CabangResource extends Resource
                             ->numeric()
                             ->required(),
 
+                        TextInput::make('free_distance_km')
+                            ->label('Kuota Free Jemput (KM)')
+                            ->placeholder('3.00')
+                            ->numeric()
+                            ->default(3.00)
+                            ->suffix('KM')
+                            ->helperText('Batas jarak penjemputan dari basecamp yang bebas biaya dasar tambahan.')
+                            ->required(),
+
                         Select::make('manager_id')
                             ->label('Manager Cabang')
                             ->placeholder('-- Tidak Ada Manager (None) --')
                             ->searchable()
                             ->preload()
+                            ->visible($isSuperAdmin)
                             ->options(function (?Cabang $record) {
                                 $users = User::whereDoesntHave('roles', fn ($q) => $q->where('name', 'super_admin'))
                                     ->whereNot('email', 'admin@gmail.com')
@@ -111,6 +167,8 @@ class CabangResource extends Resource
 
     public static function table(Table $table): Table
     {
+        $isSuperAdmin = auth()->user()?->hasRole('super_admin') ?? false;
+
         return $table
             ->columns([
                 TextColumn::make('nama')
@@ -118,6 +176,12 @@ class CabangResource extends Resource
                     ->searchable()
                     ->sortable()
                     ->weight('bold'),
+
+                TextColumn::make('no_wa')
+                    ->label('No. WhatsApp')
+                    ->icon('heroicon-o-phone')
+                    ->copyable()
+                    ->searchable(),
 
                 TextColumn::make('manager.name')
                     ->label('Manager Cabang')
@@ -148,6 +212,13 @@ class CabangResource extends Resource
                     ->label('Longitude')
                     ->sortable(),
 
+                TextColumn::make('free_distance_km')
+                    ->label('Free Jemput')
+                    ->formatStateUsing(fn ($state) => number_format($state ?? 3.0, 1) . ' KM')
+                    ->badge()
+                    ->color('success')
+                    ->sortable(),
+
                 TextColumn::make('users_count')
                     ->counts('users')
                     ->label('Total Personil')
@@ -165,11 +236,13 @@ class CabangResource extends Resource
             ])
             ->actions([
                 Tables\Actions\EditAction::make(),
-                Tables\Actions\DeleteAction::make(),
+                Tables\Actions\DeleteAction::make()
+                    ->visible(fn () => $isSuperAdmin),
             ])
             ->bulkActions([
                 Tables\Actions\BulkActionGroup::make([
-                    Tables\Actions\DeleteBulkAction::make(),
+                    Tables\Actions\DeleteBulkAction::make()
+                        ->visible(fn () => $isSuperAdmin),
                 ]),
             ]);
     }

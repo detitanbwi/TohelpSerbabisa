@@ -30,10 +30,11 @@
                                 $isActive = ($activeId == $cb->id);
                                 $cbLat = $cb->lat ?? 0;
                                 $cbLng = $cb->lng ?? $cb->long ?? 0;
+                                $cbWa = $cb->formatted_no_wa ?? '6285695908981';
                             @endphp
                             <div class="col">
                                 <button type="button" 
-                                   onclick="switchCabangAjax({{ $cb->id }}, '{{ addslashes($cb->nama) }}', {{ $cbLat }}, {{ $cbLng }}, this)"
+                                   onclick="switchCabangAjax({{ $cb->id }}, '{{ addslashes($cb->nama) }}', {{ $cbLat }}, {{ $cbLng }}, '{{ $cbWa }}', this)"
                                    data-cabang-id="{{ $cb->id }}"
                                    class="city-tile-btn text-decoration-none d-flex flex-column align-items-center justify-content-center p-3 rounded-3 border text-center position-relative w-100 {{ $isActive ? 'active' : '' }}">
                                     
@@ -119,7 +120,7 @@
     </style>
 
     <script>
-        function switchCabangAjax(cabangId, cabangNama, lat, lng, clickedEl) {
+        function switchCabangAjax(cabangId, cabangNama, lat, lng, noWa, clickedEl) {
             sessionStorage.setItem('tohelp_cabang_confirmed', '1');
             
             // Immediate UI update in Modal
@@ -153,13 +154,14 @@
                 }
             }
 
-            // Notify listeners (Map, Dynamic Order logic)
+            // Notify listeners (Map, Dynamic Order logic, Dynamic WhatsApp Dispatch)
             window.dispatchEvent(new CustomEvent('tohelp:cabang-changed', {
                 detail: {
                     id: cabangId,
                     nama: cabangNama,
                     lat: parseFloat(lat),
-                    lng: parseFloat(lng)
+                    lng: parseFloat(lng),
+                    no_wa: noWa || '6285695908981'
                 }
             }));
 

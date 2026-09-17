@@ -590,11 +590,17 @@
 
 @push('scripts')
     <script>
+        let CABANG_WA = "{{ $globalActiveCabang->formatted_no_wa ?? '6285695908981' }}";
+        window.addEventListener('tohelp:cabang-changed', function(e) {
+            if (e.detail && e.detail.no_wa) {
+                CABANG_WA = e.detail.no_wa;
+            }
+        });
+
         // Fungsi untuk mengirim pesan WhatsApp
         function sendWhatsAppMessage() {
             const message = "Hii minhelp, saya membutuhkan bantuan To Help sekarang";
-            const phoneNumber = "6285695908981";
-            const whatsappUrl = `https://api.whatsapp.com/send?phone=${phoneNumber}&text=${encodeURIComponent(message)}`;
+            const whatsappUrl = `https://api.whatsapp.com/send?phone=${CABANG_WA}&text=${encodeURIComponent(message)}`;
             window.open(whatsappUrl, '_blank');
         }
 
@@ -773,7 +779,7 @@
                                     icon: 'success'
                                 }).then(() => {
                                     window.open(
-                                        `https://api.whatsapp.com/send?phone=6285695908981&text=${encodeURIComponent(message)}`,
+                                        `https://api.whatsapp.com/send?phone=${CABANG_WA}&text=${encodeURIComponent(message)}`,
                                         '_blank'
                                     );
                                 });

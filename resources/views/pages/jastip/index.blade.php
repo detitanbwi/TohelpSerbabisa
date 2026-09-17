@@ -84,8 +84,9 @@
                                             `No HP Pengirim : (apabila pengirim dan penerima sama, di isi salah satu aja)\n\n` +
                                             `Noted : Tetap berikan sharelok kepada driver untuk membantu memudahkan pengambilan / pengantaran 🙏🏻`;
 
+                                        let CABANG_WA = "{{ $globalActiveCabang->formatted_no_wa ?? '6285695908981' }}";
                                         window.open(
-                                            `https://api.whatsapp.com/send?phone=6285695908981&text=${encodeURIComponent(message)}`,
+                                            `https://api.whatsapp.com/send?phone=${CABANG_WA}&text=${encodeURIComponent(message)}`,
                                             '_blank');
                                     });
                                 } else {

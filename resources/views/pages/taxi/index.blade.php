@@ -127,6 +127,35 @@
                 </div>
             </div>
 
+            <!-- Tipping Section -->
+            <div class="mb-3 mt-3">
+                <div class="row justify-content-center">
+                    <div class="col-lg-8 col-md-10">
+                        <div class="card border-0 shadow-sm p-3 rounded-3" style="background: #f8fafc; border: 1px solid #e2e8f0;">
+                            <div class="d-flex align-items-center justify-content-between mb-2">
+                                <span class="fw-semibold text-secondary" style="font-size: 0.9rem;">
+                                    <i class="fas fa-hand-holding-usd text-warning me-1"></i> Tip untuk Driver (Opsional)
+                                </span>
+                                <span class="badge bg-white text-primary border px-2 py-1" id="currentTipBadge">Rp 0</span>
+                            </div>
+                            <div class="d-flex flex-wrap gap-2 justify-content-center" id="tipButtonContainer">
+                                <button type="button" class="btn btn-sm btn-primary tip-option rounded-pill px-3" data-tip="0">Rp 0</button>
+                                <button type="button" class="btn btn-sm btn-outline-primary tip-option rounded-pill px-3" data-tip="2000">+2.000</button>
+                                <button type="button" class="btn btn-sm btn-outline-primary tip-option rounded-pill px-3" data-tip="5000">+5.000</button>
+                                <button type="button" class="btn btn-sm btn-outline-primary tip-option rounded-pill px-3" data-tip="10000">+10.000</button>
+                                <button type="button" class="btn btn-sm btn-outline-primary tip-option rounded-pill px-3" id="tipCustomBtn" data-tip="custom">Lainnya</button>
+                            </div>
+                            <div class="mt-2" id="customTipInputWrapper" style="display: none;">
+                                <div class="input-group input-group-sm mx-auto" style="max-width: 260px;">
+                                    <span class="input-group-text bg-white">Rp</span>
+                                    <input type="number" min="0" step="1000" class="form-control text-end" id="customTipField" placeholder="Nominal tip (Rp)">
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
             <a id="order" class="btn btn-success mt-3">
                 <i class="fas fa-location-arrow"></i> Pesan Via Whatsapp
             </a>
@@ -143,6 +172,7 @@
             let BASECAMP_LAT = parseFloat("{{ $activeCabang->lat ?? config('services.location.basecamp_lat', -8.1711) }}");
             let BASECAMP_LNG = parseFloat("{{ $activeCabang->lng ?? $activeCabang->long ?? config('services.location.basecamp_long', 113.7233) }}");
             let CABANG_ID = {{ $activeCabang->id ?? 1 }};
+            let CABANG_WA = "{{ $activeCabang->formatted_no_wa ?? '6285695908981' }}";
             const BASE_FEE = parseFloat("{{ $tarifDasar->harga }}"); // Base fee for car
 
             // Listen for non-reload branch changes
@@ -151,6 +181,9 @@
                     BASECAMP_LAT = parseFloat(e.detail.lat);
                     BASECAMP_LNG = parseFloat(e.detail.lng);
                     CABANG_ID = parseInt(e.detail.id);
+                    if (e.detail.no_wa) {
+                        CABANG_WA = e.detail.no_wa;
+                    }
 
                     if (typeof map !== 'undefined' && map) {
                         map.panTo({ lat: BASECAMP_LAT, lng: BASECAMP_LNG });
@@ -163,16 +196,59 @@
                 }
             });
 
-            // Tiered pricing for cars
-            const TIER_1_MAX = 3; // 1-3 km
-            const TIER_1_RATE = 18000; // 18rb/km
-            const TIER_2_MAX = 10; // 4-10 km
-            const TIER_2_RATE = 5000; // 5rb/km
-            const TIER_3_RATE = 4000; // > 10 km rate (4rb/km)
-
-            // Declare voucherDiscount at the script level so it's accessible in multiple functions
+            // Pricing & Tipping state
             let voucherDiscount = 0;
             let appliedVoucherCode = '';
+            let currentTip = 0;
+            let lastBasePrice = 0;
+            let lastRouteData = null;
+
+            function formatRupiah(num) {
+                return new Intl.NumberFormat('id-ID', {
+                    style: 'currency',
+                    currency: 'IDR',
+                    minimumFractionDigits: 0,
+                    maximumFractionDigits: 0
+                }).format(num);
+            }
+
+            function updateRouteInfoDisplay() {
+                if (!lastRouteData) return;
+                const finalTotalPrice = lastBasePrice + currentTip;
+                const formattedPrice = formatRupiah(finalTotalPrice);
+                const tipNote = currentTip > 0 ? `<div class="text-muted small mt-1"><i class="fas fa-coins text-warning me-1"></i>Termasuk Tip Driver: <strong>${formatRupiah(currentTip)}</strong></div>` : '';
+
+                $('#routeInfo').html(
+                    `Jarak Driver ke Titik Jemput: ${lastRouteData.pickupDist} km<br>
+                    Jarak Perjalanan: <span id="distance">${lastRouteData.routeDist}</span> km<br>
+                    Estimasi waktu: <span id="duration">${lastRouteData.duration}</span> menit<br>
+                    ${lastRouteData.discountInfo}<br>
+                    Harga Total: <h1 id="totalPrice" class="text-success">${formattedPrice}</h1>
+                    ${tipNote}`
+                ).show();
+            }
+
+            // Tipping selection event handlers
+            $(document).on('click', '.tip-option', function() {
+                $('.tip-option').removeClass('active btn-primary').addClass('btn-outline-primary');
+                $(this).addClass('active btn-primary').removeClass('btn-outline-primary');
+                const val = $(this).data('tip');
+                if (val === 'custom') {
+                    $('#customTipInputWrapper').slideDown(150);
+                    currentTip = parseInt($('#customTipField').val()) || 0;
+                } else {
+                    $('#customTipInputWrapper').slideUp(150);
+                    currentTip = parseInt(val) || 0;
+                }
+                $('#currentTipBadge').text(formatRupiah(currentTip));
+                updateRouteInfoDisplay();
+            });
+
+            $('#customTipField').on('input', function() {
+                currentTip = Math.max(0, parseInt($(this).val()) || 0);
+                $('#currentTipBadge').text(formatRupiah(currentTip));
+                updateRouteInfoDisplay();
+            });
 
             // Function to apply voucher
             function applyVoucher() {
@@ -583,26 +659,14 @@
                                     },
                                     success: function(response) {
                                         if (response.status === 'success') {
-                                            // Backend already calculated final price including discount
-                                            let finalPrice = response.harga;
-
-                                            // Format price with thousand separators for Rupiah
-                                            const formattedPrice = new Intl
-                                                .NumberFormat('id-ID', {
-                                                    style: 'currency',
-                                                    currency: 'IDR',
-                                                    minimumFractionDigits: 0,
-                                                    maximumFractionDigits: 0
-                                                }).format(finalPrice);
-                                            // Update the route info with the response data
-                                            $('#routeInfo').html(
-                                                `Jarak Driver ke Titik Jemput: ${Math.ceil(
-                                            basecampToPickupDistance)} km<br>
-                            Jarak Perjalanan: <span id="distance">${roundedDistance}</span> km<br>
-                            Estimasi waktu: <span id="duration">${duration}</span> menit<br>
-                            ${discountInfo}<br>
-                            Harga Total: <h1 id="totalPrice" class="text-success">${formattedPrice}</h1>`
-                                            ).show();
+                                            lastBasePrice = response.harga;
+                                            lastRouteData = {
+                                                pickupDist: Math.ceil(basecampToPickupDistance),
+                                                routeDist: roundedDistance,
+                                                duration: duration,
+                                                discountInfo: discountInfo
+                                            };
+                                            updateRouteInfoDisplay();
                                         } else {
                                             // Handle error response
                                             $('#routeInfo').html(
@@ -873,24 +937,24 @@
                                         titik_tujuan: $(
                                                 '#lokasi_akhir')
                                             .val(),
-                                        cabang: cabangId
+                                        cabang: CABANG_ID,
+                                        tip: currentTip,
                                     },
                                     success: function(response) {
                                         if (response.status ===
                                             'success') {
-                                            // console.log($('#totalPrice').text());
-
                                             Swal.fire({
                                                 title: 'Berhasil',
                                                 text: 'Pesanan berhasil dibuat, Anda akan diarahkan ke WhatsApp Admin',
                                                 icon: 'success'
                                             }).then(() => {
+                                                const tipText = currentTip > 0 ? `\nTip Driver : ${formatRupiah(currentTip)}` : '';
                                                 const
                                                     message =
-                                                    `Hii, saya baru saja memesan To Help untuk meminta bantuan\n\n- Mobil\nID Order : ${response.order_id}\nTitik Penjemputan : ${$('#lokasi_awal').val()}\nTitik Pengantaran : ${$('#lokasi_akhir').val()}\nHarga : ${$('#totalPrice').text()}`;
+                                                    `Hii, saya baru saja memesan To Help untuk meminta bantuan\n\n- Layanan: Mobil\nID Order : ${response.order_id}\nTitik Penjemputan : ${$('#lokasi_awal').val()}\nTitik Pengantaran : ${$('#lokasi_akhir').val()}\nHarga : ${$('#totalPrice').text()}${tipText}`;
                                                 window
                                                     .open(
-                                                        `https://api.whatsapp.com/send?phone=6285695908981&text=${encodeURIComponent(message)}`,
+                                                        `https://api.whatsapp.com/send?phone=${CABANG_WA}&text=${encodeURIComponent(message)}`,
                                                         '_blank'
                                                     );
                                             });

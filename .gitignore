@@ -24,3 +24,6 @@ yarn-error.log
 /.agents
 IntelephenseHelper.php
 .git-credentials
+wirodev*.html
+wirodev_pricing.html
+.DS_Store

@@ -145,8 +145,9 @@
                                             `Hii kak, saya ingin meminta bantuan To Help untuk *(isi sesuai kebutuhan kalian)*` +
                                             `Order ID : ${response.order_id}\n...`;
 
+                                        let CABANG_WA = "{{ $globalActiveCabang->formatted_no_wa ?? '6285695908981' }}";
                                         window.open(
-                                            `https://api.whatsapp.com/send?phone=6285695908981&text=${encodeURIComponent(message)}`,
+                                            `https://api.whatsapp.com/send?phone=${CABANG_WA}&text=${encodeURIComponent(message)}`,
                                             '_blank'
                                         );
                                     });

@@ -77,6 +77,11 @@ class TransaksiResource extends Resource
                     ->weight(FontWeight::Bold)
                     ->money('IDR')
                     ->sortable(),
+                Tables\Columns\TextColumn::make('tip')
+                    ->label('Tip Driver')
+                    ->money('IDR')
+                    ->color('success')
+                    ->sortable(),
                 Tables\Columns\TextColumn::make('cabang.nama')
                     ->label('Cabang')
                     ->getStateUsing(fn(Transaksi $transaksi) => $transaksi->cabang->nama ?? '-')
