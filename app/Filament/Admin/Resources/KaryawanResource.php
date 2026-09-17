@@ -47,17 +47,20 @@ class KaryawanResource extends Resource
                     ->schema([
                         TextInput::make('name')
                             ->label('Nama Karyawan')
-                            ->required(),
+                            ->required()
+                            ->autocomplete(false),
                         TextInput::make('username')
                             ->label('Username Unik')
                             ->placeholder('Contoh: helpman01 atau 001_ANDI')
                             ->required()
-                            ->unique(ignoreRecord: true),
+                            ->unique(ignoreRecord: true)
+                            ->autocomplete(false),
                         TextInput::make('email')
                             ->label('Email (Opsional)')
                             ->nullable()
                             ->email()
-                            ->unique(ignoreRecord: true),
+                            ->unique(ignoreRecord: true)
+                            ->autocomplete(false),
                         Select::make('cabang_id')
                             ->label('Cabang')
                             ->options(Cabang::all()->pluck('nama', 'id'))
@@ -75,6 +78,7 @@ class KaryawanResource extends Resource
                             ->required(),
                         TextInput::make('password')
                             ->password()
+                            ->autocomplete('new-password')
                             ->dehydrateStateUsing(fn ($state) => Hash::make($state))
                             ->dehydrated(fn ($state) => filled($state))
                             ->required(fn (string $operation): bool => $operation === 'create'),
@@ -186,19 +190,23 @@ class KaryawanResource extends Resource
                         ->schema([
                             TextInput::make('name')
                                 ->label('Nama Karyawan')
-                                ->required(),
+                                ->required()
+                                ->autocomplete(false),
                             TextInput::make('username')
                                 ->label('Username Unik')
                                 ->placeholder('Contoh: helpman01 atau 001_ANDI')
                                 ->required()
-                                ->unique(ignoreRecord: true),
+                                ->unique(ignoreRecord: true)
+                                ->autocomplete(false),
                             TextInput::make('email')
                                 ->label('Email (Opsional)')
                                 ->nullable()
                                 ->email()
-                                ->unique(ignoreRecord: true),
+                                ->unique(ignoreRecord: true)
+                                ->autocomplete(false),
                             TextInput::make('password')
-                                ->password(),
+                                ->password()
+                                ->autocomplete('new-password'),
                             DatePicker::make('tanggal_lahir')
                                 ->label('Tanggal Lahir')
                                 ->required(fn(string $operation): bool => $operation === 'create')
