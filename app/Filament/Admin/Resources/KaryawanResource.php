@@ -136,11 +136,11 @@ class KaryawanResource extends Resource
                 Tables\Columns\TextColumn::make('tipe_karyawan')
                     ->label('Tipe Personil')
                     ->badge()
-                    ->color(fn (string $state): string => match ($state) {
+                    ->color(fn (?string $state): string => match ($state) {
                         'joki' => 'success',
                         default => 'info',
                     })
-                    ->formatStateUsing(fn (string $state): string => match ($state) {
+                    ->formatStateUsing(fn (?string $state): string => match ($state) {
                         'joki' => 'Joki',
                         default => 'Helpman',
                     }),
@@ -148,6 +148,7 @@ class KaryawanResource extends Resource
                     ->label('Cabang')
                     ->badge()
                     ->color('primary')
+                    ->placeholder('-')
                     ->searchable()
                     ->sortable(),
                 ToggleColumn::make('is_visible')
