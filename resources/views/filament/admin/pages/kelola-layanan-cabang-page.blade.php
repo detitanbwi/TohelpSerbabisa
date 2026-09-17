@@ -30,11 +30,11 @@
             </div>
 
             <div class="mt-3 text-xs text-gray-500 dark:text-gray-400">
-                💡 <strong>Petunjuk:</strong> Klik pada salah satu nama layanan di bawah untuk membuka dropdown accordion dan mengatur ketersediaan paket serta tarif khusus di <strong>Cabang {{ $this->selectedCabangNama }}</strong>.
+                💡 <strong>Petunjuk:</strong> Klik salah satu nama layanan di bawah untuk membuka accordion. Ubah centang untuk ketersediaan atau isi harga khusus untuk <strong>Cabang {{ $this->selectedCabangNama }}</strong> (jika kosong otomatis memakai default).
             </div>
         </x-filament::section>
 
-        {{-- Accordion List per Layanan (Collapsed / Minimized by default) --}}
+        {{-- Accordion List per Layanan (Collapsed by default) --}}
         <div class="space-y-4">
             @forelse($this->layanans as $layanan)
                 @php
@@ -63,7 +63,7 @@
                                 size="xs" 
                                 wire:click="toggleLayananGroup({{ $layanan->id }}, true)"
                             >
-                                Aktifkan
+                                Aktifkan Semua
                             </x-filament::button>
 
                             <x-filament::button 
@@ -71,48 +71,55 @@
                                 size="xs" 
                                 wire:click="toggleLayananGroup({{ $layanan->id }}, false)"
                             >
-                                Nonaktifkan
+                                Nonaktifkan Semua
                             </x-filament::button>
                         </div>
                     </x-slot>
 
-                    {{-- Daftar Sub Layanan di dalam Accordion --}}
-                    <div class="divide-y divide-gray-100 dark:divide-gray-800 -mx-4 -my-4">
-                        @foreach($layanan->subLayanans as $sub)
-                            @php $id = $sub->id; @endphp
-                            <div class="p-4 transition hover:bg-gray-50/60 dark:hover:bg-gray-800/40 {{ !($items[$id]['is_tersedia'] ?? true) ? 'opacity-60 bg-gray-50/80 dark:bg-gray-900/60' : '' }}">
-                                <div class="grid grid-cols-1 lg:grid-cols-12 gap-4 items-center">
-                                    {{-- Info & Switch --}}
-                                    <div class="lg:col-span-4 space-y-1">
-                                        <div class="flex items-center space-x-3">
-                                            <input 
-                                                type="checkbox" 
-                                                id="sub_{{ $id }}"
-                                                wire:model.live="items.{{ $id }}.is_tersedia" 
-                                                class="w-4 h-4 text-primary-600 rounded border-gray-300 focus:ring-primary-500 dark:bg-gray-800 dark:border-gray-700"
-                                            >
-                                            <label for="sub_{{ $id }}" class="cursor-pointer">
-                                                <h4 class="text-sm font-bold text-gray-900 dark:text-white">
-                                                    {{ $sub->nama }}
-                                                </h4>
-                                                <span class="text-xs font-semibold {{ ($items[$id]['is_tersedia'] ?? true) ? 'text-emerald-600 dark:text-emerald-400' : 'text-gray-400' }}">
-                                                    {{ ($items[$id]['is_tersedia'] ?? true) ? '✓ Tersedia di Cabang' : '✗ Dinonaktifkan' }}
-                                                </span>
-                                            </label>
-                                        </div>
+                    {{-- Tabel Horizontal Compact di dalam Accordion --}}
+                    <div class="overflow-x-auto -mx-6 -my-6">
+                        <table style="width: 100%; border-collapse: collapse; font-size: 13px; text-align: left;">
+                            <thead style="background: rgba(100, 116, 139, 0.06); border-bottom: 1px solid rgba(100, 116, 139, 0.15);">
+                                <tr>
+                                    <th style="padding: 10px 16px; font-weight: 700; font-size: 11px; text-transform: uppercase; color: #64748b; min-width: 220px;">Sub-Layanan / Paket</th>
+                                    <th style="padding: 10px 16px; font-weight: 700; font-size: 11px; text-transform: uppercase; color: #64748b; text-align: center; width: 90px;">Tersedia</th>
+                                    <th style="padding: 10px 16px; font-weight: 700; font-size: 11px; text-transform: uppercase; color: #64748b; width: 170px;">Harga Cabang (Rp)</th>
+                                    <th style="padding: 10px 16px; font-weight: 700; font-size: 11px; text-transform: uppercase; color: #64748b; width: 140px;">Satuan Khusus</th>
+                                    <th style="padding: 10px 16px; font-weight: 700; font-size: 11px; text-transform: uppercase; color: #64748b; width: 140px;">Label Awalan</th>
+                                    <th style="padding: 10px 16px; font-weight: 700; font-size: 11px; text-transform: uppercase; color: #64748b; min-width: 180px;">Catatan Cabang (NB)</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                @foreach($layanan->subLayanans as $sub)
+                                    @php 
+                                        $id = $sub->id; 
+                                        $isAvailable = $items[$id]['is_tersedia'] ?? true;
+                                    @endphp
+                                    <tr style="border-bottom: 1px solid rgba(100, 116, 139, 0.1); opacity: {{ $isAvailable ? '1' : '0.55' }};">
+                                        {{-- 1. Nama & Default Info --}}
+                                        <td style="padding: 12px 16px; vertical-align: middle;">
+                                            <div style="font-weight: 700;" class="text-gray-900 dark:text-white">
+                                                {{ $sub->nama }}
+                                            </div>
+                                            <div style="font-size: 11px; color: #64748b;" class="dark:text-gray-400 mt-0.5">
+                                                Default: <strong>Rp {{ number_format($sub->default_harga, 0, ',', '.') }}</strong> {{ $sub->default_satuan }}
+                                                @if($sub->label_harga_custom) <span class="italic">({{ $sub->label_harga_custom }})</span> @endif
+                                            </div>
+                                        </td>
 
-                                        <div class="text-xs text-gray-500 dark:text-gray-400 pl-7">
-                                            Tarif Default: <strong>Rp {{ number_format($sub->default_harga, 0, ',', '.') }}</strong> {{ $sub->default_satuan }}
-                                            @if($sub->label_harga_custom) <span class="italic">({{ $sub->label_harga_custom }})</span> @endif
-                                        </div>
-                                    </div>
-
-                                    {{-- Custom Harga & Satuan --}}
-                                    <div class="lg:col-span-4 grid grid-cols-2 gap-2">
-                                        <div>
-                                            <label class="block text-[11px] font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider mb-1">
-                                                Harga Cabang (Rp)
+                                        {{-- 2. Checkbox Tersedia --}}
+                                        <td style="padding: 12px 16px; vertical-align: middle; text-align: center;">
+                                            <label style="display: inline-flex; align-items: center; justify-content: center; cursor: pointer;">
+                                                <input 
+                                                    type="checkbox" 
+                                                    wire:model.live="items.{{ $id }}.is_tersedia" 
+                                                    style="width: 18px; height: 18px; cursor: pointer; accent-color: #f59e0b;"
+                                                >
                                             </label>
+                                        </td>
+
+                                        {{-- 3. Custom Harga --}}
+                                        <td style="padding: 10px 16px; vertical-align: middle;">
                                             <x-filament::input.wrapper>
                                                 <x-filament::input
                                                     type="number"
@@ -120,12 +127,10 @@
                                                     placeholder="Default ({{ number_format($sub->default_harga, 0, ',', '.') }})"
                                                 />
                                             </x-filament::input.wrapper>
-                                        </div>
+                                        </td>
 
-                                        <div>
-                                            <label class="block text-[11px] font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider mb-1">
-                                                Satuan Khusus
-                                            </label>
+                                        {{-- 4. Custom Satuan --}}
+                                        <td style="padding: 10px 16px; vertical-align: middle;">
                                             <x-filament::input.wrapper>
                                                 <x-filament::input
                                                     type="text"
@@ -133,15 +138,10 @@
                                                     placeholder="Default ({{ $sub->default_satuan ?: '-' }})"
                                                 />
                                             </x-filament::input.wrapper>
-                                        </div>
-                                    </div>
+                                        </td>
 
-                                    {{-- Custom Label & Catatan/NB --}}
-                                    <div class="lg:col-span-4 grid grid-cols-2 gap-2 items-end">
-                                        <div>
-                                            <label class="block text-[11px] font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider mb-1">
-                                                Label Awalan
-                                            </label>
+                                        {{-- 5. Custom Label --}}
+                                        <td style="padding: 10px 16px; vertical-align: middle;">
                                             <x-filament::input.wrapper>
                                                 <x-filament::input
                                                     type="text"
@@ -149,24 +149,22 @@
                                                     placeholder="Contoh: Start from"
                                                 />
                                             </x-filament::input.wrapper>
-                                        </div>
+                                        </td>
 
-                                        <div>
-                                            <label class="block text-[11px] font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider mb-1">
-                                                NB Cabang (Opsional)
-                                            </label>
+                                        {{-- 6. Custom Catatan/NB --}}
+                                        <td style="padding: 10px 16px; vertical-align: middle;">
                                             <x-filament::input.wrapper>
                                                 <x-filament::input
                                                     type="text"
                                                     wire:model.defer="items.{{ $id }}.custom_catatan_nb"
-                                                    placeholder="Catatan..."
+                                                    placeholder="Catatan khusus cabang..."
                                                 />
                                             </x-filament::input.wrapper>
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
-                        @endforeach
+                                        </td>
+                                    </tr>
+                                @endforeach
+                            </tbody>
+                        </table>
                     </div>
                 </x-filament::section>
             @empty
