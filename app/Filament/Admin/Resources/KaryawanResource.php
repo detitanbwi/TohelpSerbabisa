@@ -54,12 +54,19 @@ class KaryawanResource extends Resource
                             ->placeholder('Contoh: helpman01 atau 001_ANDI')
                             ->required()
                             ->unique(ignoreRecord: true)
+                            ->validationMessages([
+                                'unique' => 'Username ini sudah digunakan/terdaftar.',
+                                'required' => 'Username wajib diisi.',
+                            ])
                             ->autocomplete(false),
                         TextInput::make('email')
                             ->label('Email (Opsional)')
                             ->nullable()
                             ->email()
                             ->unique(ignoreRecord: true)
+                            ->validationMessages([
+                                'unique' => 'Email ini sudah digunakan.',
+                            ])
                             ->autocomplete(false),
                         Select::make('cabang_id')
                             ->label('Cabang')
@@ -202,12 +209,19 @@ class KaryawanResource extends Resource
                                 ->placeholder('Contoh: helpman01 atau 001_ANDI')
                                 ->required()
                                 ->unique(ignoreRecord: true)
+                                ->validationMessages([
+                                    'unique' => 'Username ini sudah digunakan/terdaftar.',
+                                    'required' => 'Username wajib diisi.',
+                                ])
                                 ->autocomplete(false),
                             TextInput::make('email')
                                 ->label('Email (Opsional)')
                                 ->nullable()
                                 ->email()
                                 ->unique(ignoreRecord: true)
+                                ->validationMessages([
+                                    'unique' => 'Email ini sudah digunakan.',
+                                ])
                                 ->autocomplete(false),
                             TextInput::make('password')
                                 ->password()
