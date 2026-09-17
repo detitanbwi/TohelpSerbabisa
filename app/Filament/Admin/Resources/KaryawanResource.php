@@ -148,14 +148,19 @@ class KaryawanResource extends Resource
                     ->sortable(),
                 Tables\Columns\TextColumn::make('tanggal_lahir')
                     ->label('Tanggal Lahir')
-                    ->searchable()
-                    ->sortable()
                     ->getStateUsing(function (User $user)
                     {
                         // ambil usia dari tanggal lahir
                         $tanggal_lahir = $user?->custom_fields['tanggal_lahir'] ?? null;
-                        $usia = date_diff(date_create($tanggal_lahir), date_create('now'))->y;
-                        return $usia . ' tahun';
+                        if (!$tanggal_lahir) {
+                            return '-';
+                        }
+                        try {
+                            $usia = date_diff(date_create($tanggal_lahir), date_create('now'))->y;
+                            return $usia . ' tahun';
+                        } catch (\Throwable $e) {
+                            return '-';
+                        }
                     }),
                 Tables\Columns\ImageColumn::make('avatar_url')
                     ->label('Foto'),
@@ -235,7 +240,7 @@ class KaryawanResource extends Resource
                                 ->maxFiles(1),
                         ]),
                     ])
-                    ->using(function(User $user, array $data)
+                    ->using(function(User $user, array $data): User
                     {
                         DB::beginTransaction();
                         try
@@ -279,6 +284,8 @@ class KaryawanResource extends Resource
                                 ->body('Edit karyawan berhasil!')
                                 ->success()
                                 ->send();
+
+                            return $user;
                         } catch(Exception $e)
                         {
                             DB::rollBack();
@@ -288,6 +295,8 @@ class KaryawanResource extends Resource
                                 ->body('Edit karyawan gagal! ' . $e->getMessage())
                                 ->danger()
                                 ->send();
+
+                            return $user;
                         }
                     }),
                 Tables\Actions\DeleteAction::make(),

@@ -19,7 +19,7 @@ class ManageKaryawans extends ManageRecords
     {
         return [
             Actions\CreateAction::make()
-                ->using(function(array $data)
+                ->using(function(array $data): User
                 {
                     DB::beginTransaction();
                     try
@@ -51,6 +51,8 @@ class ManageKaryawans extends ManageRecords
                             ->body('Tambah karyawan berhasil!')
                             ->success()
                             ->send();
+
+                        return $karyawan;
                     } catch(Exception $e)
                     {
                         DB::rollBack();
@@ -60,6 +62,8 @@ class ManageKaryawans extends ManageRecords
                             ->body('Tambah karyawan gagal! ' . $e->getMessage())
                             ->danger()
                             ->send();
+
+                        throw $e;
                     }
                 }),
         ];
