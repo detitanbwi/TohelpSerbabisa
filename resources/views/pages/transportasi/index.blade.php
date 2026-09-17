@@ -195,7 +195,7 @@
             let BASECAMP_LNG = parseFloat("{{ $activeCabang->lng ?? $activeCabang->long ?? config('services.location.basecamp_long', 113.7233) }}");
             let CABANG_ID = {{ $activeCabang->id ?? 1 }};
             let CABANG_WA = "{{ $activeCabang->formatted_no_wa ?? '6285695908981' }}";
-            const BASE_FEE = {{ $tarifDasar->harga }}; // Base fee for motor
+            const BASE_FEE = {{ $tarifDasar->harga ?? 1000 }}; // Base fee for motor
 
             // Listen for non-reload branch changes
             window.addEventListener('tohelp:cabang-changed', function(e) {
@@ -491,19 +491,6 @@
                 });
             }
 
-            // Calculate total price with the new flat rate pricing model
-            function calculatePrice(routeDistance) {
-                // Ceiling the distance to get proper calculation
-                const roundedDistance = Math.ceil(routeDistance);
-
-                // Calculate base price (distance × rate per km)
-                let calculatedPrice = roundedDistance * RATE_PER_KM;
-
-                // Apply minimum order price if the calculated price is lower
-                let totalPrice = Math.max(calculatedPrice, MINIMUM_ORDER_PRICE);
-
-                return totalPrice;
-            }
 
             // Get address from coordinates using Google Geocoder
             function getAddressFromLatLng(lat, lng, inputId) {
@@ -646,21 +633,6 @@
                                 const roundedDistance = Math.ceil(parseFloat(
                                     routeDistance));
 
-                                // Calculate price using new flat rate pricing
-                                let calculatedPrice = roundedDistance * RATE_PER_KM;
-                                let totalPrice = Math.max(calculatedPrice,
-                                    MINIMUM_ORDER_PRICE);
-                                let priceInfo = '';
-
-                                // Create appropriate price explanation based on whether minimum price is applied
-                                if (calculatedPrice < MINIMUM_ORDER_PRICE) {
-                                    priceInfo =
-                                        `Tarif: Rp${MINIMUM_ORDER_PRICE.toLocaleString()} (Tarif minimum)`;
-                                } else {
-                                    priceInfo =
-                                        `Tarif: Rp${totalPrice.toLocaleString()} (${roundedDistance} km × Rp${RATE_PER_KM.toLocaleString()}/km)`;
-                                }
-
                                 // Voucher discount info for display (calculation will be done by backend)
                                 let discountInfo = '';
                                 if (voucherDiscount > 0) {
@@ -674,6 +646,7 @@
                                     method: 'POST',
                                     data: {
                                         _token: '{{ csrf_token() }}',
+                                        cabang_id: CABANG_ID,
                                         jarakBaseCampKeTitikJemput: Math.ceil(
                                             basecampToPickupDistance),
                                         jarakTitikJemputKeTitikTujuan: Math.ceil(

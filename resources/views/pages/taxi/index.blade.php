@@ -173,7 +173,7 @@
             let BASECAMP_LNG = parseFloat("{{ $activeCabang->lng ?? $activeCabang->long ?? config('services.location.basecamp_long', 113.7233) }}");
             let CABANG_ID = {{ $activeCabang->id ?? 1 }};
             let CABANG_WA = "{{ $activeCabang->formatted_no_wa ?? '6285695908981' }}";
-            const BASE_FEE = parseFloat("{{ $tarifDasar->harga }}"); // Base fee for car
+            const BASE_FEE = parseFloat("{{ $tarifDasar->harga ?? 2000 }}"); // Base fee for car
 
             // Listen for non-reload branch changes
             window.addEventListener('tohelp:cabang-changed', function(e) {
@@ -462,26 +462,6 @@
                 });
             }
 
-            // Calculate total price with the new tiered pricing model for cars
-            function calculatePrice(routeDistance) {
-                // Ceiling the distance to get proper tier calculation
-                const roundedDistance = Math.ceil(routeDistance);
-                let totalPrice = BASE_FEE; // Start with base fee
-
-                // Apply tiered pricing
-                if (roundedDistance <= TIER_1_MAX) {
-                    // Tier 1: 1-3 km at 6000/km
-                    totalPrice += roundedDistance * TIER_1_RATE;
-                } else if (roundedDistance <= TIER_2_MAX) {
-                    // Tier 2: 4-10 km at 5000/km
-                    totalPrice += roundedDistance * TIER_2_RATE;
-                } else {
-                    // Tier 3: >10 km at 4000/km
-                    totalPrice += roundedDistance * TIER_3_RATE;
-                }
-
-                return totalPrice;
-            }
 
             // Get address from coordinates using Google Geocoder
             function getAddressFromLatLng(lat, lng, inputId) {
@@ -621,19 +601,6 @@
                                 const roundedDistance = Math.ceil(parseFloat(
                                     routeDistance));
 
-                                // Calculate price using tiered pricing
-                                let totalPrice = calculatePrice(parseFloat(routeDistance));
-
-                                // Determine which rate is applied based on distance
-                                let appliedRate;
-                                if (roundedDistance <= TIER_1_MAX) {
-                                    appliedRate = TIER_1_RATE;
-                                } else if (roundedDistance <= TIER_2_MAX) {
-                                    appliedRate = TIER_2_RATE;
-                                } else {
-                                    appliedRate = TIER_3_RATE;
-                                }
-
                                 // Voucher discount info for display (calculation will be done by backend)
                                 let discountInfo = '';
                                 if (voucherDiscount > 0) {
@@ -647,6 +614,7 @@
                                     method: 'POST',
                                     data: {
                                         _token: '{{ csrf_token() }}',
+                                        cabang_id: CABANG_ID,
                                         jarakBaseCampKeTitikJemput: Math.ceil(
                                             basecampToPickupDistance),
                                         jarakTitikJemputKeTitikTujuan: Math.ceil(
