@@ -16,7 +16,7 @@ class AbsensiApiController extends Controller
     public function today(Request $request)
     {
         $user = $request->user();
-        $today = Carbon::today()->toDateString();
+        $today = Carbon::today('Asia/Jakarta')->toDateString();
 
         $absensi = Absensi::with('media')
             ->where('karyawan_id', $user->id)
@@ -33,8 +33,8 @@ class AbsensiApiController extends Controller
                     'id' => $absensi->id,
                     'tanggal' => $absensi->tanggal,
                     'jam_masuk' => $absensi->jam_masuk,
-                    'foto_url' => $fotoUrl,
-                    'photo_path' => $fotoUrl,
+                    'foto_url' => $fotoUrl ?: null,
+                    'photo_path' => $fotoUrl ?: null,
                 ] : null,
             ]
         ]);
@@ -46,36 +46,10 @@ class AbsensiApiController extends Controller
     public function checkIn(Request $request)
     {
         $user = $request->user();
-        $today = Carbon::today()->toDateString();
-        $now = Carbon::now()->toTimeString();
+        $today = Carbon::today('Asia/Jakarta')->toDateString();
+        $now = Carbon::now('Asia/Jakarta')->toTimeString();
 
-        $existing = Absensi::with('media')
-            ->where('karyawan_id', $user->id)
-            ->whereDate('tanggal', $today)
-            ->first();
-
-        if ($existing) {
-            $existingFotoUrl = $existing->getFirstMediaUrl('bukti-absensi');
-            return response()->json([
-                'status' => 'error',
-                'message' => 'Anda sudah melakukan absensi masuk hari ini.',
-                'data' => [
-                    'id' => $existing->id,
-                    'tanggal' => $existing->tanggal,
-                    'jam_masuk' => $existing->jam_masuk,
-                    'foto_url' => $existingFotoUrl,
-                    'photo_path' => $existingFotoUrl,
-                ]
-            ], 400);
-        }
-
-        $absensi = Absensi::create([
-            'karyawan_id' => $user->id,
-            'tanggal' => $today,
-            'jam_masuk' => $now,
-        ]);
-
-        // Attach photo if provided in request
+        // Identify any uploaded file key
         $fileKey = null;
         foreach (['foto', 'bukti_absen', 'image', 'file', 'photo'] as $key) {
             if ($request->hasFile($key)) {
@@ -83,6 +57,41 @@ class AbsensiApiController extends Controller
                 break;
             }
         }
+
+        $existing = Absensi::with('media')
+            ->where('karyawan_id', $user->id)
+            ->whereDate('tanggal', $today)
+            ->first();
+
+        if ($existing) {
+            // If existing attendance has no media yet and a photo is uploaded now, attach it!
+            if ($fileKey && $existing->getMedia('bukti-absensi')->isEmpty()) {
+                try {
+                    $existing->addMediaFromRequest($fileKey)->toMediaCollection('bukti-absensi');
+                } catch (\Exception $e) {
+                    Log::error('Gagal menyimpan foto absensi API: ' . $e->getMessage());
+                }
+            }
+
+            $existingFotoUrl = $existing->getFirstMediaUrl('bukti-absensi');
+            return response()->json([
+                'status' => 'success',
+                'message' => 'Absensi hari ini sudah tercatat.',
+                'data' => [
+                    'id' => $existing->id,
+                    'tanggal' => $existing->tanggal,
+                    'jam_masuk' => $existing->jam_masuk,
+                    'foto_url' => $existingFotoUrl ?: null,
+                    'photo_path' => $existingFotoUrl ?: null,
+                ]
+            ], 200);
+        }
+
+        $absensi = Absensi::create([
+            'karyawan_id' => $user->id,
+            'tanggal' => $today,
+            'jam_masuk' => $now,
+        ]);
 
         if ($fileKey) {
             try {
@@ -101,8 +110,8 @@ class AbsensiApiController extends Controller
                 'id' => $absensi->id,
                 'tanggal' => $absensi->tanggal,
                 'jam_masuk' => $absensi->jam_masuk,
-                'foto_url' => $fotoUrl,
-                'photo_path' => $fotoUrl,
+                'foto_url' => $fotoUrl ?: null,
+                'photo_path' => $fotoUrl ?: null,
             ]
         ], 201);
     }

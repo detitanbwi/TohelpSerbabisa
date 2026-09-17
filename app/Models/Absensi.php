@@ -15,6 +15,7 @@ class Absensi extends Model implements HasMedia
     public function registerMediaCollections(): void
     {
         $this->addMediaCollection('bukti-absensi')
+            ->useDisk('public')
             ->singleFile();
     }
 
