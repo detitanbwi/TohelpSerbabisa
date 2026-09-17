@@ -17,6 +17,8 @@ use Filament\Forms\Components\FileUpload;
 use Filament\Widgets\TableWidget as BaseWidget;
 use Filament\Forms\Components\SpatieMediaLibraryFileUpload;
 
+use Illuminate\Support\Facades\Storage;
+
 class AbsensiWidget extends BaseWidget
 {
     protected static ?int $sort = 2;
@@ -97,7 +99,8 @@ class AbsensiWidget extends BaseWidget
                             ->label('Bukti Absen')
                             ->image()
                             ->maxFiles(1)
-                            ->optimize('webp')
+                            ->disk('public')
+                            ->directory('bukti-absensi')
                             ->required(),
                     ])
                     ->action(function(array $data, User $record)
@@ -124,8 +127,14 @@ class AbsensiWidget extends BaseWidget
                                 'jam_masuk' => now(),
                             ]);
 
-                            $absensi->addMedia('storage' . $data['bukti_absen'])
-                                ->toMediaCollection('bukti-absensi');
+                            $filePath = Storage::disk('public')->path($data['bukti_absen']);
+                            if (file_exists($filePath)) {
+                                $absensi->addMedia($filePath)
+                                    ->toMediaCollection('bukti-absensi');
+                            } elseif (file_exists(storage_path('app/public/' . $data['bukti_absen']))) {
+                                $absensi->addMedia(storage_path('app/public/' . $data['bukti_absen']))
+                                    ->toMediaCollection('bukti-absensi');
+                            }
 
                             DB::commit();
 
