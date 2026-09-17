@@ -120,11 +120,11 @@
 
                                         {{-- 3. Custom Harga --}}
                                         <td style="padding: 10px 16px; vertical-align: middle;">
-                                            <x-filament::input.wrapper>
+                                            <x-filament::input.wrapper prefix="Rp">
                                                 <x-filament::input
                                                     type="number"
                                                     wire:model.defer="items.{{ $id }}.custom_harga"
-                                                    placeholder="Default ({{ number_format($sub->default_harga, 0, ',', '.') }})"
+                                                    placeholder="{{ number_format($sub->default_harga, 0, ',', '.') }}"
                                                 />
                                             </x-filament::input.wrapper>
                                         </td>
