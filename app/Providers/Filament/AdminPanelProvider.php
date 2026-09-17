@@ -21,6 +21,8 @@ use Illuminate\Cookie\Middleware\EncryptCookies;
 use App\Filament\Admin\Resources\CabangResource;
 use App\Filament\Admin\Resources\KaryawanResource;
 use App\Filament\Admin\Resources\TransaksiResource;
+use App\Filament\Admin\Resources\LayananResource;
+use App\Filament\Admin\Pages\KelolaLayananCabangPage;
 use BezhanSalleh\FilamentShield\FilamentShieldPlugin;
 use FilipFonal\FilamentLogManager\FilamentLogManager;
 use GeoSot\FilamentEnvEditor\FilamentEnvEditorPlugin;
@@ -108,6 +110,8 @@ class AdminPanelProvider extends PanelProvider
                     NavigationGroup::make('Master Data')
                         ->items([
                             ...(CabangResource::canAccess() ? CabangResource::getNavigationItems() : []),
+                            ...(LayananResource::canAccess() ? LayananResource::getNavigationItems() : []),
+                            ...(KelolaLayananCabangPage::canAccess() ? KelolaLayananCabangPage::getNavigationItems() : []),
                             ...KaryawanResource::getNavigationItems(),
                             ...AbsensiBasePage::getNavigationItems(),
                             ...TarifTransportasiPage::getNavigationItems(),
