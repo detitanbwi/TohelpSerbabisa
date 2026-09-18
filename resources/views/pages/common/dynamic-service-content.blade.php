@@ -108,10 +108,11 @@
                                     });
                                 }
                             },
-                            error: function() {
+                            error: function(xhr) {
+                                const msg = (xhr.responseJSON && xhr.responseJSON.message) ? xhr.responseJSON.message : 'Terjadi kesalahan saat menghubungi server';
                                 Swal.fire({
                                     title: 'Gagal',
-                                    text: 'Terjadi kesalahan saat menghubungi server',
+                                    text: msg,
                                     icon: 'error'
                                 });
                             }
