@@ -145,23 +145,43 @@ class TransaksiResource extends Resource
                         ->region('id')
                         ->visible(fn(Transaksi $transaksi) => ($transaksi->titik_jemput && $transaksi->titik_tujuan) && $transaksi->status_transaksi !== 'batal'),
                     Tables\Actions\Action::make('ubahHarga')
-                        ->requiresConfirmation()
                         ->label('Ubah Harga')
+                        ->modalHeading('Ubah Harga & Tip Transaksi')
+                        ->modalDescription('Sesuaikan total harga atau nominal tip transaksi.')
+                        ->modalSubmitActionLabel('Simpan Perubahan')
+                        ->modalWidth('md')
                         ->color('success')
                         ->icon('heroicon-o-currency-dollar')
+                        ->fillForm(fn (Transaksi $record): array => [
+                            'total_harga' => $record->total_harga,
+                            'tip' => $record->tip ?? 0,
+                        ])
                         ->form([
                             Forms\Components\TextInput::make('total_harga')
                                 ->label('Total Harga')
-                                ->numeric()
-                                ->default(fn(Transaksi $record) => $record->total_harga),
+                                ->prefix('Rp')
+                                ->currencyMask(thousandSeparator: '.', decimalSeparator: ',', precision: 0)
+                                ->required()
+                                ->minValue(0),
+                            Forms\Components\TextInput::make('tip')
+                                ->label('Nominal Tip Driver/Petugas')
+                                ->prefix('Rp')
+                                ->currencyMask(thousandSeparator: '.', decimalSeparator: ',', precision: 0)
+                                ->default(0)
+                                ->minValue(0),
                         ])
                         ->action(function (Transaksi $transaksi, array $data) {
+                            $totalHarga = (int) ($data['total_harga'] ?? 0);
+                            $tip = (int) ($data['tip'] ?? 0);
+
                             $transaksi->update([
-                                'total_harga' => $data['total_harga'],
+                                'total_harga' => $totalHarga,
+                                'tip' => $tip,
                             ]);
+
                             Notification::make()
                                 ->title('Sukses')
-                                ->body('Harga berhasil diubah')
+                                ->body('Harga dan tip transaksi berhasil diperbarui.')
                                 ->success()
                                 ->send();
                         })
