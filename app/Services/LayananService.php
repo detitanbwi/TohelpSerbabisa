@@ -18,25 +18,30 @@ class LayananService
      */
     public static function getLayanan(string $slug, ?int $cabangId = null): ?Layanan
     {
-        $layanan = Layanan::with(['subLayanans' => function ($q) {
-            $q->where('is_active', true)->orderBy('urutan');
-        }])
-        ->where('slug', $slug)
-        ->where('is_active', true)
-        ->first();
+        try {
+            $layanan = Layanan::with(['subLayanans' => function ($q) {
+                $q->where('is_active', true)->orderBy('urutan');
+            }])
+            ->where('slug', $slug)
+            ->where('is_active', true)
+            ->first();
 
-        if (!$layanan) {
+            if (!$layanan) {
+                return null;
+            }
+
+            // Filter and enrich sub-services based on cabang availability
+            $filteredSub = $layanan->subLayanans->filter(function (SubLayanan $sub) use ($cabangId) {
+                return $sub->isTersediaForCabang($cabangId);
+            })->values();
+
+            $layanan->setRelation('subLayanans', $filteredSub);
+
+            return $layanan;
+        } catch (\Throwable $e) {
+            Log::error("Error loading layanan {$slug}: " . $e->getMessage());
             return null;
         }
-
-        // Filter and enrich sub-services based on cabang availability
-        $filteredSub = $layanan->subLayanans->filter(function (SubLayanan $sub) use ($cabangId) {
-            return $sub->isTersediaForCabang($cabangId);
-        })->values();
-
-        $layanan->setRelation('subLayanans', $filteredSub);
-
-        return $layanan;
     }
 
     /**

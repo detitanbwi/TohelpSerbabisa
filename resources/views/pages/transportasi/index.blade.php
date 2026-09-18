@@ -138,34 +138,6 @@
                 </div>
             </div>
 
-            <!-- Tipping Section -->
-            <div class="mb-3 mt-3">
-                <div class="row justify-content-center">
-                    <div class="col-lg-8 col-md-10">
-                        <div class="card border-0 shadow-sm p-3 rounded-3" style="background: #f8fafc; border: 1px solid #e2e8f0;">
-                            <div class="d-flex align-items-center justify-content-between mb-2">
-                                <span class="fw-semibold text-secondary" style="font-size: 0.9rem;">
-                                    <i class="fas fa-hand-holding-usd text-warning me-1"></i> Tip untuk Driver (Opsional)
-                                </span>
-                                <span class="badge bg-white text-primary border px-2 py-1" id="currentTipBadge">Rp 0</span>
-                            </div>
-                            <div class="d-flex flex-wrap gap-2 justify-content-center" id="tipButtonContainer">
-                                <button type="button" class="btn btn-sm btn-primary tip-option rounded-pill px-3" data-tip="0">Rp 0</button>
-                                <button type="button" class="btn btn-sm btn-outline-primary tip-option rounded-pill px-3" data-tip="2000">+2.000</button>
-                                <button type="button" class="btn btn-sm btn-outline-primary tip-option rounded-pill px-3" data-tip="5000">+5.000</button>
-                                <button type="button" class="btn btn-sm btn-outline-primary tip-option rounded-pill px-3" data-tip="10000">+10.000</button>
-                                <button type="button" class="btn btn-sm btn-outline-primary tip-option rounded-pill px-3" id="tipCustomBtn" data-tip="custom">Lainnya</button>
-                            </div>
-                            <div class="mt-2" id="customTipInputWrapper" style="display: none;">
-                                <div class="input-group input-group-sm mx-auto" style="max-width: 260px;">
-                                    <span class="input-group-text bg-white">Rp</span>
-                                    <input type="number" min="0" step="1000" class="form-control text-end" id="customTipField" placeholder="Nominal tip (Rp)">
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </div>
 
             <div class="col-md-12 mt-4">
                 <div class="alert alert-info border">
@@ -218,10 +190,9 @@
                 }
             });
 
-            // Pricing & Tipping state
+            // Pricing state
             let voucherDiscount = 0;
             let appliedVoucherCode = '';
-            let currentTip = 0;
             let lastBasePrice = 0;
             let lastRouteData = null;
 
@@ -236,41 +207,16 @@
 
             function updateRouteInfoDisplay() {
                 if (!lastRouteData) return;
-                const finalTotalPrice = lastBasePrice + currentTip;
-                const formattedPrice = formatRupiah(finalTotalPrice);
-                const tipNote = currentTip > 0 ? `<div class="text-muted small mt-1"><i class="fas fa-coins text-warning me-1"></i>Termasuk Tip Driver: <strong>${formatRupiah(currentTip)}</strong></div>` : '';
+                const formattedPrice = formatRupiah(lastBasePrice);
 
                 $('#routeInfo').html(
                     `Jarak Driver ke Titik Jemput: ${lastRouteData.pickupDist} km<br>
                     Jarak Perjalanan: <span id="distance">${lastRouteData.routeDist}</span> km<br>
                     Estimasi waktu: <span id="duration">${lastRouteData.duration}</span> menit<br>
                     ${lastRouteData.discountInfo}<br>
-                    Harga Total: <h1 id="totalPrice" class="text-success">${formattedPrice}</h1>
-                    ${tipNote}`
+                    Harga Total: <h1 id="totalPrice" class="text-success">${formattedPrice}</h1>`
                 ).show();
             }
-
-            // Tipping selection event handlers
-            $(document).on('click', '.tip-option', function() {
-                $('.tip-option').removeClass('active btn-primary').addClass('btn-outline-primary');
-                $(this).addClass('active btn-primary').removeClass('btn-outline-primary');
-                const val = $(this).data('tip');
-                if (val === 'custom') {
-                    $('#customTipInputWrapper').slideDown(150);
-                    currentTip = parseInt($('#customTipField').val()) || 0;
-                } else {
-                    $('#customTipInputWrapper').slideUp(150);
-                    currentTip = parseInt(val) || 0;
-                }
-                $('#currentTipBadge').text(formatRupiah(currentTip));
-                updateRouteInfoDisplay();
-            });
-
-            $('#customTipField').on('input', function() {
-                currentTip = Math.max(0, parseInt($(this).val()) || 0);
-                $('#currentTipBadge').text(formatRupiah(currentTip));
-                updateRouteInfoDisplay();
-            });
 
             // Function to apply voucher
             function applyVoucher() {
@@ -938,7 +884,6 @@
                                                 '#lokasi_akhir')
                                             .val(),
                                         cabang: CABANG_ID,
-                                        tip: currentTip,
                                     },
                                     success: function(response) {
                                         if (response.status ===
@@ -957,10 +902,9 @@
                                                 const
                                                     paymentText =
                                                     `Metode Pembayaran: ${paymentMethod}`;
-                                                const tipText = currentTip > 0 ? `\nTip Driver : ${formatRupiah(currentTip)}` : '';
                                                 const
                                                     message =
-                                                    `Hii, saya baru saja memesan To Help untuk meminta bantuan\n\n- Layanan: Ojek\nID Order : ${response.order_id}\nTitik Penjemputan : ${$('#lokasi_awal').val()}\nTitik Pengantaran : ${$('#lokasi_akhir').val()}\nHarga : ${$('#totalPrice').text()}${tipText}\n${paymentText}`;
+                                                    `Hii, saya baru saja memesan To Help untuk meminta bantuan\n\n- Layanan: Ojek\nID Order : ${response.order_id}\nTitik Penjemputan : ${$('#lokasi_awal').val()}\nTitik Pengantaran : ${$('#lokasi_akhir').val()}\nHarga : ${$('#totalPrice').text()}\n${paymentText}`;
 
                                                 window
                                                     .open(
