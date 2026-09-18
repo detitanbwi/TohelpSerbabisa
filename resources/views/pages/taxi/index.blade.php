@@ -859,16 +859,19 @@
                                             Swal.fire({
                                                 title: 'Berhasil',
                                                 text: 'Pesanan berhasil dibuat, Anda akan diarahkan ke WhatsApp Admin',
-                                                icon: 'success'
+                                                icon: 'success',
+                                                confirmButtonText: 'Lanjut ke WhatsApp',
+                                                confirmButtonColor: '#25D366'
                                             }).then(() => {
                                                 const
                                                     message =
                                                     `Hii, saya baru saja memesan To Help untuk meminta bantuan\n\n- Layanan: Mobil\nID Order : ${response.order_id}\nTitik Penjemputan : ${$('#lokasi_awal').val()}\nTitik Pengantaran : ${$('#lokasi_akhir').val()}\nHarga : ${$('#totalPrice').text()}`;
-                                                window
-                                                    .open(
-                                                        `https://api.whatsapp.com/send?phone=${CABANG_WA}&text=${encodeURIComponent(message)}`,
-                                                        '_blank'
-                                                    );
+                                                
+                                                const waUrl = `https://api.whatsapp.com/send?phone=${CABANG_WA}&text=${encodeURIComponent(message)}`;
+                                                const win = window.open(waUrl, '_blank');
+                                                if (!win || win.closed || typeof win.closed === 'undefined') {
+                                                    window.location.href = waUrl;
+                                                }
                                             });
                                         } else {
                                             Swal.fire({

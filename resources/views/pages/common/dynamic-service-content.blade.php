@@ -91,14 +91,19 @@
                                 if (response.status === 'success') {
                                     Swal.fire({
                                         title: 'Berhasil',
-                                        text: 'Pesanan berhasil dibuat, Anda akan diarahkan ke WhatsApp Resmi Cabang',
+                                        text: 'Pesanan berhasil dibuat, Anda akan diarahkan ke WhatsApp Admin',
                                         icon: 'success',
-                                        timer: 1500,
-                                        showConfirmButton: false
+                                        confirmButtonText: 'Lanjut ke WhatsApp',
+                                        confirmButtonColor: '#25D366'
                                     }).then(() => {
                                         const waNumber = response.wa_number || "{{ $globalActiveCabang->formatted_no_wa ?? '6285695908981' }}";
                                         const waMessage = response.wa_message;
-                                        window.open(`https://api.whatsapp.com/send?phone=${waNumber}&text=${encodeURIComponent(waMessage)}`, '_blank');
+                                        const waUrl = `https://api.whatsapp.com/send?phone=${waNumber}&text=${encodeURIComponent(waMessage)}`;
+                                        
+                                        const win = window.open(waUrl, '_blank');
+                                        if (!win || win.closed || typeof win.closed === 'undefined') {
+                                            window.location.href = waUrl;
+                                        }
                                     });
                                 } else {
                                     Swal.fire({
