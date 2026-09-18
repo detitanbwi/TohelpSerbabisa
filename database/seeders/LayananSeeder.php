@@ -18,7 +18,7 @@ class LayananSeeder extends Seeder
             [
                 'nama' => 'Bersih-bersih',
                 'slug' => 'bersih-bersih',
-                'kode_layanan' => 'BSH-',
+                'kode_layanan' => 'B-',
                 'deskripsi' => 'Layanan pembersihan profesional untuk memastikan lingkungan Anda tetap bersih dan nyaman.',
                 'catatan_nb' => "1. Biaya transportasi free 3km dari lokasi basecamp, jika diatas itu dikenakan charge Rp2.000/km.\n2. Peralatan dan sabun untuk bersih-bersih sudah disediakan dari kami.",
                 'urutan' => 1,
@@ -101,7 +101,7 @@ class LayananSeeder extends Seeder
             [
                 'nama' => 'Pindahan & Angkut Barang',
                 'slug' => 'pindahan',
-                'kode_layanan' => 'PDH-',
+                'kode_layanan' => 'P-',
                 'deskripsi' => 'Solusi tepat dan mudah untuk pindahan rumah, kos, kantor, dan barang-barang besar Anda.',
                 'catatan_nb' => 'Tarif transport berlaku Rp2.000 - Rp5.000/km jika jarak melebihi 3 km dari lokasi helpman.',
                 'urutan' => 2,
@@ -136,7 +136,7 @@ class LayananSeeder extends Seeder
             [
                 'nama' => 'Jasa Nemenin',
                 'slug' => 'jasa-nemenin',
-                'kode_layanan' => 'NMN-',
+                'kode_layanan' => 'JSN-',
                 'deskripsi' => 'Layanan pendamping ramah untuk berbagai aktivitas seperti belanja, kondangan, jalan-jalan, atau teman ngobrol.',
                 'catatan_nb' => "1. Nemenin hanya sebatas teman ngobrol, jalan-jalan, kondangan, dll (NO PLUS PLUS).\n2. Biaya makan/minum/tiket masuk helpman saat bertugas ditanggung oleh customer.",
                 'urutan' => 3,
@@ -187,7 +187,7 @@ class LayananSeeder extends Seeder
             [
                 'nama' => 'Bantuan Online',
                 'slug' => 'bantuan-online',
-                'kode_layanan' => 'BON-',
+                'kode_layanan' => 'BAO-',
                 'deskripsi' => 'Layanan bantuan digital dan online seperti paid promote, sleep call, buzzer, dan joki game.',
                 'catatan_nb' => 'Layanan diproses secara cepat dan terpercaya oleh tim profesional.',
                 'urutan' => 4,
@@ -230,7 +230,7 @@ class LayananSeeder extends Seeder
             [
                 'nama' => 'Joki Tugas',
                 'slug' => 'joki-tugas',
-                'kode_layanan' => 'TGS-',
+                'kode_layanan' => 'JOT-',
                 'deskripsi' => 'Bantuan pengerjaan tugas sekolah, kuliah, makalah, presentasi, skripsi, dan karya ilmiah dengan cepat dan rapi.',
                 'catatan_nb' => 'Hasil pengerjaan original, bebas plagiarisme, dan bergaransi revisi.',
                 'urutan' => 5,
@@ -372,14 +372,14 @@ class LayananSeeder extends Seeder
             [
                 'nama' => 'Jastip (Jasa Titip)',
                 'slug' => 'jastip',
-                'kode_layanan' => 'JST-',
+                'kode_layanan' => 'JTP-',
                 'deskripsi' => 'Jasa titip pembelian makanan, minuman, obat, oleh-oleh, atau belanjaan kebutuhan harian langsung ke lokasi Anda.',
                 'catatan_nb' => 'Biaya belum termasuk harga barang yang dibeli (dibayarkan sesuai struk belanja).',
                 'urutan' => 7,
                 'wa_template' => "Hello Minhelp, saya ingin meminta bantuan To Help\n\nHarap Di Isi, Format Order Berikut\nID Order : {order_id}\nJenis pesanan : Jastip\nJasa : {sub_layanan}\nAlamat Ambil/Beli : \nList order : \n1. ......\n2. ......\n3. ......\n\nAlamat tujuan / kirim : \nAtas nama : \nPayment (Cash/TF) : \n\nNo HP Penerima : \n\nNo HP Pengirim : (apabila pengirim dan penerima sama, di isi salah satu aja)\n\nNoted : Tetap berikan sharelok kepada driver untuk membantu memudahkan pengambilan / pengantaran 🙏🏻",
                 'sub_layanans' => [
                     [
-                        'nama' => 'Makanan, Minuman, atau Barang',
+                        'nama' => 'Makanan/Minuman/Barang',
                         'default_harga' => 9000,
                         'default_satuan' => '/ trip',
                         'label_harga_custom' => 'Start from',
@@ -391,7 +391,7 @@ class LayananSeeder extends Seeder
             [
                 'nama' => 'Service Elektronik & Kendaraan',
                 'slug' => 'service',
-                'kode_layanan' => 'SVC-',
+                'kode_layanan' => 'SER-',
                 'deskripsi' => 'Pengecekan dan perbaikan perangkat elektronik, HP, laptop, serta motor/mobil mogok langsung dipanggil.',
                 'catatan_nb' => 'Harga di website adalah biaya pengecekan awal / panggil. Biaya penggantian sparepart disesuaikan saat pengerjaan.',
                 'urutan' => 8,
@@ -418,7 +418,7 @@ class LayananSeeder extends Seeder
             [
                 'nama' => 'Penitipan & Packing',
                 'slug' => 'penitipan',
-                'kode_layanan' => 'SPA-',
+                'kode_layanan' => 'TIP-',
                 'deskripsi' => 'Layanan penitipan barang harian, penitipan kendaraan, packing kardus rapi, dan unboxing.',
                 'catatan_nb' => 'Perhitungan harga berdasarkan volume, berat, ukuran barang, serta jenis kendaraan.',
                 'urutan' => 9,
@@ -531,7 +531,7 @@ class LayananSeeder extends Seeder
             [
                 'nama' => 'Daily Activity',
                 'slug' => 'daily',
-                'kode_layanan' => 'DLY-',
+                'kode_layanan' => 'DAI-',
                 'deskripsi' => 'Bantuan aktivitas harian fleksibel untuk berbagai keperluan mendesak Anda.',
                 'catatan_nb' => 'Tarif menyesuaikan kondisi lapangan, tarif pasti ditentukan sebelum pengerjaan.',
                 'urutan' => 12,
@@ -582,7 +582,7 @@ class LayananSeeder extends Seeder
             [
                 'nama' => 'Jasa Kustom',
                 'slug' => 'jasa-kustom',
-                'kode_layanan' => 'KST-',
+                'kode_layanan' => 'CST-',
                 'deskripsi' => 'Layanan kustom bebas sesuai kebutuhan spesifik Anda yang tidak tertera di menu lainnya.',
                 'catatan_nb' => 'Hubungi admin untuk konsultasi kebutuhan dan penawaran harga terbaik.',
                 'urutan' => 13,
