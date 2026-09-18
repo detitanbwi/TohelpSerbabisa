@@ -160,13 +160,13 @@ class TransaksiResource extends Resource
                             Forms\Components\TextInput::make('total_harga')
                                 ->label('Total Harga')
                                 ->prefix('Rp')
-                                ->currencyMask(thousandSeparator: '.', decimalSeparator: ',', precision: 0)
+                                ->numeric()
                                 ->required()
                                 ->minValue(0),
                             Forms\Components\TextInput::make('tip')
                                 ->label('Nominal Tip Driver/Petugas')
                                 ->prefix('Rp')
-                                ->currencyMask(thousandSeparator: '.', decimalSeparator: ',', precision: 0)
+                                ->numeric()
                                 ->default(0)
                                 ->minValue(0),
                         ])

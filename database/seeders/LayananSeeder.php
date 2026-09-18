@@ -10,7 +10,7 @@ use Illuminate\Support\Facades\DB;
 class LayananSeeder extends Seeder
 {
     /**
-     * Run the database seeds with the EXACT original hardcoded services and pricing.
+     * Run the database seeds with the EXACT original hardcoded services, pricing, and WhatsApp formats.
      */
     public function run(): void
     {
@@ -22,7 +22,7 @@ class LayananSeeder extends Seeder
                 'deskripsi' => 'Layanan pembersihan profesional untuk memastikan lingkungan Anda tetap bersih dan nyaman.',
                 'catatan_nb' => "1. Biaya transportasi free 3km dari lokasi basecamp, jika diatas itu dikenakan charge Rp2.000/km.\n2. Peralatan dan sabun untuk bersih-bersih sudah disediakan dari kami.",
                 'urutan' => 1,
-                'wa_template' => "Hello Minhelp, saya ingin meminta bantuan Cleaning Service dan saya sudah membaca Price List di Website\n\nHarap Di Isi, Format Order Berikut:\nID Order : {order_id}\nJenis Jasa : Cleaning Service\nJenis Ruangan : {sub_layanan}\nLuas : \nTanggal Pengerjaan : \nWaktu : \nAlamat : \nNama Pemesan : \nNo. WA : \nPayment (cash/TF) : \n\n*Noted : sertakan foto / video*",
+                'wa_template' => "Hello Minhelp, saya ingin meminta bantuan Cleaning Service dan saya sudah membaca Price List di Website\n\nHarap Di Isi, Format Order Berikut\nID Order : {order_id}\nJenis Jasa : Cleaning Service\nJenis Ruangan : {sub_layanan}\nLuas : \nTanggal Pengerjaan : \nWaktu : \nAlamat : \nNama Pemesan : \nNo. WA : \nPayment (cash/TF) : \n\n*Noted : sertakan foto / video*",
                 'sub_layanans' => [
                     [
                         'nama' => 'Rumah Subsidi',
@@ -105,7 +105,7 @@ class LayananSeeder extends Seeder
                 'deskripsi' => 'Solusi tepat dan mudah untuk pindahan rumah, kos, kantor, dan barang-barang besar Anda.',
                 'catatan_nb' => 'Tarif transport berlaku Rp2.000 - Rp5.000/km jika jarak melebihi 3 km dari lokasi helpman.',
                 'urutan' => 2,
-                'wa_template' => "Hii kak, saya ingin meminta bantuan To Help\n\nID Order : {order_id}\nJenis pesanan : Pindahan/Angkut Barang\nJenis jasa : {sub_layanan}\nAlamat ambil / order : \nList barang berat : \n1. ......\n2. ......\nList barang ringan :\n1. ......\n2. ......\nPerlu kuli tambahan? (ya/tidak) : \nAlamat tujuan / kirim : \nTanggal/Waktu : \nNo.hp / wa : \nAtas nama : \nPayment (cash/TF) : ",
+                'wa_template' => "Hii kak, saya ingin meminta bantuan To Help\n\nID Order : {order_id}\nJenis pesanan : Pindahan/Angkut Barang\nAlamat ambil / order : \nList barang berat : \n1. ......\n2. ......\n3. ......\nList barang ringan :\n1. ......\n2. ......\n3. ......\n\nJenis jasa : {sub_layanan}\nPerlu kuli tambahan? (ya/tidak) : \nJika ya, berapa orang : \nAlamat tujuan / kirim (sertakan lantai) : \nTanggal/Waktu : \nNo.hp / wa : \nAtas nama : \nPayment (cash/TF) : ",
                 'sub_layanans' => [
                     [
                         'nama' => 'Tossa',
@@ -140,7 +140,7 @@ class LayananSeeder extends Seeder
                 'deskripsi' => 'Layanan pendamping ramah untuk berbagai aktivitas seperti belanja, kondangan, jalan-jalan, atau teman ngobrol.',
                 'catatan_nb' => "1. Nemenin hanya sebatas teman ngobrol, jalan-jalan, kondangan, dll (NO PLUS PLUS).\n2. Biaya makan/minum/tiket masuk helpman saat bertugas ditanggung oleh customer.",
                 'urutan' => 3,
-                'wa_template' => "Halo Minhelp, saya ingin memesan Jasa Nemenin\n\nID Order : {order_id}\nPaket Layanan : {sub_layanan}\nHarga : {harga} {satuan}\nTanggal/Hari : \nJam/Waktu : \nLokasi Pertemuan : \nAgenda/Aktivitas : \nNama Pemesan : \nNo. WA : ",
+                'wa_template' => "Hii kak, saya ingin meminta bantuan To Help\n\nID Order : {order_id}\nJenis Jasa : Nemenin\nPermintaan (pilih salah satu) : ngopi/nonton/night ride/yang lain…\nHari/tanggal : \nWaktu : \nNama : \nPilih Talent : \nNomor WhatsApp : \nPayment (Cash/TF) : \n\nDijemput / Menjemput : (tulis alamat kalian apabila ingin dijemput)\nNoted : (untuk cek talent, bisa kunjungi website di menu bagian profile. Bingung? Tanya admin)",
                 'sub_layanans' => [
                     [
                         'nama' => 'Tarif Durasi',
@@ -191,7 +191,7 @@ class LayananSeeder extends Seeder
                 'deskripsi' => 'Layanan bantuan digital dan online seperti paid promote, sleep call, buzzer, dan joki game.',
                 'catatan_nb' => 'Layanan diproses secara cepat dan terpercaya oleh tim profesional.',
                 'urutan' => 4,
-                'wa_template' => "Halo Minhelp, saya ingin memesan layanan Bantuan Online\n\nID Order : {order_id}\nLayanan : {sub_layanan}\nHarga : {harga} {satuan}\nDetail Kebutuhan : \nNama : \nNo. WA : ",
+                'wa_template' => "Hii kak, saya ingin meminta bantuan To Help\n\nHarap Di Isi, Format Order Berikut\nOrder ID : {order_id}\nJenis Jasa : Bantuan online\nTipe Jasa : {sub_layanan}\nWaktu : \nNama : \nNomor Whatsapp : ",
                 'sub_layanans' => [
                     [
                         'nama' => 'Paid Promote SW',
@@ -234,7 +234,7 @@ class LayananSeeder extends Seeder
                 'deskripsi' => 'Bantuan pengerjaan tugas sekolah, kuliah, makalah, presentasi, skripsi, dan karya ilmiah dengan cepat dan rapi.',
                 'catatan_nb' => 'Hasil pengerjaan original, bebas plagiarisme, dan bergaransi revisi.',
                 'urutan' => 5,
-                'wa_template' => "Halo Minhelp, saya ingin memesan Jasa Pengerjaan Tugas\n\nID Order : {order_id}\nJenis Tugas : {sub_layanan}\nEstimasi Harga : {harga}\nDeadline : \nDetail / Instruksi Tugas : \nNama : \nNo. WA : ",
+                'wa_template' => "Hii kak, saya ingin meminta bantuan To Help\n\nID Order : {order_id}\nJenis Jasa : Joki Tugas\nTipe Jasa : {sub_layanan}\nDeadline : \nNama : \nNomor WhatsApp : ",
                 'sub_layanans' => [
                     [
                         'nama' => 'Makalah',
@@ -317,7 +317,7 @@ class LayananSeeder extends Seeder
                 'deskripsi' => 'Layanan kreatif editing foto, video, serta fotografer & videografer untuk wisuda, event, dan konten.',
                 'catatan_nb' => 'File hasil dokumentasi dan editing diberikan via link Google Drive dengan kualitas HD.',
                 'urutan' => 6,
-                'wa_template' => "Halo Minhelp, saya ingin memesan Jasa Editing & Dokumentasi\n\nID Order : {order_id}\nLayanan : {sub_layanan}\nHarga : {harga} {satuan}\nTanggal Acara : \nLokasi : \nNama : \nNo. WA : ",
+                'wa_template' => "Hii kak, saya ingin meminta bantuan To Help\n\nID Order : {order_id}\nJenis Jasa : Editing\nTipe Jasa : {sub_layanan}\nHari/Tanggal : \nLokasi : \nNama : \nNomor WhatsApp : ",
                 'sub_layanans' => [
                     [
                         'nama' => 'Foto',
@@ -376,7 +376,7 @@ class LayananSeeder extends Seeder
                 'deskripsi' => 'Jasa titip pembelian makanan, minuman, obat, oleh-oleh, atau belanjaan kebutuhan harian langsung ke lokasi Anda.',
                 'catatan_nb' => 'Biaya belum termasuk harga barang yang dibeli (dibayarkan sesuai struk belanja).',
                 'urutan' => 7,
-                'wa_template' => "Halo Minhelp, saya ingin memesan Layanan Jastip\n\nID Order : {order_id}\nLayanan : {sub_layanan}\nDaftar Barang / Menu : \n1. ......\n2. ......\nNama Toko / Resto : \nAlamat Pengantaran : \nNama Pemesan : \nNo. WA : ",
+                'wa_template' => "Hello Minhelp, saya ingin meminta bantuan To Help\n\nHarap Di Isi, Format Order Berikut\nID Order : {order_id}\nJenis pesanan : Jastip\nJasa : {sub_layanan}\nAlamat Ambil/Beli : \nList order : \n1. ......\n2. ......\n3. ......\n\nAlamat tujuan / kirim : \nAtas nama : \nPayment (Cash/TF) : \n\nNo HP Penerima : \n\nNo HP Pengirim : (apabila pengirim dan penerima sama, di isi salah satu aja)\n\nNoted : Tetap berikan sharelok kepada driver untuk membantu memudahkan pengambilan / pengantaran 🙏🏻",
                 'sub_layanans' => [
                     [
                         'nama' => 'Makanan, Minuman, atau Barang',
@@ -395,7 +395,7 @@ class LayananSeeder extends Seeder
                 'deskripsi' => 'Pengecekan dan perbaikan perangkat elektronik, HP, laptop, serta motor/mobil mogok langsung dipanggil.',
                 'catatan_nb' => 'Harga di website adalah biaya pengecekan awal / panggil. Biaya penggantian sparepart disesuaikan saat pengerjaan.',
                 'urutan' => 8,
-                'wa_template' => "Halo Minhelp, saya ingin memesan Layanan Service\n\nID Order : {order_id}\nJenis Service : {sub_layanan}\nKendala / Kerusakan : \nAlamat Lokasi : \nNama : \nNo. WA : ",
+                'wa_template' => "Hii kak, saya ingin meminta bantuan To Help\n\nID Order : {order_id}\nJenis Jasa : Service\nJenis barang : {sub_layanan}\nKeluhan/kerusakan :\nAmbil : (ya/tidak)?\nJika iya, Alamat ambil di : \nHari/tanggal : \nWaktu : \nNama : \nNomor WhatsApp : \nPayment (cash/TF) : ",
                 'sub_layanans' => [
                     [
                         'nama' => 'Service Elektronik',
@@ -465,7 +465,7 @@ class LayananSeeder extends Seeder
                 'deskripsi' => 'Tenaga tukang dan teknisi handal untuk perbaikan genteng, instalasi listrik, pipa air, dan renovasi rumah.',
                 'catatan_nb' => 'Tarif belum termasuk material bahan bangunan yang diperlukan.',
                 'urutan' => 10,
-                'wa_template' => "Halo Minhelp, saya ingin memesan Jasa Teknisi / Tukang\n\nID Order : {order_id}\nKategori : {sub_layanan}\nDeskripsi Pekerjaan : \nAlamat Pengerjaan : \nNama : \nNo. WA : ",
+                'wa_template' => "Hii kak, saya ingin meminta bantuan To Help\n\nID Order : {order_id}\nJenis Jasa : Teknisi\nJenis Teknisi : {sub_layanan}\nKronologi Kerusakan : \nLokasi : \nNama : \nNomor WhatsApp : ",
                 'sub_layanans' => [
                     [
                         'nama' => 'Bantuan Ringan',
@@ -500,7 +500,7 @@ class LayananSeeder extends Seeder
                 'deskripsi' => 'Sewa kendaraan mobil dan motor lepas kunci / plus driver serta sewa driver berpengalaman.',
                 'catatan_nb' => 'Harap siapkan KTP asli + jaminan (sepeda motor & STNK untuk sewa mobil, atau KTP asli untuk sewa motor).',
                 'urutan' => 11,
-                'wa_template' => "Hii kak, saya ingin menyewa kendaraan / Driver\n\nID Order : {order_id}\nLayanan : {sub_layanan}\nNama Unit : \nTambahan Driver : (ya / tidak)\nDiambil / Diantar : \nAlamat Antar/Jemput : \nWaktu Ambil : \nWaktu Kembali : \nNama : \nNomor WhatsApp : ",
+                'wa_template' => "Hii kak, saya ingin menyewa kendaraan / Driver\n\nID Order : {order_id}\nJenis Kendaraan / Driver : {sub_layanan}\nNama Unit : \nTambahan Driver : ( ya / tidak)\nDi ambil / diantar : \nAlamat tujuan : (apabila diantar)\nWaktu Ambil : \nWaktu kembali : \nNama : \nNomor WhatsApp : \n\n*Tolong siapkan KTP asli sebagai jaminan 🙏🏻*",
                 'sub_layanans' => [
                     [
                         'nama' => 'Rental Mobil',
@@ -535,7 +535,7 @@ class LayananSeeder extends Seeder
                 'deskripsi' => 'Bantuan aktivitas harian fleksibel untuk berbagai keperluan mendesak Anda.',
                 'catatan_nb' => 'Tarif menyesuaikan kondisi lapangan, tarif pasti ditentukan sebelum pengerjaan.',
                 'urutan' => 12,
-                'wa_template' => "Hii kak, saya ingin meminta bantuan To Help\n\nID Order : {order_id}\nJenis Jasa : Daily Activity\nKategori : {sub_layanan}\nMasalah Yang Sedang Dihadapi : \nBantuan yang diinginkan : \nHari/tanggal : \nWaktu : \nLokasi Bantuan : \nNama : \nNomor WhatsApp : \nPayment (cash/TF) : ",
+                'wa_template' => "Hii kak, saya ingin meminta bantuan To Help\n\nID Order : {order_id}\nJenis Jasa : Daily Activity\nMasalah Yang Sedang Dihadapi : \nBantuan yang di inginkan : \nHari/tanggal Bantuan : \nWaktu : \nLokasi Bantuan : \nNama : \nNomor WhatsApp : \nPayment (cash/TF) : ",
                 'sub_layanans' => [
                     [
                         'nama' => 'Bantuan Ringan',
@@ -586,7 +586,7 @@ class LayananSeeder extends Seeder
                 'deskripsi' => 'Layanan kustom bebas sesuai kebutuhan spesifik Anda yang tidak tertera di menu lainnya.',
                 'catatan_nb' => 'Hubungi admin untuk konsultasi kebutuhan dan penawaran harga terbaik.',
                 'urutan' => 13,
-                'wa_template' => "Halo Minhelp, saya ingin mengajukan Jasa Kustom\n\nID Order : {order_id}\nLayanan : {sub_layanan}\nDeskripsi Kebutuhan : \nBudget / Estimasi : \nAlamat Lokasi : \nNama : \nNo. WA : ",
+                'wa_template' => "Hii kak, saya ingin meminta bantuan To Help untuk *(isi sesuai kebutuhan kalian)*\n\nOrder ID : {order_id}\nLayanan : {sub_layanan}\nDetail Pesanan : \nTanggal/Waktu : \nAlamat : \nNama : \nNo. HP/WA : ",
                 'sub_layanans' => [
                     [
                         'nama' => 'Request Bantuan Apapun',
