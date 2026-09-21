@@ -128,8 +128,9 @@ class TransaksiResource extends Resource
                     ->searchable()
                     ->options(Transaksi::query()->distinct('jenis')->pluck('jenis', 'jenis')->mapWithKeys(fn($item) => [$item => ucwords($item)])),
                 DateRangeFilter::make('created_at')->timezone('Asia/Jakarta')
-                    ->label('Tanggal')
+                    ->label('Tanggal'),
             ], layout: FiltersLayout::AboveContent)
+            ->filtersFormColumns(['sm' => 1, 'md' => 2, 'lg' => 4])
             ->actions([
                 Tables\Actions\ActionGroup::make([
                     SimpleMap::make('showMap')

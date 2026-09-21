@@ -89,6 +89,7 @@ class TransaksiWidget extends BaseWidget
                 DateRangeFilter::make('created_at')->timezone('Asia/Jakarta')
                     ->label('Tanggal'),
                 ], layout: FiltersLayout::AboveContent)
+            ->filtersFormColumns(['sm' => 1, 'md' => 2, 'lg' => 3])
             ->actions([
                 Tables\Actions\ActionGroup::make([
                     SimpleMap::make('showMap')
