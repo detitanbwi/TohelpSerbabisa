@@ -26,7 +26,9 @@ class TransaksiWidget extends BaseWidget
     public function table(Table $table): Table
     {
         return $table
-            ->query(Transaksi::query()->with('voucher')->orderBy('created_at', 'desc')->limit(5))
+            ->query(Transaksi::query()->with(['voucher', 'cabang', 'tugas'])->orderBy('created_at', 'desc'))
+            ->defaultPaginationPageOption(5)
+            ->paginated([5, 10, 25])
             ->columns([
                 Tables\Columns\TextColumn::make('order_id')
                     ->label('ID Order')
@@ -35,12 +37,17 @@ class TransaksiWidget extends BaseWidget
                 Tables\Columns\TextColumn::make('voucher.nama')
                     ->label('Voucher')
                     ->getStateUsing(fn(Transaksi $transaksi) => $transaksi->voucher->nama ?? 'Tidak Ada Voucher')
+                    ->searchable()
                     ->sortable(),
                 Tables\Columns\TextColumn::make('jenis')
-                    ->label('Jenis Layanan'),
+                    ->label('Jenis Layanan')
+                    ->searchable()
+                    ->sortable(),
                 Tables\Columns\TextColumn::make('jasa')
                     ->label('Jasa')
-                    ->getStateUsing(fn(Transaksi $transaksi) => $transaksi->jasa ?? '-'),
+                    ->getStateUsing(fn(Transaksi $transaksi) => $transaksi->jasa ?? '-')
+                    ->searchable()
+                    ->sortable(),
                 Tables\Columns\TextColumn::make('total_harga')
                     ->label('Total Harga')
                     ->weight(FontWeight::Bold)
@@ -48,8 +55,15 @@ class TransaksiWidget extends BaseWidget
                     ->sortable(),
                 Tables\Columns\TextColumn::make('cabang.nama')
                     ->label('Cabang')
+                    ->getStateUsing(fn(Transaksi $transaksi) => $transaksi->cabang->nama ?? '-')
                     ->searchable()
                     ->sortable(),
+                Tables\Columns\TextColumn::make('tugas.name')
+                    ->label('Helpman')
+                    ->badge()
+                    ->searchable()
+                    ->placeholder('Belum Ditugaskan')
+                    ->toggleable(),
                 Tables\Columns\TextColumn::make('status_transaksi')
                     ->label('Status Transaksi')
                     ->badge()
