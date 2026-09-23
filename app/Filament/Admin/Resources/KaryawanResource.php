@@ -156,7 +156,15 @@ class KaryawanResource extends Resource
                     ->sortable(),
                 ToggleColumn::make('is_visible')
                     ->label('Siaga (Aktif)')
-                    ->sortable(),
+                    ->sortable()
+                    ->afterStateUpdated(function (User $record, $state) {
+                        $statusText = $state ? 'Aktif (Siaga Tugas)' : 'Nonaktif (Cuti / Libur)';
+                        Notification::make()
+                            ->title('Status Keaktifan Diperbarui')
+                            ->body("Status karyawan {$record->name} berhasil diubah menjadi {$statusText}.")
+                            ->success()
+                            ->send();
+                    }),
                 Tables\Columns\TextColumn::make('tanggal_lahir')
                     ->label('Tanggal Lahir')
                     ->getStateUsing(function (User $user)

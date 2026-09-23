@@ -87,7 +87,8 @@ class AdminPanelProvider extends PanelProvider
                         // fn () => auth()->user()->isAdmin()
                     ),
                 FilamentLogManager::make(),
-                FilamentShieldPlugin::make(),
+                FilamentShieldPlugin::make()
+                    ->localizePermissionLabels(),
             ])
             // topbar
             ->userMenuItems([
