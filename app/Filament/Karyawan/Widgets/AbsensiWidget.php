@@ -108,15 +108,28 @@ class AbsensiWidget extends BaseWidget
                         // cek waktu yang ditetapkan untuk bisa absen
                         $masterAbsensi = AbsensiBase::first();
 
-                        // jika jam absen belum mulai atau sudah lewat, maka berikan validasi tidak bisa absen. JAM INDONESIA
-                        if(now()->timezone('Asia/Jakarta')->format('H:i:s') < $masterAbsensi->jam_masuk || now()->timezone('Asia/Jakarta')->format('H:i:s') > $masterAbsensi->jam_keluar)
-                        {
-                            Notification::make()
-                                ->title('Gagal')
-                                ->body('Bukti absen gagal diunggah. Silahkan coba lagi besok')
-                                ->danger()
-                                ->send();
-                            return;
+                        if ($masterAbsensi) {
+                            $nowTime = now()->timezone('Asia/Jakarta')->format('H:i:s');
+                            $jamMasukSetting = \Carbon\Carbon::parse($masterAbsensi->jam_masuk)->format('H:i');
+                            $jamKeluarSetting = \Carbon\Carbon::parse($masterAbsensi->jam_keluar)->format('H:i');
+
+                            if ($nowTime < $masterAbsensi->jam_masuk) {
+                                Notification::make()
+                                    ->title('Presensi Belum Dibuka')
+                                    ->body("Jadwal presensi dimulai pukul {$jamMasukSetting} hingga {$jamKeluarSetting} WIB.")
+                                    ->warning()
+                                    ->send();
+                                return;
+                            }
+
+                            if ($nowTime > $masterAbsensi->jam_keluar) {
+                                Notification::make()
+                                    ->title('Waktu Presensi Berakhir')
+                                    ->body("Waktu presensi telah berakhir pada pukul {$jamKeluarSetting} WIB. Anda tidak dapat melakukan presensi di luar jadwal.")
+                                    ->danger()
+                                    ->send();
+                                return;
+                            }
                         }
                         DB::beginTransaction();
                         try
