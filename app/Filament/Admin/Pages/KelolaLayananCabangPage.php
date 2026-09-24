@@ -128,7 +128,9 @@ class KelolaLayananCabangPage extends Page
 
         Notification::make()
             ->title('Status Diperbarui')
-            ->body($status ? 'Semua sub-layanan telah diaktifkan.' : 'Semua sub-layanan telah dinonaktifkan.')
+            ->body($status 
+                ? 'Semua sub-layanan telah diaktifkan. Silakan klik tombol "Simpan Pengaturan" di bagian bawah untuk menyimpan perubahan.' 
+                : 'Semua sub-layanan telah dinonaktifkan. Silakan klik tombol "Simpan Pengaturan" di bagian bawah untuk menyimpan perubahan.')
             ->info()
             ->send();
     }
@@ -145,7 +147,9 @@ class KelolaLayananCabangPage extends Page
 
             Notification::make()
                 ->title("Grup {$layanan->nama}")
-                ->body($status ? "Semua paket pada {$layanan->nama} diaktifkan." : "Semua paket pada {$layanan->nama} dinonaktifkan.")
+                ->body($status 
+                    ? "Semua paket pada {$layanan->nama} diaktifkan. Silakan klik 'Simpan Pengaturan' di bagian bawah." 
+                    : "Semua paket pada {$layanan->nama} dinonaktifkan. Silakan klik 'Simpan Pengaturan' di bagian bawah.")
                 ->info()
                 ->send();
         }
@@ -161,7 +165,7 @@ class KelolaLayananCabangPage extends Page
 
             Notification::make()
                 ->title('Direset')
-                ->body('Tarif dikembalikan ke default Superadmin.')
+                ->body('Tarif dikembalikan ke default Superadmin. Jangan lupa klik "Simpan Pengaturan" di bawah.')
                 ->success()
                 ->send();
         }
@@ -181,6 +185,18 @@ class KelolaLayananCabangPage extends Page
         DB::beginTransaction();
         try {
             foreach ($this->items as $subId => $data) {
+                $rawHarga = $data['custom_harga'] ?? null;
+                $parsedHarga = null;
+                if ($rawHarga !== '' && $rawHarga !== null) {
+                    if (is_string($rawHarga)) {
+                        // Strip 'Rp', spaces, dots, and convert to integer
+                        $clean = preg_replace('/[^0-9]/', '', $rawHarga);
+                        $parsedHarga = $clean !== '' ? (float) $clean : null;
+                    } else {
+                        $parsedHarga = (float) $rawHarga;
+                    }
+                }
+
                 CabangLayanan::updateOrCreate(
                     [
                         'cabang_id' => $this->selectedCabangId,
@@ -188,7 +204,7 @@ class KelolaLayananCabangPage extends Page
                     ],
                     [
                         'is_tersedia' => (bool) ($data['is_tersedia'] ?? true),
-                        'custom_harga' => ($data['custom_harga'] !== '' && $data['custom_harga'] !== null) ? (float) $data['custom_harga'] : null,
+                        'custom_harga' => $parsedHarga,
                         'custom_satuan' => !empty($data['custom_satuan']) ? trim($data['custom_satuan']) : null,
                         'custom_label' => !empty($data['custom_label']) ? trim($data['custom_label']) : null,
                         'custom_catatan_nb' => !empty($data['custom_catatan_nb']) ? trim($data['custom_catatan_nb']) : null,
