@@ -44,7 +44,7 @@ class LihatAbsensiPage extends Page implements HasTable
             ->columns([
                 TextColumn::make('tanggal')
                     ->label('Tanggal')
-                    ->date('l, d F Y'),
+                    ->formatStateUsing(fn ($state) => $state ? Carbon::parse($state)->locale('id')->translatedFormat('l, d F Y') : '-'),
                 TextColumn::make('jam_masuk')
                     ->label('Waktu Stand By')
                     ->dateTime('H:i:s'),
@@ -76,7 +76,7 @@ class LihatAbsensiPage extends Page implements HasTable
                                     ->columnSpanFull(),
                                 TextEntry::make('info_waktu')
                                     ->label('Waktu Check-In')
-                                    ->state(fn (Absensi $record) => Carbon::parse($record->tanggal)->format('d/m/Y') . ' - Pukul ' . Carbon::parse($record->jam_masuk)->format('H:i:s') . ' WIB')
+                                    ->state(fn (Absensi $record) => Carbon::parse($record->tanggal)->locale('id')->translatedFormat('d F Y') . ' - Pukul ' . Carbon::parse($record->jam_masuk)->format('H:i:s') . ' WIB')
                                     ->columnSpanFull(),
                             ])
                     ])

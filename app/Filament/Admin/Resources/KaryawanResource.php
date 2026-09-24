@@ -6,6 +6,7 @@ use App\Filament\Admin\Resources\KaryawanResource\Pages;
 use App\Filament\Admin\Resources\KaryawanResource\RelationManagers;
 use App\Models\Cabang;
 use App\Models\User;
+use Carbon\Carbon;
 use Exception;
 use Filament\Forms;
 use Filament\Forms\Components\DatePicker;
@@ -15,6 +16,11 @@ use Filament\Forms\Components\Select;
 use Filament\Forms\Components\TextInput;
 use Filament\Forms\Components\Toggle;
 use Filament\Forms\Form;
+use Filament\Infolists\Components\Grid as InfolistGrid;
+use Filament\Infolists\Components\ImageEntry;
+use Filament\Infolists\Components\Section as InfolistSection;
+use Filament\Infolists\Components\TextEntry;
+use Filament\Infolists\Infolist;
 use Filament\Notifications\Notification;
 use Filament\Resources\Resource;
 use Filament\Tables;
@@ -47,6 +53,7 @@ class KaryawanResource extends Resource
                     ->schema([
                         TextInput::make('name')
                             ->label('Nama Karyawan')
+                            ->placeholder('Masukkan nama lengkap karyawan')
                             ->required()
                             ->autocomplete(false),
                         TextInput::make('username')
@@ -61,6 +68,7 @@ class KaryawanResource extends Resource
                             ->autocomplete(false),
                         TextInput::make('email')
                             ->label('Email (Opsional)')
+                            ->placeholder('Contoh: karyawan@tohelp.com')
                             ->nullable()
                             ->email()
                             ->unique(ignoreRecord: true)
@@ -69,8 +77,12 @@ class KaryawanResource extends Resource
                             ])
                             ->autocomplete(false),
                         Select::make('cabang_id')
-                            ->label('Cabang')
+                            ->label('Cabang Penempatan')
                             ->options(Cabang::all()->pluck('nama', 'id'))
+                            ->placeholder('Pilih Cabang Penempatan')
+                            ->selectablePlaceholder(false)
+                            ->searchable()
+                            ->preload()
                             ->default(fn () => auth()->user()?->hasRole('manager_cabang') ? auth()->user()->cabang_id : null)
                             ->disabled(fn () => auth()->user()?->hasRole('manager_cabang'))
                             ->dehydrated()
@@ -81,10 +93,18 @@ class KaryawanResource extends Resource
                                 'helpman' => 'Helpman (Lapangan)',
                                 'joki' => 'Joki (Tugas / Digital)',
                             ])
+                            ->placeholder('Pilih Tipe Personil')
+                            ->selectablePlaceholder(false)
                             ->default('helpman')
                             ->required(),
                         TextInput::make('password')
+                            ->label('Password')
                             ->password()
+                            ->revealable()
+                            ->placeholder('Masukkan password login')
+                            ->helperText(fn (string $operation): string => $operation === 'create' 
+                                ? 'Klik ikon mata untuk melihat password yang diketik.' 
+                                : 'Kosongkan jika tidak ingin mengubah password.')
                             ->autocomplete('new-password')
                             ->dehydrateStateUsing(fn ($state) => Hash::make($state))
                             ->dehydrated(fn ($state) => filled($state))
@@ -98,7 +118,11 @@ class KaryawanResource extends Resource
                             ->helperText('Jika dinonaktifkan (cuti/libur), personil tidak akan muncul dalam daftar siaga tugas.')
                             ->default(true),
                         FileUpload::make('avatar_url')
-                            ->label('Foto')
+                            ->label('Foto Profil')
+                            ->image()
+                            ->directory('avatars')
+                            ->disk('public')
+                            ->avatar()
                             ->maxFiles(1),
                     ]),
             ]);
@@ -121,6 +145,11 @@ class KaryawanResource extends Resource
                 }
             })
             ->columns([
+                Tables\Columns\ImageColumn::make('avatar_url')
+                    ->label('Foto')
+                    ->circular()
+                    ->disk('public')
+                    ->defaultImageUrl(fn (User $record): string => 'https://ui-avatars.com/api/?name=' . urlencode($record->name) . '&color=FFFFFF&background=0284c7'),
                 Tables\Columns\TextColumn::make('name')
                     ->label('Nama Karyawan')
                     ->searchable()
@@ -169,20 +198,16 @@ class KaryawanResource extends Resource
                     ->label('Tanggal Lahir')
                     ->getStateUsing(function (User $user)
                     {
-                        // ambil usia dari tanggal lahir
                         $tanggal_lahir = $user?->custom_fields['tanggal_lahir'] ?? null;
                         if (!$tanggal_lahir) {
                             return '-';
                         }
                         try {
-                            $usia = date_diff(date_create($tanggal_lahir), date_create('now'))->y;
-                            return $usia . ' tahun';
+                            return Carbon::parse($tanggal_lahir)->locale('id')->translatedFormat('d F Y');
                         } catch (\Throwable $e) {
-                            return '-';
+                            return $tanggal_lahir;
                         }
                     }),
-                Tables\Columns\ImageColumn::make('avatar_url')
-                    ->label('Foto'),
             ])
             ->filters([
                 SelectFilter::make('cabang_id')
@@ -202,10 +227,61 @@ class KaryawanResource extends Resource
                     ->falseLabel('Hanya yang Nonaktif (Cuti)'),
             ], layout: FiltersLayout::AboveContent)
             ->actions([
+                Tables\Actions\ViewAction::make()
+                    ->label('Detail')
+                    ->icon('heroicon-o-eye')
+                    ->color('secondary')
+                    ->modalHeading(fn (User $record) => 'Detail Data Karyawan - ' . $record->name)
+                    ->infolist([
+                        InfolistSection::make('Informasi Profil Karyawan')
+                            ->schema([
+                                InfolistGrid::make(3)
+                                    ->schema([
+                                        ImageEntry::make('avatar_url')
+                                            ->label('Foto Profil')
+                                            ->circular()
+                                            ->disk('public')
+                                            ->defaultImageUrl(fn (User $record): string => 'https://ui-avatars.com/api/?name=' . urlencode($record->name) . '&color=FFFFFF&background=0284c7')
+                                            ->columnSpan(1),
+                                        InfolistGrid::make(2)
+                                            ->schema([
+                                                TextEntry::make('name')->label('Nama Lengkap')->weight('font-bold'),
+                                                TextEntry::make('username')->label('Username')->badge()->color('warning'),
+                                                TextEntry::make('email')->label('Email')->placeholder('-'),
+                                                TextEntry::make('cabang.nama')->label('Cabang')->badge()->color('primary')->placeholder('-'),
+                                                TextEntry::make('tipe_karyawan')
+                                                    ->label('Tipe Personil')
+                                                    ->badge()
+                                                    ->formatStateUsing(fn ($state) => $state === 'joki' ? 'Joki (Tugas)' : 'Helpman (Lapangan)'),
+                                                TextEntry::make('is_visible')
+                                                    ->label('Status Siaga')
+                                                    ->badge()
+                                                    ->color(fn ($state) => $state ? 'success' : 'danger')
+                                                    ->formatStateUsing(fn ($state) => $state ? 'Aktif (Siaga)' : 'Nonaktif (Cuti)'),
+                                                TextEntry::make('tanggal_lahir')
+                                                    ->label('Tanggal Lahir')
+                                                    ->state(function (User $record) {
+                                                        $tgl = $record->custom_fields['tanggal_lahir'] ?? null;
+                                                        if (!$tgl) return '-';
+                                                        try {
+                                                            $carbon = Carbon::parse($tgl)->locale('id');
+                                                            return $carbon->translatedFormat('d F Y') . ' (' . $carbon->age . ' tahun)';
+                                                        } catch (\Throwable $e) {
+                                                            return $tgl;
+                                                        }
+                                                    }),
+                                                TextEntry::make('created_at')
+                                                    ->label('Terdaftar Sejak')
+                                                    ->state(fn (User $record) => $record->created_at ? Carbon::parse($record->created_at)->locale('id')->translatedFormat('d F Y H:i') : '-'),
+                                            ])
+                                            ->columnSpan(2),
+                                    ]),
+                            ]),
+                    ]),
                 Tables\Actions\Action::make('lihatAbsensi')
                     ->label('Lihat Absensi')
                     ->color('info')
-                    ->icon('heroicon-o-document')
+                    ->icon('heroicon-o-document-text')
                     ->url(fn(User $karyawan) => Pages\LihatAbsensiPage::getUrl(['record' => $karyawan])),
                 Tables\Actions\EditAction::make()
                     ->form([
@@ -236,7 +312,11 @@ class KaryawanResource extends Resource
                                 ])
                                 ->autocomplete(false),
                             TextInput::make('password')
+                                ->label('Password')
                                 ->password()
+                                ->revealable()
+                                ->placeholder('Masukkan password baru jika ingin mengubah')
+                                ->helperText('Kosongkan jika tidak ingin mengubah password. Klik ikon mata untuk melihat password baru yang diketik.')
                                 ->autocomplete('new-password'),
                             DatePicker::make('tanggal_lahir')
                                 ->label('Tanggal Lahir')
@@ -244,8 +324,12 @@ class KaryawanResource extends Resource
                                 ->locale('id')
                                 ->formatStateUsing(fn(User $user) => $user?->custom_fields['tanggal_lahir'] ?? null),
                             Select::make('cabang_id')
-                                ->label('Cabang')
+                                ->label('Cabang Penempatan')
                                 ->options(Cabang::all()->pluck('nama', 'id'))
+                                ->placeholder('Pilih Cabang Penempatan')
+                                ->selectablePlaceholder(false)
+                                ->searchable()
+                                ->preload()
                                 ->default(fn () => auth()->user()?->hasRole('manager_cabang') ? auth()->user()->cabang_id : null)
                                 ->disabled(fn () => auth()->user()?->hasRole('manager_cabang'))
                                 ->dehydrated()
@@ -256,13 +340,19 @@ class KaryawanResource extends Resource
                                     'helpman' => 'Helpman (Lapangan)',
                                     'joki' => 'Joki (Tugas / Digital)',
                                 ])
+                                ->placeholder('Pilih Tipe Personil')
+                                ->selectablePlaceholder(false)
                                 ->default('helpman')
                                 ->required(),
                             Toggle::make('is_visible')
                                 ->label('Status Siaga / Aktif')
                                 ->default(true),
                             FileUpload::make('avatar_url')
-                                ->label('Foto')
+                                ->label('Foto Profil')
+                                ->image()
+                                ->directory('avatars')
+                                ->disk('public')
+                                ->avatar()
                                 ->maxFiles(1),
                         ]),
                     ])
@@ -285,7 +375,7 @@ class KaryawanResource extends Resource
                                 'tipe_karyawan' => $data['tipe_karyawan'] ?? 'helpman',
                             ]);
 
-                            if(isset($data['password']))
+                            if(!empty($data['password']))
                             {
                                 $user->update([
                                     'password' => Hash::make($data['password']),
@@ -307,7 +397,7 @@ class KaryawanResource extends Resource
 
                             Notification::make()
                                 ->title('Sukses!')
-                                ->body('Edit karyawan berhasil!')
+                                ->body('Data karyawan berhasil diperbarui.')
                                 ->success()
                                 ->send();
 
