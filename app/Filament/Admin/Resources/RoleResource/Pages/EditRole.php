@@ -9,6 +9,9 @@ use Filament\Resources\Pages\EditRecord;
 use Illuminate\Support\Arr;
 use Illuminate\Support\Collection;
 
+use Filament\Notifications\Notification;
+use Illuminate\Database\Eloquent\Model;
+
 class EditRole extends EditRecord
 {
     protected static string $resource = RoleResource::class;
@@ -18,7 +21,30 @@ class EditRole extends EditRecord
     protected function getActions(): array
     {
         return [
-            Actions\DeleteAction::make(),
+            Actions\DeleteAction::make()
+                ->before(function (Actions\DeleteAction $action, Model $record) {
+                    $protectedRoles = ['super_admin', 'karyawan', 'panel_user'];
+                    if (in_array(strtolower($record->name), $protectedRoles)) {
+                        Notification::make()
+                            ->title('Tidak Dapat Dihapus')
+                            ->body("Role '{$record->name}' adalah role sistem utama dan tidak dapat dihapus.")
+                            ->danger()
+                            ->send();
+
+                        $action->halt();
+                    }
+
+                    if (method_exists($record, 'users') && $record->users()->count() > 0) {
+                        $count = $record->users()->count();
+                        Notification::make()
+                            ->title('Role Sedang Digunakan')
+                            ->body("Role '{$record->name}' sedang digunakan oleh {$count} pengguna. Harap pindahkan pengguna ke role lain terlebih dahulu.")
+                            ->warning()
+                            ->send();
+
+                        $action->halt();
+                    }
+                }),
         ];
     }
 

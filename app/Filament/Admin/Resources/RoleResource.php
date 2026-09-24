@@ -10,10 +10,13 @@ use BezhanSalleh\FilamentShield\Traits\HasShieldFormComponents;
 use Filament\Facades\Filament;
 use Filament\Forms;
 use Filament\Forms\Form;
+use Filament\Notifications\Notification;
 use Filament\Resources\Resource;
 use Filament\Tables;
 use Filament\Tables\Table;
 use Illuminate\Contracts\Support\Arrayable;
+use Illuminate\Database\Eloquent\Collection;
+use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\HtmlString;
 use Illuminate\Support\Str;
 
@@ -92,10 +95,57 @@ class RoleResource extends Resource implements HasShieldPermissions
             ])
             ->actions([
                 Tables\Actions\EditAction::make(),
-                Tables\Actions\DeleteAction::make(),
+                Tables\Actions\DeleteAction::make()
+                    ->before(function (Tables\Actions\DeleteAction $action, Model $record) {
+                        $protectedRoles = ['super_admin', 'karyawan', 'panel_user'];
+                        if (in_array(strtolower($record->name), $protectedRoles)) {
+                            Notification::make()
+                                ->title('Tidak Dapat Dihapus')
+                                ->body("Role '{$record->name}' adalah role sistem utama dan tidak dapat dihapus.")
+                                ->danger()
+                                ->send();
+
+                            $action->halt();
+                        }
+
+                        if (method_exists($record, 'users') && $record->users()->count() > 0) {
+                            $count = $record->users()->count();
+                            Notification::make()
+                                ->title('Role Sedang Digunakan')
+                                ->body("Role '{$record->name}' sedang digunakan oleh {$count} pengguna. Harap pindahkan pengguna ke role lain terlebih dahulu.")
+                                ->warning()
+                                ->send();
+
+                            $action->halt();
+                        }
+                    }),
             ])
             ->bulkActions([
-                Tables\Actions\DeleteBulkAction::make(),
+                Tables\Actions\DeleteBulkAction::make()
+                    ->before(function (Tables\Actions\DeleteBulkAction $action, Collection $records) {
+                        $protectedRoles = ['super_admin', 'karyawan', 'panel_user'];
+                        foreach ($records as $record) {
+                            if (in_array(strtolower($record->name), $protectedRoles)) {
+                                Notification::make()
+                                    ->title('Penghapusan Dibatalkan')
+                                    ->body("Terdapat role sistem utama ('{$record->name}') dalam daftar yang dipilih.")
+                                    ->danger()
+                                    ->send();
+
+                                $action->halt();
+                            }
+
+                            if (method_exists($record, 'users') && $record->users()->count() > 0) {
+                                Notification::make()
+                                    ->title('Penghapusan Dibatalkan')
+                                    ->body("Role '{$record->name}' sedang digunakan oleh pengguna.")
+                                    ->warning()
+                                    ->send();
+
+                                $action->halt();
+                            }
+                        }
+                    }),
             ]);
     }
 
