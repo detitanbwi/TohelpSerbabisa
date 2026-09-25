@@ -20,6 +20,7 @@ use Illuminate\Session\Middleware\StartSession;
 use Illuminate\Cookie\Middleware\EncryptCookies;
 use App\Filament\Admin\Resources\CabangResource;
 use App\Filament\Admin\Resources\KaryawanResource;
+use App\Filament\Admin\Resources\UserLainResource;
 use App\Filament\Admin\Resources\TransaksiResource;
 use App\Filament\Admin\Resources\LayananResource;
 use App\Filament\Admin\Pages\KelolaLayananCabangPage;
@@ -114,6 +115,7 @@ class AdminPanelProvider extends PanelProvider
                             ...(LayananResource::canAccess() ? LayananResource::getNavigationItems() : []),
                             ...(KelolaLayananCabangPage::canAccess() ? KelolaLayananCabangPage::getNavigationItems() : []),
                             ...KaryawanResource::getNavigationItems(),
+                            ...(UserLainResource::canAccess() ? UserLainResource::getNavigationItems() : []),
                             ...AbsensiBasePage::getNavigationItems(),
                             ...TarifTransportasiPage::getNavigationItems(),
                         ]),

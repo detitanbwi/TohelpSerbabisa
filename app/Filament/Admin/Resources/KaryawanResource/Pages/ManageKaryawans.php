@@ -96,36 +96,30 @@ class ManageKaryawans extends ManageRecords
             return [];
         }
 
+        $allKaryawanCount = User::whereHas('roles', fn ($q) => $q->where('name', 'karyawan'))->count();
+        $helpmanCount = User::whereHas('roles', fn ($q) => $q->where('name', 'karyawan'))->where('tipe_karyawan', 'helpman')->count();
+        $jokiCount = User::whereHas('roles', fn ($q) => $q->where('name', 'karyawan'))->where('tipe_karyawan', 'joki')->count();
+
         return [
-            'personil' => Tab::make('Personil Operasional')
+            'semua' => Tab::make('Semua Karyawan')
                 ->icon('heroicon-o-users')
-                ->badge(User::whereDoesntHave('roles', fn ($q) => $q->where('name', 'super_admin'))->where('email', '!=', 'admin@gmail.com')->count())
-                ->modifyQueryUsing(fn (Builder $query) => $query->whereDoesntHave('roles', fn ($q) => $q->where('name', 'super_admin'))->where('email', '!=', 'admin@gmail.com')),
-
-            'manager' => Tab::make('Manager Cabang')
-                ->icon('heroicon-o-briefcase')
-                ->badge(User::whereHas('roles', fn ($q) => $q->where('name', 'manager_cabang'))->count())
-                ->modifyQueryUsing(fn (Builder $query) => $query->whereHas('roles', fn ($q) => $q->where('name', 'manager_cabang'))),
-
-            'karyawan' => Tab::make('Helpman & Joki')
-                ->icon('heroicon-o-wrench-screwdriver')
-                ->badge(User::whereHas('roles', fn ($q) => $q->where('name', 'karyawan'))->count())
+                ->badge($allKaryawanCount)
                 ->modifyQueryUsing(fn (Builder $query) => $query->whereHas('roles', fn ($q) => $q->where('name', 'karyawan'))),
 
-            'super_admin' => Tab::make('Super Admin & Owner')
-                ->icon('heroicon-o-shield-check')
-                ->badge(User::where(fn ($q) => $q->whereHas('roles', fn ($r) => $r->where('name', 'super_admin'))->orWhere('email', 'admin@gmail.com'))->count())
-                ->modifyQueryUsing(fn (Builder $query) => $query->where(fn ($q) => $q->whereHas('roles', fn ($r) => $r->where('name', 'super_admin'))->orWhere('email', 'admin@gmail.com'))),
+            'helpman' => Tab::make('Helpman (Lapangan)')
+                ->icon('heroicon-o-wrench-screwdriver')
+                ->badge($helpmanCount)
+                ->modifyQueryUsing(fn (Builder $query) => $query->whereHas('roles', fn ($q) => $q->where('name', 'karyawan'))->where('tipe_karyawan', 'helpman')),
 
-            'semua' => Tab::make('Semua Pengguna')
-                ->icon('heroicon-o-user-group')
-                ->badge(User::count())
-                ->modifyQueryUsing(fn (Builder $query) => $query),
+            'joki' => Tab::make('Joki (Tugas / Digital)')
+                ->icon('heroicon-o-academic-cap')
+                ->badge($jokiCount)
+                ->modifyQueryUsing(fn (Builder $query) => $query->whereHas('roles', fn ($q) => $q->where('name', 'karyawan'))->where('tipe_karyawan', 'joki')),
         ];
     }
 
     public function getTitle(): string|Htmlable
     {
-        return 'Karyawan & Personil';
+        return 'Data Karyawan & Personil';
     }
 }

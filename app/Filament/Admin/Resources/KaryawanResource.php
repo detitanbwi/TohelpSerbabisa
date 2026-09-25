@@ -40,9 +40,26 @@ class KaryawanResource extends Resource
 
     protected static ?string $modelLabel = 'Karyawan';
 
+    protected static ?string $pluralModelLabel = 'Karyawan';
+
+    protected static ?string $navigationLabel = 'Karyawan';
+
     protected static ?string $navigationIcon = 'heroicon-o-identification';
 
     protected static ?string $navigationGroup = 'Manajemen Pengguna';
+
+    public static function getEloquentQuery(): Builder
+    {
+        $query = parent::getEloquentQuery()
+            ->with(['media', 'roles', 'cabang'])
+            ->whereHas('roles', fn (Builder $q) => $q->where('name', 'karyawan'));
+
+        if (auth()->user()?->hasRole('manager_cabang') && ! auth()->user()?->hasRole('super_admin')) {
+            $query->where('cabang_id', auth()->user()->cabang_id);
+        }
+
+        return $query;
+    }
 
     public static function form(Form $form): Form
     {
@@ -175,11 +192,11 @@ class KaryawanResource extends Resource
     {
         return $table
             ->modifyQueryUsing(function (Builder $query) {
-                $query->with(['media', 'roles', 'cabang']);
+                $query->with(['media', 'roles', 'cabang'])
+                      ->whereHas('roles', fn (Builder $q) => $q->where('name', 'karyawan'));
 
                 if (auth()->user()?->hasRole('manager_cabang') && ! auth()->user()?->hasRole('super_admin')) {
-                    $query->where('cabang_id', auth()->user()->cabang_id)
-                          ->whereHas('roles', fn (Builder $q) => $q->where('name', 'karyawan'));
+                    $query->where('cabang_id', auth()->user()->cabang_id);
                 }
             })
             ->columns([
