@@ -81,6 +81,18 @@ class Cabang extends Model
         return $this->hasMany(User::class, 'cabang_id');
     }
 
+    public function personils(): HasMany
+    {
+        return $this->hasMany(User::class, 'cabang_id')
+            ->whereDoesntHave('roles', function ($query) {
+                $query->where('name', 'super_admin');
+            })
+            ->where(function ($query) {
+                $query->where('email', '!=', 'admin@gmail.com')
+                    ->orWhereNull('email');
+            });
+    }
+
     public function managers(): HasMany
     {
         return $this->hasMany(User::class, 'cabang_id')->whereHas('roles', function ($query) {
@@ -102,6 +114,14 @@ class Cabang extends Model
                 $query->where('name', 'karyawan');
             })
             ->where('is_visible', true);
+    }
+
+    /**
+     * Mutator to ensure no_wa only contains numbers/digits.
+     */
+    public function setNoWaAttribute($value): void
+    {
+        $this->attributes['no_wa'] = $value ? preg_replace('/[^0-9]/', '', (string) $value) : null;
     }
 
     /**

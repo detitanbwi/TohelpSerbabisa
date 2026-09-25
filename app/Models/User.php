@@ -44,6 +44,10 @@ class User extends Authenticatable implements HasAvatar, FilamentUser, HasMedia,
     {
         static::creating(function ($user) {
             if (empty($user->cabang_id)) {
+                if ($user->email === 'admin@gmail.com' || (method_exists($user, 'hasRole') && $user->hasRole('super_admin'))) {
+                    return;
+                }
+
                 $randomCabangId = Cabang::inRandomOrder()->value('id') ?? Cabang::value('id');
                 if ($randomCabangId) {
                     $user->cabang_id = $randomCabangId;

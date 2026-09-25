@@ -92,13 +92,19 @@ class CabangResource extends Resource
                             ->prefixIcon('heroicon-o-phone')
                             ->minLength(10)
                             ->maxLength(16)
-                            ->rules(['regex:/^[0-9+]+$/'])
+                            ->rules(['regex:/^[0-9]+$/'])
                             ->validationMessages([
                                 'regex' => 'Nomor WhatsApp hanya boleh berisi angka.',
                                 'min' => 'Nomor WhatsApp minimal 10 digit.',
                                 'max' => 'Nomor WhatsApp maksimal 16 digit.',
                             ])
-                            ->helperText('Format: 08xxxxxxxxxx atau 628xxxxxxxxxx (10–15 digit angka).')
+                            ->extraInputAttributes([
+                                'pattern' => '[0-9]*',
+                                'inputmode' => 'numeric',
+                                'oninput' => "this.value = this.value.replace(/[^0-9]/g, '')",
+                            ])
+                            ->dehydrateStateUsing(fn ($state) => $state ? preg_replace('/[^0-9]/', '', (string) $state) : $state)
+                            ->helperText('Format: 08xxxxxxxxxx atau 628xxxxxxxxxx (10–16 digit angka, hanya berupa angka).')
                             ->required()
                             ->default('6285695908981')
                             ->columnSpanFull(),
@@ -227,11 +233,12 @@ class CabangResource extends Resource
                     ->color('success')
                     ->sortable(),
 
-                TextColumn::make('users_count')
-                    ->counts('users')
+                TextColumn::make('personils_count')
+                    ->counts('personils')
                     ->label('Total Personil')
                     ->badge()
-                    ->color('primary'),
+                    ->color('primary')
+                    ->sortable(),
 
                 TextColumn::make('created_at')
                     ->label('Terdaftar')
