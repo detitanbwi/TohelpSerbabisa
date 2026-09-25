@@ -90,7 +90,15 @@ class CabangResource extends Resource
                             ->placeholder('Contoh: 085695908981 atau 6285695908981')
                             ->tel()
                             ->prefixIcon('heroicon-o-phone')
-                            ->helperText('Nomor WhatsApp resmi cabang yang menerima pesan pemesanan langsung dari wa.me.')
+                            ->minLength(10)
+                            ->maxLength(16)
+                            ->rules(['regex:/^[0-9+]+$/'])
+                            ->validationMessages([
+                                'regex' => 'Nomor WhatsApp hanya boleh berisi angka.',
+                                'min' => 'Nomor WhatsApp minimal 10 digit.',
+                                'max' => 'Nomor WhatsApp maksimal 16 digit.',
+                            ])
+                            ->helperText('Format: 08xxxxxxxxxx atau 628xxxxxxxxxx (10–15 digit angka).')
                             ->required()
                             ->default('6285695908981')
                             ->columnSpanFull(),

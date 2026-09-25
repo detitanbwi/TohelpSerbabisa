@@ -17,6 +17,10 @@ class AbsensiApiController extends Controller
     {
         $user = $request->user();
         $today = Carbon::today('Asia/Jakarta')->toDateString();
+        $now = Carbon::now('Asia/Jakarta');
+        $nowTime = $now->format('H:i:s');
+
+        $masterAbsensi = \App\Models\AbsensiBase::first();
 
         $absensi = Absensi::with('media')
             ->where('karyawan_id', $user->id)
@@ -25,10 +29,36 @@ class AbsensiApiController extends Controller
 
         $fotoUrl = $absensi ? $absensi->getFirstMediaUrl('bukti-absensi') : null;
 
+        $isWithinTime = true;
+        $timeStatus = 'open'; // 'early', 'open', 'late'
+        $timeMessage = 'Jadwal presensi sedang dibuka.';
+        $jamMasukSetting = $masterAbsensi ? Carbon::parse($masterAbsensi->jam_masuk)->format('H:i') : '07:30';
+        $jamKeluarSetting = $masterAbsensi ? Carbon::parse($masterAbsensi->jam_keluar)->format('H:i') : '09:00';
+
+        if ($masterAbsensi) {
+            $jamMasuk = Carbon::parse($masterAbsensi->jam_masuk)->format('H:i:s');
+            $jamKeluar = Carbon::parse($masterAbsensi->jam_keluar)->format('H:i:s');
+
+            if ($nowTime < $jamMasuk) {
+                $isWithinTime = false;
+                $timeStatus = 'early';
+                $timeMessage = "Presensi belum dibuka. Jadwal presensi dimulai pukul {$jamMasukSetting} hingga {$jamKeluarSetting} WIB.";
+            } elseif ($nowTime > $jamKeluar) {
+                $isWithinTime = false;
+                $timeStatus = 'late';
+                $timeMessage = "Waktu presensi telah berakhir pada pukul {$jamKeluarSetting} WIB.";
+            }
+        }
+
         return response()->json([
             'status' => 'success',
             'data' => [
                 'has_checked_in' => (bool) $absensi,
+                'can_check_in' => !$absensi && $isWithinTime,
+                'time_status' => $timeStatus,
+                'time_message' => $timeMessage,
+                'jam_masuk_setting' => $jamMasukSetting,
+                'jam_keluar_setting' => $jamKeluarSetting,
                 'absensi' => $absensi ? [
                     'id' => $absensi->id,
                     'tanggal' => $absensi->tanggal,
@@ -47,7 +77,31 @@ class AbsensiApiController extends Controller
     {
         $user = $request->user();
         $today = Carbon::today('Asia/Jakarta')->toDateString();
-        $now = Carbon::now('Asia/Jakarta')->toTimeString();
+        $now = Carbon::now('Asia/Jakarta');
+        $nowTime = $now->format('H:i:s');
+
+        // Validasi Jadwal Waktu Presensi terhadap Master Data Absensi
+        $masterAbsensi = \App\Models\AbsensiBase::first();
+        if ($masterAbsensi) {
+            $jamMasuk = Carbon::parse($masterAbsensi->jam_masuk)->format('H:i:s');
+            $jamKeluar = Carbon::parse($masterAbsensi->jam_keluar)->format('H:i:s');
+            $jamMasukFormatted = Carbon::parse($masterAbsensi->jam_masuk)->format('H:i');
+            $jamKeluarFormatted = Carbon::parse($masterAbsensi->jam_keluar)->format('H:i');
+
+            if ($nowTime < $jamMasuk) {
+                return response()->json([
+                    'status' => 'error',
+                    'message' => "Presensi belum dibuka. Jadwal presensi dimulai pukul {$jamMasukFormatted} hingga {$jamKeluarFormatted} WIB.",
+                ], 422);
+            }
+
+            if ($nowTime > $jamKeluar) {
+                return response()->json([
+                    'status' => 'error',
+                    'message' => "Waktu presensi telah berakhir pada pukul {$jamKeluarFormatted} WIB. Presensi di luar jam yang ditentukan tidak dapat diterima.",
+                ], 422);
+            }
+        }
 
         // Identify any uploaded file key
         $fileKey = null;
@@ -90,7 +144,7 @@ class AbsensiApiController extends Controller
         $absensi = Absensi::create([
             'karyawan_id' => $user->id,
             'tanggal' => $today,
-            'jam_masuk' => $now,
+            'jam_masuk' => $nowTime,
         ]);
 
         if ($fileKey) {
@@ -105,7 +159,7 @@ class AbsensiApiController extends Controller
 
         return response()->json([
             'status' => 'success',
-            'message' => 'Absensi masuk berhasil',
+            'message' => 'Absensi masuk berhasil (Tepat Waktu)',
             'data' => [
                 'id' => $absensi->id,
                 'tanggal' => $absensi->tanggal,
