@@ -46,6 +46,23 @@ class PricingController extends Controller
         }
 
         $cabangId = $request->cabang_id ?? Cabang::first()?->id;
+        $cabang = $cabangId ? Cabang::find($cabangId) : null;
+
+        if ($cabang) {
+            if ($jenis === 'Motor' && ! $cabang->is_ojek_aktif) {
+                return response()->json([
+                    'status' => 'error',
+                    'message' => "Layanan Ojek saat ini belum tersedia untuk wilayah Cabang {$cabang->nama}",
+                ], 422);
+            }
+            if ($jenis === 'Mobil' && ! $cabang->is_taxi_aktif) {
+                return response()->json([
+                    'status' => 'error',
+                    'message' => "Layanan Taxi/Mobil saat ini belum tersedia untuk wilayah Cabang {$cabang->nama}",
+                ], 422);
+            }
+        }
+
         $tip = max(0, (int) ($request->tip ?? 0));
 
         $basePrice = getPricing(

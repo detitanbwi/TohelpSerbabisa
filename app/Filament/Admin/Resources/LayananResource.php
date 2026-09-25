@@ -92,11 +92,77 @@ class LayananResource extends Resource
                                     ->default(0)
                                     ->helperText('Semakin kecil angka, semakin awal ditampilkan.'),
 
+                                Toggle::make('is_transportasi')
+                                    ->label('Layanan Transportasi (Jarak / KM)')
+                                    ->helperText('Aktifkan jika layanan ini berbasis rute perjalanan Google Maps (seperti Ojek atau Taxi).')
+                                    ->reactive()
+                                    ->default(false),
+
                                 Toggle::make('is_active')
                                     ->label('Status Aktif')
                                     ->default(true)
                                     ->inline(false)
                                     ->helperText('Jika non-aktif, layanan ini disembunyikan dari website.'),
+                            ]),
+                    ]),
+
+                Section::make('Konfigurasi Tarif Transportasi Standar (Global / Nasional)')
+                    ->description('Atur formula perhitungan tarif perjalanan Google Maps default untuk layanan ini. Pengaturan ini menjadi standar acuan global jika suatu cabang belum menetapkan tarif khususnya sendiri.')
+                    ->visible(fn (Forms\Get $get, ?Model $record) => 
+                        (bool) $get('is_transportasi') || 
+                        in_array(trim((string) ($get('slug') ?? $record?->slug), '/'), ['ojek', 'mobil', 'taxi'])
+                    )
+                    ->schema([
+                        Grid::make(3)
+                            ->schema([
+                                TextInput::make('tarif_minimum')
+                                    ->label('Tarif Minimum Standar')
+                                    ->numeric()
+                                    ->prefix('Rp')
+                                    ->placeholder('Contoh: 7000')
+                                    ->required(fn (Forms\Get $get, ?Model $record) => 
+                                        (bool) $get('is_transportasi') || in_array(trim((string) ($get('slug') ?? $record?->slug), '/'), ['ojek', 'mobil', 'taxi'])
+                                    )
+                                    ->helperText('Tarif pembuka perjalanan terendah.'),
+
+                                TextInput::make('tarif_per_km')
+                                    ->label(fn (Forms\Get $get, ?Model $record) => 
+                                        in_array(trim((string) ($get('slug') ?? $record?->slug), '/'), ['mobil', 'taxi'])
+                                            ? 'Tarif Per KM (1 - 10 km)'
+                                            : 'Tarif Per KM'
+                                    )
+                                    ->numeric()
+                                    ->prefix('Rp')
+                                    ->placeholder('Contoh: 2000')
+                                    ->required(fn (Forms\Get $get, ?Model $record) => 
+                                        (bool) $get('is_transportasi') || in_array(trim((string) ($get('slug') ?? $record?->slug), '/'), ['ojek', 'mobil', 'taxi'])
+                                    )
+                                    ->helperText('Biaya per kilometer perjalanan.'),
+
+                                TextInput::make('tarif_per_km_lanjutan')
+                                    ->label('Tarif Per KM Lanjutan (> 10 km)')
+                                    ->numeric()
+                                    ->prefix('Rp')
+                                    ->placeholder('Contoh: 4000')
+                                    ->visible(fn (Forms\Get $get, ?Model $record) => 
+                                        in_array(trim((string) ($get('slug') ?? $record?->slug), '/'), ['mobil', 'taxi'])
+                                    )
+                                    ->helperText('Tarif per kilometer untuk jarak jauh lebih dari 10 km.'),
+
+                                TextInput::make('surcharge_per_km')
+                                    ->label('Surcharge Penjemputan / KM')
+                                    ->numeric()
+                                    ->prefix('Rp')
+                                    ->placeholder('Contoh: 1000')
+                                    ->default(1000)
+                                    ->helperText('Biaya per km jika penjemputan dari basecamp melebihi batas gratis.'),
+
+                                TextInput::make('free_distance_km')
+                                    ->label('Batas Penjemputan Gratis')
+                                    ->numeric()
+                                    ->suffix('KM')
+                                    ->default(3.0)
+                                    ->helperText('Batas jarak gratis dari basecamp driver ke titik penjemputan.'),
                             ]),
                     ]),
 
@@ -225,6 +291,14 @@ class LayananResource extends Resource
                     ->label('Total Sub-Paket')
                     ->badge()
                     ->color('success'),
+
+                IconColumn::make('is_transportasi')
+                    ->label('Transportasi')
+                    ->boolean()
+                    ->trueIcon('heroicon-o-truck')
+                    ->falseIcon('heroicon-o-minus')
+                    ->color(fn (bool $state): string => $state ? 'warning' : 'gray')
+                    ->toggleable(),
 
                 IconColumn::make('is_active')
                     ->label('Aktif')

@@ -12,7 +12,10 @@ use Filament\Tables\Table;
 use Filament\Forms\Components\TextInput;
 use Filament\Forms\Components\Select;
 use Filament\Forms\Components\Grid;
+use Filament\Forms\Components\Section;
+use Filament\Forms\Components\Toggle;
 use Filament\Tables\Columns\TextColumn;
+use Filament\Tables\Columns\IconColumn;
 use App\Models\User;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Model;
@@ -75,106 +78,212 @@ class CabangResource extends Resource
 
         return $form
             ->schema([
-                Grid::make(2)
+                Section::make('Informasi Cabang & Operasional')
+                    ->description('Konfigurasi wilayah kota, kontak WhatsApp CS, dan titik koordinat basecamp penjemputan.')
+                    ->icon('heroicon-o-building-office')
                     ->schema([
-                        TextInput::make('nama')
-                            ->label('Nama Kota / Cabang')
-                            ->placeholder('Contoh: Cabang Banyuwangi')
-                            ->required()
-                            ->unique(ignoreRecord: true)
-                            ->disabled(! $isSuperAdmin)
-                            ->columnSpanFull(),
+                        Grid::make(2)
+                            ->schema([
+                                TextInput::make('nama')
+                                    ->label('Nama Kota / Cabang')
+                                    ->placeholder('Contoh: Cabang Banyuwangi')
+                                    ->required()
+                                    ->unique(ignoreRecord: true)
+                                    ->disabled(! $isSuperAdmin)
+                                    ->columnSpanFull(),
 
-                        TextInput::make('no_wa')
-                            ->label('Nomor WhatsApp Operasional Cabang')
-                            ->placeholder('Contoh: 085695908981 atau 6285695908981')
-                            ->tel()
-                            ->prefixIcon('heroicon-o-phone')
-                            ->minLength(10)
-                            ->maxLength(16)
-                            ->rules(['regex:/^[0-9]+$/'])
-                            ->validationMessages([
-                                'regex' => 'Nomor WhatsApp hanya boleh berisi angka.',
-                                'min' => 'Nomor WhatsApp minimal 10 digit.',
-                                'max' => 'Nomor WhatsApp maksimal 16 digit.',
+                                TextInput::make('no_wa')
+                                    ->label('Nomor WhatsApp Operasional Cabang')
+                                    ->placeholder('Contoh: 085695908981 atau 6285695908981')
+                                    ->tel()
+                                    ->prefixIcon('heroicon-o-phone')
+                                    ->minLength(10)
+                                    ->maxLength(16)
+                                    ->rules(['regex:/^[0-9]+$/'])
+                                    ->validationMessages([
+                                        'regex' => 'Nomor WhatsApp hanya boleh berisi angka.',
+                                        'min' => 'Nomor WhatsApp minimal 10 digit.',
+                                        'max' => 'Nomor WhatsApp maksimal 16 digit.',
+                                    ])
+                                    ->extraInputAttributes([
+                                        'pattern' => '[0-9]*',
+                                        'inputmode' => 'numeric',
+                                        'oninput' => "this.value = this.value.replace(/[^0-9]/g, '')",
+                                    ])
+                                    ->dehydrateStateUsing(fn ($state) => $state ? preg_replace('/[^0-9]/', '', (string) $state) : $state)
+                                    ->helperText('Format: 08xxxxxxxxxx atau 628xxxxxxxxxx (10–16 digit angka, hanya berupa angka).')
+                                    ->required()
+                                    ->default('6285695908981')
+                                    ->columnSpanFull(),
+
+                                TextInput::make('lat')
+                                    ->label('Latitude Basecamp')
+                                    ->placeholder('-8.2192')
+                                    ->numeric()
+                                    ->required(),
+
+                                TextInput::make('lng')
+                                    ->label('Longitude Basecamp')
+                                    ->placeholder('114.3692')
+                                    ->numeric()
+                                    ->required(),
+
+                                TextInput::make('free_distance_km')
+                                    ->label('Kuota Free Jemput (KM)')
+                                    ->placeholder('3.00')
+                                    ->numeric()
+                                    ->default(3.00)
+                                    ->suffix('KM')
+                                    ->helperText('Batas jarak penjemputan dari basecamp yang bebas biaya surcharge.')
+                                    ->required()
+                                    ->columnSpanFull(),
+
+                                Select::make('manager_id')
+                                    ->label('Manager Cabang')
+                                    ->placeholder('-- Tidak Ada Manager (None) --')
+                                    ->searchable()
+                                    ->preload()
+                                    ->visible($isSuperAdmin)
+                                    ->options(function (?Cabang $record) {
+                                        $users = User::whereDoesntHave('roles', fn ($q) => $q->where('name', 'super_admin'))
+                                            ->whereNot('email', 'admin@gmail.com')
+                                            ->whereNot('name', 'Admin')
+                                            ->with(['managedCabang', 'cabang'])
+                                            ->orderBy('name')
+                                            ->get();
+
+                                        $options = [];
+                                        foreach ($users as $u) {
+                                            $identifier = $u->username ? "@{$u->username}" : $u->email;
+                                            if ($record && $record->manager_id === $u->id) {
+                                                $status = "👑 [Manager Cabang Ini]";
+                                            } elseif ($u->managedCabang && (! $record || $u->managedCabang->id !== $record->id)) {
+                                                $status = "⚠️ [Manager Cabang {$u->managedCabang->nama}]";
+                                            } elseif ($u->cabang) {
+                                                $status = "👤 [Helpman Cabang {$u->cabang->nama}]";
+                                            } else {
+                                                $status = "👤 [Helpman]";
+                                            }
+                                            $options[$u->id] = "{$u->name} ({$identifier}) - {$status}";
+                                        }
+                                        return $options;
+                                    })
+                                    ->helperText(function ($get, ?Cabang $record) {
+                                        $selectedUserId = $get('manager_id');
+                                        if (! $selectedUserId) {
+                                            return 'Pilih user untuk dijadikan Manager Cabang ini, atau kosongkan (None) jika belum ada manager.';
+                                        }
+                                        $selectedUser = User::with('managedCabang')->find($selectedUserId);
+                                        if ($selectedUser && $selectedUser->managedCabang && (! $record || $selectedUser->managedCabang->id !== $record->id)) {
+                                            return new HtmlString(
+                                                "<span class='text-amber-500 dark:text-amber-400 font-semibold'>⚠️ Perhatian: {$selectedUser->name} saat ini menjabat sebagai Manager di Cabang {$selectedUser->managedCabang->nama}. Menyimpan form ini akan otomatis mencopot jabatannya di Cabang {$selectedUser->managedCabang->nama}, memindahkannya menjadi Manager di cabang ini, dan memperbarui basecamp kerjanya.</span>"
+                                            );
+                                        }
+                                        return 'User yang dipilih akan otomatis mendapatkan hak akses Manager Cabang dan lokasi basecamp kerjanya disinkronkan ke cabang ini.';
+                                    })
+                                    ->live()
+                                    ->columnSpanFull(),
+                            ]),
+                    ]),
+
+                Section::make('Layanan & Tarif Ojek (Motor)')
+                    ->description('Kelola ketersediaan dan skema penghitungan tarif Ojek motor khusus cabang ini.')
+                    ->icon('heroicon-o-bolt')
+                    ->collapsible()
+                    ->schema([
+                        Toggle::make('is_ojek_aktif')
+                            ->label('Buka / Aktifkan Layanan Ojek di Cabang Ini')
+                            ->helperText('Jika dinonaktifkan, pelanggan di cabang ini tidak dapat memesan ojek motor.')
+                            ->default(true)
+                            ->reactive(),
+
+                        Grid::make(3)
+                            ->schema([
+                                TextInput::make('ojek_tarif_minimum')
+                                    ->label('Tarif Minimum Ojek')
+                                    ->prefix('Rp')
+                                    ->numeric()
+                                    ->minValue(0)
+                                    ->default(7000)
+                                    ->helperText('Tarif dasar minimal perjalanan')
+                                    ->required(),
+
+                                TextInput::make('ojek_tarif_per_km')
+                                    ->label('Tarif Ojek Per KM')
+                                    ->prefix('Rp')
+                                    ->suffix('/KM')
+                                    ->numeric()
+                                    ->minValue(0)
+                                    ->default(2000)
+                                    ->helperText('Biaya per KM perjalanan')
+                                    ->required(),
+
+                                TextInput::make('ojek_surcharge_per_km')
+                                    ->label('Surcharge Luar Kuota Jemput')
+                                    ->prefix('Rp')
+                                    ->suffix('/KM')
+                                    ->numeric()
+                                    ->minValue(0)
+                                    ->default(1000)
+                                    ->helperText('Biaya per KM jika penjemputan melebihi radius kuota free')
+                                    ->required(),
                             ])
-                            ->extraInputAttributes([
-                                'pattern' => '[0-9]*',
-                                'inputmode' => 'numeric',
-                                'oninput' => "this.value = this.value.replace(/[^0-9]/g, '')",
+                            ->visible(fn ($get) => (bool) $get('is_ojek_aktif')),
+                    ]),
+
+                Section::make('Layanan & Tarif Taxi (Mobil)')
+                    ->description('Kelola ketersediaan dan skema penghitungan tarif Mobil/Taxi khusus cabang ini.')
+                    ->icon('heroicon-o-truck')
+                    ->collapsible()
+                    ->schema([
+                        Toggle::make('is_taxi_aktif')
+                            ->label('Buka / Aktifkan Layanan Taxi (Mobil) di Cabang Ini')
+                            ->helperText('Jika dinonaktifkan, pelanggan di cabang ini tidak dapat memesan taxi mobil.')
+                            ->default(true)
+                            ->reactive(),
+
+                        Grid::make(2)
+                            ->schema([
+                                TextInput::make('taxi_tarif_minimum')
+                                    ->label('Tarif Minimum Mobil (s/d 3 KM)')
+                                    ->prefix('Rp')
+                                    ->numeric()
+                                    ->minValue(0)
+                                    ->default(18000)
+                                    ->helperText('Tarif perjalanan awal untuk 1 s/d 3 KM pertama')
+                                    ->required(),
+
+                                TextInput::make('taxi_surcharge_per_km')
+                                    ->label('Surcharge Luar Kuota Jemput')
+                                    ->prefix('Rp')
+                                    ->suffix('/KM')
+                                    ->numeric()
+                                    ->minValue(0)
+                                    ->default(2000)
+                                    ->helperText('Biaya per KM jika penjemputan melebihi radius kuota free')
+                                    ->required(),
+
+                                TextInput::make('taxi_tarif_per_km')
+                                    ->label('Tarif Mobil Per KM (Jarak 3 s/d 10 KM)')
+                                    ->prefix('Rp')
+                                    ->suffix('/KM')
+                                    ->numeric()
+                                    ->minValue(0)
+                                    ->default(5000)
+                                    ->helperText('Biaya per KM untuk perjalanan antara 3 KM s/d 10 KM')
+                                    ->required(),
+
+                                TextInput::make('taxi_tarif_per_km_lanjutan')
+                                    ->label('Tarif Mobil Per KM (Jarak > 10 KM)')
+                                    ->prefix('Rp')
+                                    ->suffix('/KM')
+                                    ->numeric()
+                                    ->minValue(0)
+                                    ->default(4000)
+                                    ->helperText('Biaya per KM untuk perjalanan jarak jauh di atas 10 KM')
+                                    ->required(),
                             ])
-                            ->dehydrateStateUsing(fn ($state) => $state ? preg_replace('/[^0-9]/', '', (string) $state) : $state)
-                            ->helperText('Format: 08xxxxxxxxxx atau 628xxxxxxxxxx (10–16 digit angka, hanya berupa angka).')
-                            ->required()
-                            ->default('6285695908981')
-                            ->columnSpanFull(),
-
-                        TextInput::make('lat')
-                            ->label('Latitude Basecamp')
-                            ->placeholder('-8.2192')
-                            ->numeric()
-                            ->required(),
-
-                        TextInput::make('lng')
-                            ->label('Longitude Basecamp')
-                            ->placeholder('114.3692')
-                            ->numeric()
-                            ->required(),
-
-                        TextInput::make('free_distance_km')
-                            ->label('Kuota Free Jemput (KM)')
-                            ->placeholder('3.00')
-                            ->numeric()
-                            ->default(3.00)
-                            ->suffix('KM')
-                            ->helperText('Batas jarak penjemputan dari basecamp yang bebas biaya dasar tambahan.')
-                            ->required(),
-
-                        Select::make('manager_id')
-                            ->label('Manager Cabang')
-                            ->placeholder('-- Tidak Ada Manager (None) --')
-                            ->searchable()
-                            ->preload()
-                            ->visible($isSuperAdmin)
-                            ->options(function (?Cabang $record) {
-                                $users = User::whereDoesntHave('roles', fn ($q) => $q->where('name', 'super_admin'))
-                                    ->whereNot('email', 'admin@gmail.com')
-                                    ->whereNot('name', 'Admin')
-                                    ->with(['managedCabang', 'cabang'])
-                                    ->orderBy('name')
-                                    ->get();
-
-                                $options = [];
-                                foreach ($users as $u) {
-                                    $identifier = $u->username ? "@{$u->username}" : $u->email;
-                                    if ($record && $record->manager_id === $u->id) {
-                                        $status = "👑 [Manager Cabang Ini]";
-                                    } elseif ($u->managedCabang && (! $record || $u->managedCabang->id !== $record->id)) {
-                                        $status = "⚠️ [Manager Cabang {$u->managedCabang->nama}]";
-                                    } elseif ($u->cabang) {
-                                        $status = "👤 [Helpman Cabang {$u->cabang->nama}]";
-                                    } else {
-                                        $status = "👤 [Helpman]";
-                                    }
-                                    $options[$u->id] = "{$u->name} ({$identifier}) - {$status}";
-                                }
-                                return $options;
-                            })
-                            ->helperText(function ($get, ?Cabang $record) {
-                                $selectedUserId = $get('manager_id');
-                                if (! $selectedUserId) {
-                                    return 'Pilih user untuk dijadikan Manager Cabang ini, atau kosongkan (None) jika belum ada manager.';
-                                }
-                                $selectedUser = User::with('managedCabang')->find($selectedUserId);
-                                if ($selectedUser && $selectedUser->managedCabang && (! $record || $selectedUser->managedCabang->id !== $record->id)) {
-                                    return new HtmlString(
-                                        "<span class='text-amber-500 dark:text-amber-400 font-semibold'>⚠️ Perhatian: {$selectedUser->name} saat ini menjabat sebagai Manager di Cabang {$selectedUser->managedCabang->nama}. Menyimpan form ini akan otomatis mencopot jabatannya di Cabang {$selectedUser->managedCabang->nama}, memindahkannya menjadi Manager di cabang ini, dan memperbarui basecamp kerjanya.</span>"
-                                    );
-                                }
-                                return 'User yang dipilih akan otomatis mendapatkan hak akses Manager Cabang dan lokasi basecamp kerjanya disinkronkan ke cabang ini.';
-                            })
-                            ->live()
-                            ->columnSpanFull(),
+                            ->visible(fn ($get) => (bool) $get('is_taxi_aktif')),
                     ]),
             ]);
     }
@@ -231,6 +340,26 @@ class CabangResource extends Resource
                     ->formatStateUsing(fn ($state) => number_format($state ?? 3.0, 1) . ' KM')
                     ->badge()
                     ->color('success')
+                    ->sortable(),
+
+                IconColumn::make('is_ojek_aktif')
+                    ->label('Ojek')
+                    ->boolean()
+                    ->trueIcon('heroicon-o-check-circle')
+                    ->falseIcon('heroicon-o-x-circle')
+                    ->trueColor('success')
+                    ->falseColor('danger')
+                    ->alignCenter()
+                    ->sortable(),
+
+                IconColumn::make('is_taxi_aktif')
+                    ->label('Taxi')
+                    ->boolean()
+                    ->trueIcon('heroicon-o-check-circle')
+                    ->falseIcon('heroicon-o-x-circle')
+                    ->trueColor('success')
+                    ->falseColor('danger')
+                    ->alignCenter()
                     ->sortable(),
 
                 TextColumn::make('personils_count')

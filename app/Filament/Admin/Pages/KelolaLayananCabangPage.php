@@ -87,9 +87,29 @@ class KelolaLayananCabangPage extends Page
             ->orderBy('urutan')
             ->get();
 
+        $cabang = Cabang::find($this->selectedCabangId);
         $loaded = [];
         foreach ($allSubLayanans as $sub) {
             $pivot = $existingPivots->get($sub->id);
+            $slug = $sub->layanan?->clean_slug;
+
+            $isTersedia = $pivot ? (bool) $pivot->is_tersedia : true;
+            $customHarga = $pivot && $pivot->custom_harga !== null ? (float) $pivot->custom_harga : null;
+
+            if ($cabang) {
+                if ($slug === 'ojek') {
+                    $isTersedia = (bool) $cabang->is_ojek_aktif;
+                    if ($customHarga === null && $cabang->ojek_tarif_minimum) {
+                        $customHarga = (float) $cabang->ojek_tarif_minimum;
+                    }
+                } elseif ($slug === 'mobil' || $slug === 'taxi') {
+                    $isTersedia = (bool) $cabang->is_taxi_aktif;
+                    if ($customHarga === null && $cabang->taxi_tarif_minimum) {
+                        $customHarga = (float) $cabang->taxi_tarif_minimum;
+                    }
+                }
+            }
+
             $loaded[$sub->id] = [
                 'sub_layanan_id' => $sub->id,
                 'layanan_id' => $sub->layanan_id,
@@ -99,8 +119,8 @@ class KelolaLayananCabangPage extends Page
                 'default_satuan' => $sub->default_satuan,
                 'default_label' => $sub->label_harga_custom,
                 'default_catatan_nb' => $sub->catatan_nb,
-                'is_tersedia' => $pivot ? (bool) $pivot->is_tersedia : true,
-                'custom_harga' => $pivot && $pivot->custom_harga !== null ? (float) $pivot->custom_harga : null,
+                'is_tersedia' => $isTersedia,
+                'custom_harga' => $customHarga,
                 'custom_satuan' => $pivot ? $pivot->custom_satuan : null,
                 'custom_label' => $pivot ? $pivot->custom_label : null,
                 'custom_catatan_nb' => $pivot ? $pivot->custom_catatan_nb : null,
@@ -210,6 +230,26 @@ class KelolaLayananCabangPage extends Page
                         'custom_catatan_nb' => !empty($data['custom_catatan_nb']) ? trim($data['custom_catatan_nb']) : null,
                     ]
                 );
+
+                // Sync transportation availability and base fare to cabangs table
+                $subLayananModel = SubLayanan::with('layanan')->find($subId);
+                $isTersedia = (bool) ($data['is_tersedia'] ?? true);
+                if ($subLayananModel && $subLayananModel->layanan) {
+                    $slug = $subLayananModel->layanan->clean_slug;
+                    if ($slug === 'ojek') {
+                        $updateData = ['is_ojek_aktif' => $isTersedia];
+                        if ($parsedHarga !== null && $parsedHarga > 0) {
+                            $updateData['ojek_tarif_minimum'] = (int) $parsedHarga;
+                        }
+                        Cabang::where('id', $this->selectedCabangId)->update($updateData);
+                    } elseif ($slug === 'mobil' || $slug === 'taxi') {
+                        $updateData = ['is_taxi_aktif' => $isTersedia];
+                        if ($parsedHarga !== null && $parsedHarga > 0) {
+                            $updateData['taxi_tarif_minimum'] = (int) $parsedHarga;
+                        }
+                        Cabang::where('id', $this->selectedCabangId)->update($updateData);
+                    }
+                }
             }
 
             DB::commit();

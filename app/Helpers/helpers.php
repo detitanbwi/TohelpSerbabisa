@@ -1,22 +1,28 @@
 <?php 
 
 use App\Models\Cabang;
-use App\Models\TarifDasar;
-use App\Models\TarifJarak;
+use App\Models\Layanan;
 
 function getPricing(string $tipe, $jarakBaseCampKeTitikJemput, $jarakTitikJemputKeTitikTujuan, $jarakBaseCampKeTitikTujuan, $jarakTitikTujuanKeTitikJemput, $discount = null, $cabangId = null)
 {
     $tipeNormalized = ucfirst(strtolower($tipe));
-    $tarifDasar = TarifDasar::whereJenis($tipeNormalized)->first();
-    $tarifDasarHarga = $tarifDasar ? $tarifDasar->harga : ($tipeNormalized === 'Motor' ? 1000 : 2000);
-    
-    // Dynamic free distance per cabang (default 3.0 km)
-    $freeDistance = 3.0;
-    if ($cabangId) {
-        $cabang = Cabang::find($cabangId);
-        if ($cabang && isset($cabang->free_distance_km)) {
-            $freeDistance = (float) $cabang->free_distance_km;
-        }
+    $isMotor = ($tipeNormalized === 'Motor');
+    $layananSlug = $isMotor ? 'ojek' : 'mobil';
+
+    // Global default from Master Layanan
+    $masterLayanan = Layanan::where('slug', $layananSlug)->first();
+
+    // Dynamic branch configuration
+    $cabang = $cabangId ? Cabang::find($cabangId) : null;
+    $freeDistance = (float) ($cabang?->free_distance_km ?? ($masterLayanan?->free_distance_km ?? 3.0));
+
+    // Determine surcharge per KM outside free distance
+    if ($isMotor) {
+        $tarifDasarHarga = $cabang?->ojek_surcharge_per_km 
+            ?? ($masterLayanan?->surcharge_per_km ?? 1000);
+    } else {
+        $tarifDasarHarga = $cabang?->taxi_surcharge_per_km 
+            ?? ($masterLayanan?->surcharge_per_km ?? 2000);
     }
     
     // Rata-rata jarak basecamp ke kedua titik untuk simetri harga
@@ -26,59 +32,28 @@ function getPricing(string $tipe, $jarakBaseCampKeTitikJemput, $jarakTitikJemput
         $pickupSurcharge = ($avgJarakBaseCampKeTitik - $freeDistance) * $tarifDasarHarga;
     }
 
-    // Cek apakah ada konfigurasi tarif jarak di database
-    $firstRange = TarifJarak::whereJenis($tipeNormalized)
-        ->orderBy('jarak_min', 'asc')
-        ->first();
-    
-    $harga = 0;
+    // Hitung tarif perjalanan berdasarkan jarak trip
+    $avgTripDistance = ($jarakTitikJemputKeTitikTujuan + $jarakTitikTujuanKeTitikJemput) / 2;
 
-    if ($firstRange) {
-        $firstRangeMax = $firstRange->jarak_max ?? ($firstRange->jarak_min + 3);
-
-        // Tarif untuk perjalanan pergi (A ke B)
-        $tarifJarak = TarifJarak::whereJenis($tipeNormalized)
-            ->where(function($query) use ($jarakTitikJemputKeTitikTujuan) {
-                $query->where('jarak_min', '<=', $jarakTitikJemputKeTitikTujuan)
-                      ->where(function($q) use ($jarakTitikJemputKeTitikTujuan) {
-                          $q->where('jarak_max', '>=', $jarakTitikJemputKeTitikTujuan)
-                            ->orWhereNull('jarak_max');
-                      });
-            })
-            ->first() ?? $firstRange;
-        
-        // Tarif untuk perjalanan pulang (B ke A)
-        $tarifJarakKembali = TarifJarak::whereJenis($tipeNormalized)
-            ->where(function($query) use ($jarakTitikTujuanKeTitikJemput) {
-                $query->where('jarak_min', '<=', $jarakTitikTujuanKeTitikJemput)
-                      ->where(function($q) use ($jarakTitikTujuanKeTitikJemput) {
-                          $q->where('jarak_max', '>=', $jarakTitikTujuanKeTitikJemput)
-                            ->orWhereNull('jarak_max');
-                      });
-            })
-            ->first() ?? $firstRange;
-
-        $hargaAkeB = $pickupSurcharge + (($jarakTitikJemputKeTitikTujuan > $firstRangeMax) ? ($jarakTitikJemputKeTitikTujuan * $tarifJarak->harga) : $tarifJarak->harga);
-        $hargaBkeA = $pickupSurcharge + (($jarakTitikTujuanKeTitikJemput > $firstRangeMax) ? ($jarakTitikTujuanKeTitikJemput * $tarifJarakKembali->harga) : $tarifJarakKembali->harga);
-        
-        $harga = ($hargaAkeB + $hargaBkeA) / 2;
+    if ($isMotor) {
+        $minFare = (int) ($cabang?->ojek_tarif_minimum ?? ($masterLayanan?->tarif_minimum ?? 7000));
+        $perKmFare = (int) ($cabang?->ojek_tarif_per_km ?? ($masterLayanan?->tarif_per_km ?? 2000));
+        $baseTrip = max($minFare, $avgTripDistance * $perKmFare);
+        $harga = $pickupSurcharge + $baseTrip;
     } else {
-        // Fallback default pricing model jika tabel tarif_jarak kosong
-        $avgTripDistance = ($jarakTitikJemputKeTitikTujuan + $jarakTitikTujuanKeTitikJemput) / 2;
-        if ($tipeNormalized === 'Motor') {
-            $baseTrip = max(7000, $avgTripDistance * 2000);
-            $harga = $pickupSurcharge + $baseTrip;
+        // Mobil / Taxi
+        $minFare = (int) ($cabang?->taxi_tarif_minimum ?? ($masterLayanan?->tarif_minimum ?? 18000));
+        $perKmFare = (int) ($cabang?->taxi_tarif_per_km ?? ($masterLayanan?->tarif_per_km ?? 5000));
+        $perKmLanjutanFare = (int) ($cabang?->taxi_tarif_per_km_lanjutan ?? ($masterLayanan?->tarif_per_km_lanjutan ?? 4000));
+
+        if ($avgTripDistance <= 3) {
+            $baseTrip = $minFare;
+        } elseif ($avgTripDistance <= 10) {
+            $baseTrip = $minFare + (($avgTripDistance - 3) * $perKmFare);
         } else {
-            // Mobil
-            if ($avgTripDistance <= 3) {
-                $baseTrip = 18000;
-            } elseif ($avgTripDistance <= 10) {
-                $baseTrip = 18000 + (($avgTripDistance - 3) * 5000);
-            } else {
-                $baseTrip = 18000 + (7 * 5000) + (($avgTripDistance - 10) * 4000);
-            }
-            $harga = $pickupSurcharge + $baseTrip;
+            $baseTrip = $minFare + (7 * $perKmFare) + (($avgTripDistance - 10) * $perKmLanjutanFare);
         }
+        $harga = $pickupSurcharge + $baseTrip;
     }
 
     $harga = (int) round($harga, -3, PHP_ROUND_HALF_UP);

@@ -13,7 +13,21 @@ class Layanan extends Model
     protected $casts = [
         'is_active' => 'boolean',
         'urutan' => 'integer',
+        'is_transportasi' => 'boolean',
+        'tarif_minimum' => 'integer',
+        'tarif_per_km' => 'integer',
+        'tarif_per_km_lanjutan' => 'integer',
+        'surcharge_per_km' => 'integer',
+        'free_distance_km' => 'float',
     ];
+
+    /**
+     * Check if this service is distance-based transportation (Ojek, Taxi, etc.).
+     */
+    public function isTransportasi(): bool
+    {
+        return $this->is_transportasi || in_array($this->clean_slug, ['ojek', 'mobil', 'taxi']);
+    }
 
     public function subLayanans(): HasMany
     {

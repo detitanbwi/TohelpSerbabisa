@@ -10,6 +10,21 @@ class Cabang extends Model
 {
     protected $guarded = ['id'];
 
+    protected $casts = [
+        'lat' => 'float',
+        'lng' => 'float',
+        'free_distance_km' => 'float',
+        'is_ojek_aktif' => 'boolean',
+        'ojek_tarif_minimum' => 'integer',
+        'ojek_tarif_per_km' => 'integer',
+        'ojek_surcharge_per_km' => 'integer',
+        'is_taxi_aktif' => 'boolean',
+        'taxi_tarif_minimum' => 'integer',
+        'taxi_tarif_per_km' => 'integer',
+        'taxi_tarif_per_km_lanjutan' => 'integer',
+        'taxi_surcharge_per_km' => 'integer',
+    ];
+
     protected static function booted(): void
     {
         static::saved(function (Cabang $cabang) {

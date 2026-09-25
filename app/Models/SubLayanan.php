@@ -47,6 +47,18 @@ class SubLayanan extends Model
             return true;
         }
 
+        $cabang = Cabang::find($cabangId);
+        $layananSlug = $this->layanan?->clean_slug;
+
+        if ($cabang) {
+            if ($layananSlug === 'ojek' && ! $cabang->is_ojek_aktif) {
+                return false;
+            }
+            if (($layananSlug === 'mobil' || $layananSlug === 'taxi') && ! $cabang->is_taxi_aktif) {
+                return false;
+            }
+        }
+
         $pivot = $this->cabangLayanans()->where('cabang_id', $cabangId)->first();
         if ($pivot) {
             return (bool) $pivot->is_tersedia;
@@ -61,6 +73,18 @@ class SubLayanan extends Model
     public function getHargaForCabang(?int $cabangId): float
     {
         if ($cabangId) {
+            $cabang = Cabang::find($cabangId);
+            $layananSlug = $this->layanan?->clean_slug;
+
+            if ($cabang) {
+                if ($layananSlug === 'ojek' && $cabang->ojek_tarif_minimum) {
+                    return (float) $cabang->ojek_tarif_minimum;
+                }
+                if (($layananSlug === 'mobil' || $layananSlug === 'taxi') && $cabang->taxi_tarif_minimum) {
+                    return (float) $cabang->taxi_tarif_minimum;
+                }
+            }
+
             $pivot = $this->cabangLayanans()->where('cabang_id', $cabangId)->first();
             if ($pivot && $pivot->custom_harga !== null) {
                 return (float) $pivot->custom_harga;
