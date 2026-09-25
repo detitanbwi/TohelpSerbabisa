@@ -14,15 +14,52 @@ use Illuminate\Support\Facades\Log;
 class LayananService
 {
     /**
+     * Get all active Layanan that have at least one available SubLayanan in the specified cabang.
+     */
+    public static function getAvailableLayanansForCabang(?int $cabangId = null): \Illuminate\Support\Collection
+    {
+        try {
+            if (!$cabangId) {
+                $cabangId = session('selected_cabang_id') ?? request('cabang_id') ?? Cabang::first()?->id;
+            }
+
+            return Layanan::with(['subLayanans' => function ($q) {
+                    $q->where('is_active', true)->orderBy('urutan');
+                }])
+                ->where('is_active', true)
+                ->orderBy('urutan')
+                ->get()
+                ->filter(function (Layanan $layanan) use ($cabangId) {
+                    $availableSubs = $layanan->subLayanans->filter(function (SubLayanan $sub) use ($cabangId) {
+                        return $sub->isTersediaForCabang($cabangId);
+                    })->values();
+
+                    $layanan->setRelation('subLayanans', $availableSubs);
+
+                    return $availableSubs->isNotEmpty();
+                })
+                ->values();
+        } catch (\Throwable $e) {
+            Log::error("Error loading available layanans for cabang {$cabangId}: " . $e->getMessage());
+            return collect();
+        }
+    }
+
+    /**
      * Get active Layanan by slug, attaching effective branch prices to its sub-services.
      */
     public static function getLayanan(string $slug, ?int $cabangId = null): ?Layanan
     {
         try {
+            $cleanSlug = trim($slug, '/');
             $layanan = Layanan::with(['subLayanans' => function ($q) {
                 $q->where('is_active', true)->orderBy('urutan');
             }])
-            ->where('slug', $slug)
+            ->where(function ($query) use ($cleanSlug, $slug) {
+                $query->where('slug', $cleanSlug)
+                      ->orWhere('slug', '/' . $cleanSlug)
+                      ->orWhere('slug', $slug);
+            })
             ->where('is_active', true)
             ->first();
 

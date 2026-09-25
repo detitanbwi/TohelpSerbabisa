@@ -65,9 +65,23 @@ Route::get('/set-cabang/{id}', function ($id, Request $request) {
     return redirect($redirectUrl . $delimiter . 'cabang_id=' . $id);
 })->name('set-cabang');
 
-Route::get('/', function () {
+Route::get('/', function (Request $request) {
+    $cabangId = $request->cabang_id ?? session('selected_cabang_id');
+    $activeCabang = $cabangId ? \App\Models\Cabang::find($cabangId) : \App\Models\Cabang::first();
+    $effectiveCabangId = $activeCabang?->id;
+    $layanans = \App\Services\LayananService::getAvailableLayanansForCabang($effectiveCabangId);
+
+    if ($request->ajax() && $request->has('services_only')) {
+        return view('pages.beranda.services-section', [
+            'layanans' => $layanans,
+            'activeCabang' => $activeCabang,
+        ]);
+    }
+
     return view('pages.beranda.index', [
-        'testimonis' => Testimoni::latest()->get()
+        'testimonis' => Testimoni::latest()->get(),
+        'layanans' => $layanans,
+        'activeCabang' => $activeCabang,
     ]);
 })->name('index');
 
@@ -156,3 +170,7 @@ Route::post('/penitipan/pesan', [SpaController::class, 'pesan'])->name('penitipa
 
 Route::get('/jasa-kustom', [JasaCustomController::class, 'index'])->name('kustom');
 Route::post('/jasa-kustom/pesan', [JasaCustomController::class, 'pesan'])->name('kustom.pesan');
+
+Route::get('/layanan/{slug}', [\App\Http\Controllers\DynamicLayananController::class, 'index'])->name('layanan.show');
+Route::post('/layanan/{slug}/pesan', [\App\Http\Controllers\DynamicLayananController::class, 'pesan'])->name('layanan.pesan');
+

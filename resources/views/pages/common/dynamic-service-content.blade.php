@@ -84,7 +84,7 @@
                         };
 
                         $.ajax({
-                            url: `{{ route($orderRoute) }}`,
+                            url: `{{ route($orderRoute, $orderRouteParams ?? []) }}`,
                             method: 'POST',
                             data: data,
                             success: function(response) {
