@@ -155,6 +155,9 @@ class AbsensiApiController extends Controller
             }
         }
 
+        // Set status personil menjadi aktif (siaga) setelah presensi
+        $user->update(['is_visible' => true]);
+
         $fotoUrl = $absensi->getFirstMediaUrl('bukti-absensi');
 
         return response()->json([

@@ -12,15 +12,36 @@ use Illuminate\Support\Facades\DB;
 use Illuminate\Contracts\Support\Htmlable;
 use Filament\Resources\Pages\ManageRecords;
 use App\Filament\Admin\Resources\KaryawanResource;
+use App\Services\AbsensiService;
 use Filament\Notifications\Notification;
 
 class ManageKaryawans extends ManageRecords
 {
     protected static string $resource = KaryawanResource::class;
 
+    public function mount(): void
+    {
+        parent::mount();
+        // Sinkronkan status keaktifan presensi karyawan secara otomatis saat halaman dibuka
+        AbsensiService::syncDailyEmployeeActiveStatus();
+    }
+
     protected function getHeaderActions(): array
     {
         return [
+            Actions\Action::make('syncPresensi')
+                ->label('Sinkron Presensi Hari Ini')
+                ->icon('heroicon-o-arrow-path')
+                ->color('gray')
+                ->tooltip('Sinkronkan status keaktifan personil berdasarkan data presensi hari ini')
+                ->action(function () {
+                    $result = AbsensiService::syncDailyEmployeeActiveStatus();
+                    Notification::make()
+                        ->title('Sinkronisasi Status Berhasil')
+                        ->body("Status berhasil diperbarui: {$result['activated']} personil aktif (hadir), {$result['deactivated']} nonaktif (belum/tidak presensi).")
+                        ->success()
+                        ->send();
+                }),
             Actions\CreateAction::make()
                 ->using(function(array $data): User
                 {

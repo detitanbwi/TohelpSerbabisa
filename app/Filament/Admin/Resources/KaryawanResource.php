@@ -6,6 +6,7 @@ use App\Filament\Admin\Resources\KaryawanResource\Pages;
 use App\Filament\Admin\Resources\KaryawanResource\RelationManagers;
 use App\Models\Cabang;
 use App\Models\User;
+use App\Services\AbsensiService;
 use Carbon\Carbon;
 use Exception;
 use Filament\Forms;
@@ -257,6 +258,19 @@ class KaryawanResource extends Resource
                     ->placeholder('-')
                     ->searchable()
                     ->sortable(),
+                Tables\Columns\TextColumn::make('presensi_today')
+                    ->label('Presensi Hari Ini')
+                    ->badge()
+                    ->color(fn (User $record) => AbsensiService::getEmployeeStatusToday($record)['status_presensi_badge'])
+                    ->icon(fn (User $record) => AbsensiService::getEmployeeStatusToday($record)['status_presensi_icon'])
+                    ->getStateUsing(function (User $record) {
+                        $status = AbsensiService::getEmployeeStatusToday($record);
+                        if ($status['has_checked_in']) {
+                            return 'Sudah Presensi (' . $status['jam_masuk_formatted'] . ')';
+                        }
+                        return $status['status_presensi'];
+                    })
+                    ->tooltip(fn (User $record) => AbsensiService::getEmployeeStatusToday($record)['keterangan']),
                 ToggleColumn::make('is_visible')
                     ->label('Siaga (Aktif)')
                     ->sortable()
@@ -284,6 +298,22 @@ class KaryawanResource extends Resource
                     }),
             ])
             ->filters([
+                SelectFilter::make('presensi_status')
+                    ->label('Filter Presensi Hari Ini')
+                    ->options([
+                        'hadir' => '🟢 Sudah Presensi',
+                        'belum_hadir' => '🔴 Belum / Tidak Presensi',
+                    ])
+                    ->query(function (Builder $query, array $data) {
+                        $today = Carbon::today('Asia/Jakarta')->toDateString();
+                        if ($data['value'] === 'hadir') {
+                            return $query->whereHas('absensi', fn ($q) => $q->whereDate('tanggal', $today));
+                        }
+                        if ($data['value'] === 'belum_hadir') {
+                            return $query->whereDoesntHave('absensi', fn ($q) => $q->whereDate('tanggal', $today));
+                        }
+                        return $query;
+                    }),
                 SelectFilter::make('cabang_id')
                     ->label('Filter Cabang')
                     ->options(Cabang::all()->pluck('nama', 'id'))
@@ -361,11 +391,23 @@ class KaryawanResource extends Resource
                                                         default => '-',
                                                     })
                                                     ->placeholder('-'),
+                                                TextEntry::make('status_presensi')
+                                                    ->label('Status Presensi Hari Ini')
+                                                    ->badge()
+                                                    ->color(fn (User $record) => AbsensiService::getEmployeeStatusToday($record)['status_presensi_badge'])
+                                                    ->icon(fn (User $record) => AbsensiService::getEmployeeStatusToday($record)['status_presensi_icon'])
+                                                    ->state(function (User $record) {
+                                                        $status = AbsensiService::getEmployeeStatusToday($record);
+                                                        if ($status['has_checked_in']) {
+                                                            return 'Sudah Presensi (' . $status['jam_masuk_formatted'] . ')';
+                                                        }
+                                                        return $status['status_presensi'];
+                                                    }),
                                                 TextEntry::make('is_visible')
-                                                    ->label('Status Siaga')
+                                                    ->label('Status Siaga / Keaktifan')
                                                     ->badge()
                                                     ->color(fn ($state) => $state ? 'success' : 'danger')
-                                                    ->formatStateUsing(fn ($state) => $state ? 'Aktif (Siaga)' : 'Nonaktif (Cuti)'),
+                                                    ->formatStateUsing(fn ($state) => $state ? 'Aktif (Siaga Tugas)' : 'Nonaktif (Belum/Tidak Presensi)'),
                                                 TextEntry::make('tanggal_lahir')
                                                     ->label('Tanggal Lahir')
                                                     ->state(function (User $record) {

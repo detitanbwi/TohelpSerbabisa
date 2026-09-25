@@ -44,6 +44,13 @@ class AbsensiResource extends Resource
         return false;
     }
 
+    public static function getEloquentQuery(): Builder
+    {
+        return parent::getEloquentQuery()
+            ->where('karyawan_id', auth()->id())
+            ->latest('tanggal');
+    }
+
     public static function form(Form $form): Form
     {
         return $form([
@@ -54,26 +61,23 @@ class AbsensiResource extends Resource
     public static function table(Table $table): Table
     {
         return $table
-            ->query(Absensi::query()->whereKaryawanId(auth()->user()->id))
+            ->modifyQueryUsing(fn (Builder $query) => $query->where('karyawan_id', auth()->id())->latest('tanggal'))
             ->columns([
-                Tables\Columns\TextColumn::make('karyawan.name')
-                    ->label('Karyawan'),
                 Tables\Columns\TextColumn::make('tanggal')
                     ->label('Tanggal')
-                    ->date('l, d F Y'),
+                    ->date('l, d F Y')
+                    ->sortable(),
                 Tables\Columns\TextColumn::make('jam_masuk')
                     ->label('Jam Masuk')
                     ->dateTime('H:i:s'),
                 Tables\Columns\TextColumn::make('status')
+                    ->label('Status')
                     ->badge()
                     ->color('success')
-                    ->getStateUsing(fn() => 'Stand By'),
+                    ->getStateUsing(fn () => 'Stand By (Hadir)'),
                 Tables\Columns\TextColumn::make('created_at')
-                    ->dateTime()
-                    ->sortable()
-                    ->toggleable(isToggledHiddenByDefault: true),
-                Tables\Columns\TextColumn::make('updated_at')
-                    ->dateTime()
+                    ->label('Waktu Dicatat')
+                    ->dateTime('d M Y H:i:s')
                     ->sortable()
                     ->toggleable(isToggledHiddenByDefault: true),
             ])
@@ -81,13 +85,25 @@ class AbsensiResource extends Resource
                 // 
             ])
             ->actions([
-                Tables\Actions\EditAction::make(),
-                Tables\Actions\DeleteAction::make(),
+                Tables\Actions\Action::make('lihatBukti')
+                    ->label('Bukti Foto')
+                    ->icon('heroicon-o-photo')
+                    ->color('info')
+                    ->modalHeading('Foto Bukti Presensi')
+                    ->modalSubmitAction(false)
+                    ->modalCancelActionLabel('Tutup')
+                    ->infolist([
+                        \Filament\Infolists\Components\ImageEntry::make('bukti_foto')
+                            ->label('Foto Bukti Kehadiran')
+                            ->state(fn (Absensi $record) => $record->getFirstMediaUrl('bukti-absensi') ?: null)
+                            ->extraImgAttributes([
+                                'style' => 'max-height: 480px; width: auto; object-fit: contain; border-radius: 8px; margin: 0 auto; display: block;',
+                            ]),
+                    ])
+                    ->visible(fn (Absensi $record) => $record->hasMedia('bukti-absensi')),
             ])
             ->bulkActions([
-                Tables\Actions\BulkActionGroup::make([
-                    Tables\Actions\DeleteBulkAction::make(),
-                ]),
+                //
             ]);
     }
 

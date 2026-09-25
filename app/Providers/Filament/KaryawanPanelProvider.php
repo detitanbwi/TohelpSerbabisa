@@ -14,6 +14,7 @@ use Filament\Navigation\NavigationGroup;
 use Filament\Http\Middleware\Authenticate;
 use Filament\Navigation\NavigationBuilder;
 use Illuminate\Session\Middleware\StartSession;
+use App\Filament\Karyawan\Widgets\AbsensiOverviewWidget;
 use App\Filament\Karyawan\Widgets\AbsensiWidget;
 use Illuminate\Cookie\Middleware\EncryptCookies;
 use Filament\Http\Middleware\AuthenticateSession;
@@ -46,6 +47,7 @@ class KaryawanPanelProvider extends PanelProvider
             ])
             ->discoverWidgets(in: app_path('Filament/Karyawan/Widgets'), for: 'App\\Filament\\Karyawan\\Widgets')
             ->widgets([
+                AbsensiOverviewWidget::class,
                 AbsensiWidget::class,
             ])
             ->middleware([
