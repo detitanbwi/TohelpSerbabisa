@@ -234,11 +234,19 @@ class CabangResource extends Resource
                     ->sortable(),
 
                 TextColumn::make('personils_count')
-                    ->counts('personils')
+                    ->counts(['personils', 'managers'])
                     ->label('Total Personil')
+                    ->getStateUsing(function (Cabang $record) {
+                        $total = $record->personils_count ?? $record->personils()->count();
+                        $managers = $record->managers_count ?? $record->managers()->count();
+                        $karyawans = max(0, $total - $managers);
+                        return "{$total} Personil ({$managers} Manager, {$karyawans} Karyawan)";
+                    })
                     ->badge()
                     ->color('primary')
-                    ->sortable(),
+                    ->sortable(query: function (Builder $query, string $direction): Builder {
+                        return $query->orderBy('personils_count', $direction);
+                    }),
 
                 TextColumn::make('created_at')
                     ->label('Terdaftar')

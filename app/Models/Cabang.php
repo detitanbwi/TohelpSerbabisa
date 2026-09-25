@@ -24,6 +24,9 @@ class Cabang extends Model
                         $otherManaged = Cabang::where('manager_id', $oldManagerId)->where('id', '!=', $cabang->id)->exists();
                         if (! $otherManaged) {
                             $oldManager->syncRoles(['karyawan']);
+                            if (empty($oldManager->tipe_karyawan)) {
+                                $oldManager->update(['tipe_karyawan' => 'helpman']);
+                            }
                         }
                     }
                 }
@@ -37,8 +40,11 @@ class Cabang extends Model
 
                     $newManager = User::find($newManagerId);
                     if ($newManager) {
-                        // Update user's cabang_id to this cabang
-                        $newManager->update(['cabang_id' => $cabang->id]);
+                        // Update user's cabang_id to this cabang and clear tipe_karyawan
+                        $newManager->update([
+                            'cabang_id' => $cabang->id,
+                            'tipe_karyawan' => null,
+                        ]);
                         // Ensure role is manager_cabang
                         \Spatie\Permission\Models\Role::firstOrCreate(['name' => 'manager_cabang', 'guard_name' => 'web']);
                         if (! $newManager->hasRole('super_admin')) {
