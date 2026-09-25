@@ -31,6 +31,33 @@ class TransaksiResource extends Resource
     protected static ?string $navigationIcon = 'heroicon-o-rectangle-stack';
     protected static ?string $navigationLabel = 'Transaksi';
 
+    public static function canAccess(): bool
+    {
+        $user = auth()->user();
+
+        return $user?->hasAnyRole(['super_admin', 'manager_cabang']) || ($user?->can('view_any_transaksi') ?? false);
+    }
+
+    public static function shouldRegisterNavigation(): bool
+    {
+        return static::canAccess();
+    }
+
+    public static function getEloquentQuery(): Builder
+    {
+        $query = parent::getEloquentQuery()
+            ->with(['voucher', 'cabang', 'tugas']);
+
+        $user = auth()->user();
+
+        if ($user && $user->hasRole('manager_cabang') && ! $user->hasRole('super_admin')) {
+            $cabangIds = $user->getCabangIds();
+            $query->whereIn('cabang_id', $cabangIds);
+        }
+
+        return $query;
+    }
+
     public static function canCreate(): bool
     {
         return false;
@@ -56,7 +83,7 @@ class TransaksiResource extends Resource
     public static function table(Table $table): Table
     {
         return $table
-            ->query(Transaksi::query()->with(['voucher', 'cabang', 'tugas'])->orderBy('created_at', 'desc'))
+            ->defaultSort('created_at', 'desc')
             ->columns([
                 Tables\Columns\TextColumn::make('order_id')
                     ->label('ID Order')
@@ -126,7 +153,8 @@ class TransaksiResource extends Resource
             ->filters([
                 Tables\Filters\SelectFilter::make('cabang_id')
                     ->options(Cabang::all()->pluck('nama', 'id'))
-                    ->label('Cabang'),
+                    ->label('Cabang')
+                    ->visible(fn () => auth()->user()?->hasRole('super_admin')),
                 Tables\Filters\SelectFilter::make('status_transaksi')
                     ->options([
                         'belum' => 'Belum Selesai',
@@ -137,7 +165,15 @@ class TransaksiResource extends Resource
                     ->multiple()
                     ->preload()
                     ->searchable()
-                    ->options(Transaksi::query()->distinct('jenis')->pluck('jenis', 'jenis')->mapWithKeys(fn($item) => [$item => ucwords($item)])),
+                    ->options(function () {
+                        $query = Transaksi::query();
+                        $user = auth()->user();
+                        if ($user && $user->hasRole('manager_cabang') && ! $user->hasRole('super_admin')) {
+                            $query->whereIn('cabang_id', $user->getCabangIds());
+                        }
+
+                        return $query->distinct('jenis')->pluck('jenis', 'jenis')->mapWithKeys(fn($item) => [$item => ucwords($item)]);
+                    }),
                 DateRangeFilter::make('created_at')->timezone('Asia/Jakarta')
                     ->label('Tanggal'),
             ], layout: FiltersLayout::AboveContent)

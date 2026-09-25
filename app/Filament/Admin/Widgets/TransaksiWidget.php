@@ -23,10 +23,24 @@ class TransaksiWidget extends BaseWidget
     protected int | string | array $columnSpan = 'full';
     protected static ?int $sort = 2;
 
+    public static function canView(): bool
+    {
+        $user = auth()->user();
+
+        return $user?->hasAnyRole(['super_admin', 'manager_cabang']) || ($user?->can('view_any_transaksi') ?? false);
+    }
+
     public function table(Table $table): Table
     {
+        $query = Transaksi::query()->with(['voucher', 'cabang', 'tugas'])->orderBy('created_at', 'desc');
+
+        $user = auth()->user();
+        if ($user && $user->hasRole('manager_cabang') && ! $user->hasRole('super_admin')) {
+            $query->whereIn('cabang_id', $user->getCabangIds());
+        }
+
         return $table
-            ->query(Transaksi::query()->with(['voucher', 'cabang', 'tugas'])->orderBy('created_at', 'desc'))
+            ->query($query)
             ->defaultPaginationPageOption(5)
             ->paginated([5, 10, 25])
             ->columns([
@@ -93,7 +107,8 @@ class TransaksiWidget extends BaseWidget
             ->filters([
                 Tables\Filters\SelectFilter::make('cabang_id')
                     ->label('Cabang')
-                    ->options(Cabang::all()->pluck('nama', 'id')),
+                    ->options(Cabang::all()->pluck('nama', 'id'))
+                    ->visible(fn () => auth()->user()?->hasRole('super_admin')),
                 Tables\Filters\SelectFilter::make('status_transaksi')
                     ->options([
                         'belum' => 'Belum Selesai',

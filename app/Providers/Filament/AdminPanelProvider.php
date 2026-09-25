@@ -106,7 +106,7 @@ class AdminPanelProvider extends PanelProvider
                     NavigationGroup::make('')
                         ->items([
                             ...Dashboard::getNavigationItems(),
-                            ...TransaksiResource::getNavigationItems(),
+                            ...(TransaksiResource::canAccess() ? TransaksiResource::getNavigationItems() : []),
                         ]),
                     NavigationGroup::make('Master Data')
                         ->items([

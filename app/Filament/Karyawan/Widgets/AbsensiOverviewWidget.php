@@ -50,16 +50,78 @@ class AbsensiOverviewWidget extends BaseWidget
             ->descriptionIcon('heroicon-m-calendar-days')
             ->color('primary');
 
-        // Card 3: Waktu Operasional Saat Ini (WIB)
+        // Card 3: Waktu Operasional Saat Ini (WIB) - Real-time running clock
         $nowFormatted = $now->format('H:i:s') . ' WIB';
+        $serverTimeMs = round(microtime(true) * 1000);
+        $jamMasuk = $times['jam_masuk'];
+        $jamKeluar = $times['jam_keluar'];
+
         $waktuDesc = match ($timeStatus['status']) {
             'early' => 'Menunggu jadwal presensi dibuka',
             'open' => '🟢 Sesi presensi sedang berlangsung',
             default => '🔴 Sesi presensi telah berakhir',
         };
 
-        $statWaktu = Stat::make('Waktu Saat Ini (WIB)', $nowFormatted)
-            ->description($waktuDesc)
+        $clockHtml = new \Illuminate\Support\HtmlString("
+            <span
+                wire:ignore
+                x-data=\"{
+                    serverOffset: {$serverTimeMs} - Date.now(),
+                    timeStr: '{$nowFormatted}',
+                    updateClock() {
+                        const now = new Date(Date.now() + this.serverOffset);
+                        const jakarta = new Date(now.getTime() + (7 * 3600000));
+                        const hh = String(jakarta.getUTCHours()).padStart(2, '0');
+                        const mm = String(jakarta.getUTCMinutes()).padStart(2, '0');
+                        const ss = String(jakarta.getUTCSeconds()).padStart(2, '0');
+                        this.timeStr = hh + ':' + mm + ':' + ss + ' WIB';
+                    },
+                    init() {
+                        this.updateClock();
+                        setInterval(() => this.updateClock(), 1000);
+                    }
+                }\"
+                x-text=\"timeStr\"
+                class=\"tabular-nums font-mono tracking-tight font-bold\"
+            >
+                {$nowFormatted}
+            </span>
+        ");
+
+        $descHtml = new \Illuminate\Support\HtmlString("
+            <span
+                wire:ignore
+                x-data=\"{
+                    serverOffset: {$serverTimeMs} - Date.now(),
+                    descStr: '{$waktuDesc}',
+                    updateDesc() {
+                        const now = new Date(Date.now() + this.serverOffset);
+                        const jakarta = new Date(now.getTime() + (7 * 3600000));
+                        const hh = String(jakarta.getUTCHours()).padStart(2, '0');
+                        const mm = String(jakarta.getUTCMinutes()).padStart(2, '0');
+                        const ss = String(jakarta.getUTCSeconds()).padStart(2, '0');
+                        const cur = hh + ':' + mm + ':' + ss;
+                        if (cur < '{$jamMasuk}') {
+                            this.descStr = 'Menunggu jadwal presensi dibuka';
+                        } else if (cur <= '{$jamKeluar}') {
+                            this.descStr = '🟢 Sesi presensi sedang berlangsung';
+                        } else {
+                            this.descStr = '🔴 Sesi presensi telah berakhir';
+                        }
+                    },
+                    init() {
+                        this.updateDesc();
+                        setInterval(() => this.updateDesc(), 1000);
+                    }
+                }\"
+                x-text=\"descStr\"
+            >
+                {$waktuDesc}
+            </span>
+        ");
+
+        $statWaktu = Stat::make('Waktu Saat Ini (WIB)', $clockHtml)
+            ->description($descHtml)
             ->descriptionIcon('heroicon-m-clock')
             ->color($timeStatus['badge'] ?? 'gray');
 

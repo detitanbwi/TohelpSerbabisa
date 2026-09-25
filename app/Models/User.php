@@ -129,4 +129,35 @@ class User extends Authenticatable implements HasAvatar, FilamentUser, HasMedia,
     {
         return $this->belongsTo(Cabang::class);
     }
+
+    /**
+     * Get all branch IDs associated with this user (either assigned as staff or as manager).
+     *
+     * @return array<int>
+     */
+    public function getCabangIds(): array
+    {
+        $cabangIds = Cabang::where('manager_id', $this->id)
+            ->when($this->cabang_id, fn ($q) => $q->orWhere('id', $this->cabang_id))
+            ->pluck('id')
+            ->toArray();
+
+        if ($this->cabang_id && ! in_array($this->cabang_id, $cabangIds)) {
+            $cabangIds[] = $this->cabang_id;
+        }
+
+        return array_values(array_unique(array_filter($cabangIds)));
+    }
+
+    /**
+     * Determine if this user is a branch manager for the given branch ID.
+     */
+    public function managesCabang(?int $cabangId): bool
+    {
+        if (! $cabangId) {
+            return false;
+        }
+
+        return in_array($cabangId, $this->getCabangIds());
+    }
 }
