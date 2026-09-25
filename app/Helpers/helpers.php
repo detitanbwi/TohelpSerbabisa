@@ -14,14 +14,14 @@ function getPricing(string $tipe, $jarakBaseCampKeTitikJemput, $jarakTitikJemput
 
     // Dynamic branch configuration
     $cabang = $cabangId ? Cabang::find($cabangId) : null;
-    $freeDistance = (float) ($cabang?->free_distance_km ?? ($masterLayanan?->free_distance_km ?? 3.0));
+    $freeDistance = (float) (($cabang?->free_distance_km > 0 ? $cabang->free_distance_km : null) ?? ($masterLayanan?->free_distance_km ?? 3.0));
 
     // Determine surcharge per KM outside free distance
     if ($isMotor) {
-        $tarifDasarHarga = $cabang?->ojek_surcharge_per_km 
+        $tarifDasarHarga = ($cabang?->ojek_surcharge_per_km > 0 ? $cabang->ojek_surcharge_per_km : null) 
             ?? ($masterLayanan?->surcharge_per_km ?? 1000);
     } else {
-        $tarifDasarHarga = $cabang?->taxi_surcharge_per_km 
+        $tarifDasarHarga = ($cabang?->taxi_surcharge_per_km > 0 ? $cabang->taxi_surcharge_per_km : null) 
             ?? ($masterLayanan?->surcharge_per_km ?? 2000);
     }
     
@@ -36,15 +36,15 @@ function getPricing(string $tipe, $jarakBaseCampKeTitikJemput, $jarakTitikJemput
     $avgTripDistance = ($jarakTitikJemputKeTitikTujuan + $jarakTitikTujuanKeTitikJemput) / 2;
 
     if ($isMotor) {
-        $minFare = (int) ($cabang?->ojek_tarif_minimum ?? ($masterLayanan?->tarif_minimum ?? 7000));
-        $perKmFare = (int) ($cabang?->ojek_tarif_per_km ?? ($masterLayanan?->tarif_per_km ?? 2000));
+        $minFare = (int) (($cabang?->ojek_tarif_minimum > 0 ? $cabang->ojek_tarif_minimum : null) ?? ($masterLayanan?->tarif_minimum ?? 7000));
+        $perKmFare = (int) (($cabang?->ojek_tarif_per_km > 0 ? $cabang->ojek_tarif_per_km : null) ?? ($masterLayanan?->tarif_per_km ?? 2000));
         $baseTrip = max($minFare, $avgTripDistance * $perKmFare);
         $harga = $pickupSurcharge + $baseTrip;
     } else {
         // Mobil / Taxi
-        $minFare = (int) ($cabang?->taxi_tarif_minimum ?? ($masterLayanan?->tarif_minimum ?? 18000));
-        $perKmFare = (int) ($cabang?->taxi_tarif_per_km ?? ($masterLayanan?->tarif_per_km ?? 5000));
-        $perKmLanjutanFare = (int) ($cabang?->taxi_tarif_per_km_lanjutan ?? ($masterLayanan?->tarif_per_km_lanjutan ?? 4000));
+        $minFare = (int) (($cabang?->taxi_tarif_minimum > 0 ? $cabang->taxi_tarif_minimum : null) ?? ($masterLayanan?->tarif_minimum ?? 18000));
+        $perKmFare = (int) (($cabang?->taxi_tarif_per_km > 0 ? $cabang->taxi_tarif_per_km : null) ?? ($masterLayanan?->tarif_per_km ?? 5000));
+        $perKmLanjutanFare = (int) (($cabang?->taxi_tarif_per_km_lanjutan > 0 ? $cabang->taxi_tarif_per_km_lanjutan : null) ?? ($masterLayanan?->tarif_per_km_lanjutan ?? 4000));
 
         if ($avgTripDistance <= 3) {
             $baseTrip = $minFare;

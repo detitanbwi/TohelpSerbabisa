@@ -106,8 +106,9 @@ class LayananResource extends Resource
                             ]),
                     ]),
 
-                Section::make('Konfigurasi Tarif Transportasi Standar (Global / Nasional)')
-                    ->description('Atur formula perhitungan tarif perjalanan Google Maps default untuk layanan ini. Pengaturan ini menjadi standar acuan global jika suatu cabang belum menetapkan tarif khususnya sendiri.')
+                Section::make('Rekomendasi Tarif Transportasi Standar (Acuan Pusat / Super Admin)')
+                    ->description('Atur formula rekomendasi perhitungan tarif perjalanan Google Maps. Nilai ini menjadi standar rekomendasi nasional yang dilihat oleh Manager Cabang sebagai acuan, sekaligus menjadi tarif default otomatis jika cabang belum menetapkan tarif khususnya.')
+                    ->icon('heroicon-o-sparkles')
                     ->visible(fn (Forms\Get $get, ?Model $record) => 
                         (bool) $get('is_transportasi') || 
                         in_array(trim((string) ($get('slug') ?? $record?->slug), '/'), ['ojek', 'mobil', 'taxi'])
@@ -116,20 +117,20 @@ class LayananResource extends Resource
                         Grid::make(3)
                             ->schema([
                                 TextInput::make('tarif_minimum')
-                                    ->label('Tarif Minimum Standar')
+                                    ->label('Rekomendasi Tarif Minimum Standar')
                                     ->numeric()
                                     ->prefix('Rp')
                                     ->placeholder('Contoh: 7000')
                                     ->required(fn (Forms\Get $get, ?Model $record) => 
                                         (bool) $get('is_transportasi') || in_array(trim((string) ($get('slug') ?? $record?->slug), '/'), ['ojek', 'mobil', 'taxi'])
                                     )
-                                    ->helperText('Tarif pembuka perjalanan terendah.'),
+                                    ->helperText('Rekomendasi tarif pembuka perjalanan terendah bagi seluruh cabang.'),
 
                                 TextInput::make('tarif_per_km')
                                     ->label(fn (Forms\Get $get, ?Model $record) => 
                                         in_array(trim((string) ($get('slug') ?? $record?->slug), '/'), ['mobil', 'taxi'])
-                                            ? 'Tarif Per KM (1 - 10 km)'
-                                            : 'Tarif Per KM'
+                                            ? 'Rekomendasi Tarif Per KM (1 - 10 km)'
+                                            : 'Rekomendasi Tarif Per KM'
                                     )
                                     ->numeric()
                                     ->prefix('Rp')
@@ -137,32 +138,32 @@ class LayananResource extends Resource
                                     ->required(fn (Forms\Get $get, ?Model $record) => 
                                         (bool) $get('is_transportasi') || in_array(trim((string) ($get('slug') ?? $record?->slug), '/'), ['ojek', 'mobil', 'taxi'])
                                     )
-                                    ->helperText('Biaya per kilometer perjalanan.'),
+                                    ->helperText('Rekomendasi biaya per kilometer perjalanan.'),
 
                                 TextInput::make('tarif_per_km_lanjutan')
-                                    ->label('Tarif Per KM Lanjutan (> 10 km)')
+                                    ->label('Rekomendasi Tarif Per KM Lanjutan (> 10 km)')
                                     ->numeric()
                                     ->prefix('Rp')
                                     ->placeholder('Contoh: 4000')
                                     ->visible(fn (Forms\Get $get, ?Model $record) => 
                                         in_array(trim((string) ($get('slug') ?? $record?->slug), '/'), ['mobil', 'taxi'])
                                     )
-                                    ->helperText('Tarif per kilometer untuk jarak jauh lebih dari 10 km.'),
+                                    ->helperText('Rekomendasi tarif per kilometer untuk perjalanan jarak jauh di atas 10 km.'),
 
                                 TextInput::make('surcharge_per_km')
-                                    ->label('Surcharge Penjemputan / KM')
+                                    ->label('Rekomendasi Surcharge Jemput / KM')
                                     ->numeric()
                                     ->prefix('Rp')
                                     ->placeholder('Contoh: 1000')
                                     ->default(1000)
-                                    ->helperText('Biaya per km jika penjemputan dari basecamp melebihi batas gratis.'),
+                                    ->helperText('Rekomendasi biaya per KM jika penjemputan dari basecamp melebihi batas gratis.'),
 
                                 TextInput::make('free_distance_km')
-                                    ->label('Batas Penjemputan Gratis')
+                                    ->label('Rekomendasi Kuota Jemput Gratis')
                                     ->numeric()
                                     ->suffix('KM')
                                     ->default(3.0)
-                                    ->helperText('Batas jarak gratis dari basecamp driver ke titik penjemputan.'),
+                                    ->helperText('Rekomendasi batas jarak gratis dari basecamp driver ke titik penjemputan.'),
                             ]),
                     ]),
 

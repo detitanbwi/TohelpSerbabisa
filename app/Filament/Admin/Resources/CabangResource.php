@@ -16,6 +16,7 @@ use Filament\Forms\Components\Section;
 use Filament\Forms\Components\Toggle;
 use Filament\Tables\Columns\TextColumn;
 use Filament\Tables\Columns\IconColumn;
+use App\Models\Layanan;
 use App\Models\User;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Model;
@@ -76,6 +77,18 @@ class CabangResource extends Resource
     {
         $isSuperAdmin = auth()->user()?->hasRole('super_admin') ?? false;
 
+        $masterOjek = Layanan::where('slug', 'ojek')->first();
+        $rekOjekMin = (int) ($masterOjek?->tarif_minimum ?? 7000);
+        $rekOjekPerKm = (int) ($masterOjek?->tarif_per_km ?? 2000);
+        $rekOjekSurcharge = (int) ($masterOjek?->surcharge_per_km ?? 1000);
+        $rekFreeDist = (float) ($masterOjek?->free_distance_km ?? 3.0);
+
+        $masterTaxi = Layanan::whereIn('slug', ['mobil', 'taxi'])->first();
+        $rekTaxiMin = (int) ($masterTaxi?->tarif_minimum ?? 18000);
+        $rekTaxiPerKm = (int) ($masterTaxi?->tarif_per_km ?? 5000);
+        $rekTaxiLanjutan = (int) ($masterTaxi?->tarif_per_km_lanjutan ?? 4000);
+        $rekTaxiSurcharge = (int) ($masterTaxi?->surcharge_per_km ?? 2000);
+
         return $form
             ->schema([
                 Section::make('Informasi Cabang & Operasional')
@@ -130,11 +143,11 @@ class CabangResource extends Resource
 
                                 TextInput::make('free_distance_km')
                                     ->label('Kuota Free Jemput (KM)')
-                                    ->placeholder('3.00')
+                                    ->placeholder((string) $rekFreeDist)
                                     ->numeric()
-                                    ->default(3.00)
+                                    ->default($rekFreeDist)
                                     ->suffix('KM')
-                                    ->helperText('Batas jarak penjemputan dari basecamp yang bebas biaya surcharge.')
+                                    ->helperText("Batas jarak penjemputan dari basecamp yang bebas biaya surcharge. (Rekomendasi Pusat: {$rekFreeDist} KM)")
                                     ->required()
                                     ->columnSpanFull(),
 
@@ -186,8 +199,8 @@ class CabangResource extends Resource
                             ]),
                     ]),
 
-                Section::make('Layanan & Tarif Ojek (Motor)')
-                    ->description('Kelola ketersediaan dan skema penghitungan tarif Ojek motor khusus cabang ini.')
+                Section::make('Penetapan Tarif Ojek (Motor) Cabang')
+                    ->description('Kelola ketersediaan dan tarif khusus Ojek untuk cabang ini. Anda dapat menetapkan tarif sendiri berdasarkan acuan rekomendasi Super Admin.')
                     ->icon('heroicon-o-bolt')
                     ->collapsible()
                     ->schema([
@@ -204,8 +217,9 @@ class CabangResource extends Resource
                                     ->prefix('Rp')
                                     ->numeric()
                                     ->minValue(0)
-                                    ->default(7000)
-                                    ->helperText('Tarif dasar minimal perjalanan')
+                                    ->default($rekOjekMin)
+                                    ->placeholder((string) $rekOjekMin)
+                                    ->helperText("Tarif pembuka perjalanan terendah. (Rekomendasi Super Admin: Rp " . number_format($rekOjekMin, 0, ',', '.') . ")")
                                     ->required(),
 
                                 TextInput::make('ojek_tarif_per_km')
@@ -214,8 +228,9 @@ class CabangResource extends Resource
                                     ->suffix('/KM')
                                     ->numeric()
                                     ->minValue(0)
-                                    ->default(2000)
-                                    ->helperText('Biaya per KM perjalanan')
+                                    ->default($rekOjekPerKm)
+                                    ->placeholder((string) $rekOjekPerKm)
+                                    ->helperText("Biaya per KM perjalanan. (Rekomendasi Super Admin: Rp " . number_format($rekOjekPerKm, 0, ',', '.') . "/KM)")
                                     ->required(),
 
                                 TextInput::make('ojek_surcharge_per_km')
@@ -224,15 +239,16 @@ class CabangResource extends Resource
                                     ->suffix('/KM')
                                     ->numeric()
                                     ->minValue(0)
-                                    ->default(1000)
-                                    ->helperText('Biaya per KM jika penjemputan melebihi radius kuota free')
+                                    ->default($rekOjekSurcharge)
+                                    ->placeholder((string) $rekOjekSurcharge)
+                                    ->helperText("Biaya per KM jika penjemputan melebihi radius kuota free. (Rekomendasi Super Admin: Rp " . number_format($rekOjekSurcharge, 0, ',', '.') . "/KM)")
                                     ->required(),
                             ])
                             ->visible(fn ($get) => (bool) $get('is_ojek_aktif')),
                     ]),
 
-                Section::make('Layanan & Tarif Taxi (Mobil)')
-                    ->description('Kelola ketersediaan dan skema penghitungan tarif Mobil/Taxi khusus cabang ini.')
+                Section::make('Penetapan Tarif Taxi (Mobil) Cabang')
+                    ->description('Kelola ketersediaan dan tarif khusus Taxi/Mobil untuk cabang ini. Anda dapat menetapkan tarif sendiri berdasarkan acuan rekomendasi Super Admin.')
                     ->icon('heroicon-o-truck')
                     ->collapsible()
                     ->schema([
@@ -249,8 +265,9 @@ class CabangResource extends Resource
                                     ->prefix('Rp')
                                     ->numeric()
                                     ->minValue(0)
-                                    ->default(18000)
-                                    ->helperText('Tarif perjalanan awal untuk 1 s/d 3 KM pertama')
+                                    ->default($rekTaxiMin)
+                                    ->placeholder((string) $rekTaxiMin)
+                                    ->helperText("Tarif perjalanan awal untuk 1 s/d 3 KM pertama. (Rekomendasi Super Admin: Rp " . number_format($rekTaxiMin, 0, ',', '.') . ")")
                                     ->required(),
 
                                 TextInput::make('taxi_surcharge_per_km')
@@ -259,8 +276,9 @@ class CabangResource extends Resource
                                     ->suffix('/KM')
                                     ->numeric()
                                     ->minValue(0)
-                                    ->default(2000)
-                                    ->helperText('Biaya per KM jika penjemputan melebihi radius kuota free')
+                                    ->default($rekTaxiSurcharge)
+                                    ->placeholder((string) $rekTaxiSurcharge)
+                                    ->helperText("Biaya per KM jika penjemputan melebihi radius kuota free. (Rekomendasi Super Admin: Rp " . number_format($rekTaxiSurcharge, 0, ',', '.') . "/KM)")
                                     ->required(),
 
                                 TextInput::make('taxi_tarif_per_km')
@@ -269,8 +287,9 @@ class CabangResource extends Resource
                                     ->suffix('/KM')
                                     ->numeric()
                                     ->minValue(0)
-                                    ->default(5000)
-                                    ->helperText('Biaya per KM untuk perjalanan antara 3 KM s/d 10 KM')
+                                    ->default($rekTaxiPerKm)
+                                    ->placeholder((string) $rekTaxiPerKm)
+                                    ->helperText("Biaya per KM untuk perjalanan antara 3 KM s/d 10 KM. (Rekomendasi Super Admin: Rp " . number_format($rekTaxiPerKm, 0, ',', '.') . "/KM)")
                                     ->required(),
 
                                 TextInput::make('taxi_tarif_per_km_lanjutan')
@@ -279,8 +298,9 @@ class CabangResource extends Resource
                                     ->suffix('/KM')
                                     ->numeric()
                                     ->minValue(0)
-                                    ->default(4000)
-                                    ->helperText('Biaya per KM untuk perjalanan jarak jauh di atas 10 KM')
+                                    ->default($rekTaxiLanjutan)
+                                    ->placeholder((string) $rekTaxiLanjutan)
+                                    ->helperText("Biaya per KM untuk perjalanan jarak jauh di atas 10 KM. (Rekomendasi Super Admin: Rp " . number_format($rekTaxiLanjutan, 0, ',', '.') . "/KM)")
                                     ->required(),
                             ])
                             ->visible(fn ($get) => (bool) $get('is_taxi_aktif')),

@@ -23,6 +23,23 @@ class KelolaLayananCabangPage extends Page
     public ?int $selectedCabangId = null;
     public array $items = [];
 
+    // Konfigurasi Tarif Transportasi Cabang (Ojek & Taxi)
+    public bool $is_ojek_aktif = true;
+    public ?int $ojek_tarif_minimum = null;
+    public ?int $ojek_tarif_per_km = null;
+    public ?int $ojek_surcharge_per_km = null;
+
+    public bool $is_taxi_aktif = true;
+    public ?int $taxi_tarif_minimum = null;
+    public ?int $taxi_tarif_per_km = null;
+    public ?int $taxi_tarif_per_km_lanjutan = null;
+    public ?int $taxi_surcharge_per_km = null;
+
+    public ?float $free_distance_km = 3.0;
+
+    // Rekomendasi Acuan dari Super Admin (Master Layanan)
+    public array $rekomendasi = [];
+
     public static function canAccess(): bool
     {
         return auth()->user()?->hasAnyRole(['super_admin', 'manager_cabang']) ?? false;
@@ -76,39 +93,57 @@ class KelolaLayananCabangPage extends Page
             return;
         }
 
+        // 1. Ambil rekomendasi acuan dari Master Layanan (Super Admin)
+        $masterOjek = Layanan::where('slug', 'ojek')->first();
+        $masterTaxi = Layanan::whereIn('slug', ['mobil', 'taxi'])->first();
+
+        $this->rekomendasi = [
+            'ojek_tarif_minimum' => (int) ($masterOjek?->tarif_minimum ?? 7000),
+            'ojek_tarif_per_km' => (int) ($masterOjek?->tarif_per_km ?? 2000),
+            'ojek_surcharge_per_km' => (int) ($masterOjek?->surcharge_per_km ?? 1000),
+            'free_distance_km' => (float) ($masterOjek?->free_distance_km ?? 3.0),
+            'taxi_tarif_minimum' => (int) ($masterTaxi?->tarif_minimum ?? 18000),
+            'taxi_tarif_per_km' => (int) ($masterTaxi?->tarif_per_km ?? 5000),
+            'taxi_tarif_per_km_lanjutan' => (int) ($masterTaxi?->tarif_per_km_lanjutan ?? 4000),
+            'taxi_surcharge_per_km' => (int) ($masterTaxi?->surcharge_per_km ?? 2000),
+        ];
+
+        // 2. Muat data tarif transportasi aktual dari tabel Cabang
+        $cabang = Cabang::find($this->selectedCabangId);
+        if ($cabang) {
+            $this->is_ojek_aktif = (bool) $cabang->is_ojek_aktif;
+            $this->ojek_tarif_minimum = $cabang->ojek_tarif_minimum ?: $this->rekomendasi['ojek_tarif_minimum'];
+            $this->ojek_tarif_per_km = $cabang->ojek_tarif_per_km ?: $this->rekomendasi['ojek_tarif_per_km'];
+            $this->ojek_surcharge_per_km = $cabang->ojek_surcharge_per_km ?: $this->rekomendasi['ojek_surcharge_per_km'];
+
+            $this->is_taxi_aktif = (bool) $cabang->is_taxi_aktif;
+            $this->taxi_tarif_minimum = $cabang->taxi_tarif_minimum ?: $this->rekomendasi['taxi_tarif_minimum'];
+            $this->taxi_tarif_per_km = $cabang->taxi_tarif_per_km ?: $this->rekomendasi['taxi_tarif_per_km'];
+            $this->taxi_tarif_per_km_lanjutan = $cabang->taxi_tarif_per_km_lanjutan ?: $this->rekomendasi['taxi_tarif_per_km_lanjutan'];
+            $this->taxi_surcharge_per_km = $cabang->taxi_surcharge_per_km ?: $this->rekomendasi['taxi_surcharge_per_km'];
+
+            $this->free_distance_km = (float) ($cabang->free_distance_km ?: $this->rekomendasi['free_distance_km']);
+        }
+
+        // 3. Muat sub-layanan reguler (non-transportasi)
         $existingPivots = CabangLayanan::where('cabang_id', $this->selectedCabangId)
             ->get()
             ->keyBy('sub_layanan_id');
 
         $allSubLayanans = SubLayanan::with('layanan')
-            ->whereHas('layanan', fn ($q) => $q->where('is_active', true))
+            ->whereHas('layanan', function ($q) {
+                $q->where('is_active', true)
+                  ->where('is_transportasi', false)
+                  ->whereNotIn('slug', ['ojek', 'mobil', 'taxi']);
+            })
             ->where('is_active', true)
             ->orderBy('layanan_id')
             ->orderBy('urutan')
             ->get();
 
-        $cabang = Cabang::find($this->selectedCabangId);
         $loaded = [];
         foreach ($allSubLayanans as $sub) {
             $pivot = $existingPivots->get($sub->id);
-            $slug = $sub->layanan?->clean_slug;
-
-            $isTersedia = $pivot ? (bool) $pivot->is_tersedia : true;
-            $customHarga = $pivot && $pivot->custom_harga !== null ? (float) $pivot->custom_harga : null;
-
-            if ($cabang) {
-                if ($slug === 'ojek') {
-                    $isTersedia = (bool) $cabang->is_ojek_aktif;
-                    if ($customHarga === null && $cabang->ojek_tarif_minimum) {
-                        $customHarga = (float) $cabang->ojek_tarif_minimum;
-                    }
-                } elseif ($slug === 'mobil' || $slug === 'taxi') {
-                    $isTersedia = (bool) $cabang->is_taxi_aktif;
-                    if ($customHarga === null && $cabang->taxi_tarif_minimum) {
-                        $customHarga = (float) $cabang->taxi_tarif_minimum;
-                    }
-                }
-            }
 
             $loaded[$sub->id] = [
                 'sub_layanan_id' => $sub->id,
@@ -119,8 +154,8 @@ class KelolaLayananCabangPage extends Page
                 'default_satuan' => $sub->default_satuan,
                 'default_label' => $sub->label_harga_custom,
                 'default_catatan_nb' => $sub->catatan_nb,
-                'is_tersedia' => $isTersedia,
-                'custom_harga' => $customHarga,
+                'is_tersedia' => $pivot ? (bool) $pivot->is_tersedia : true,
+                'custom_harga' => $pivot && $pivot->custom_harga !== null ? (float) $pivot->custom_harga : null,
                 'custom_satuan' => $pivot ? $pivot->custom_satuan : null,
                 'custom_label' => $pivot ? $pivot->custom_label : null,
                 'custom_catatan_nb' => $pivot ? $pivot->custom_catatan_nb : null,
@@ -136,8 +171,36 @@ class KelolaLayananCabangPage extends Page
             $q->where('is_active', true)->orderBy('urutan');
         }])
         ->where('is_active', true)
+        ->where('is_transportasi', false)
+        ->whereNotIn('slug', ['ojek', 'mobil', 'taxi'])
         ->orderBy('urutan')
         ->get();
+    }
+
+    public function resetTransportRates(string $type): void
+    {
+        if ($type === 'ojek') {
+            $this->ojek_tarif_minimum = $this->rekomendasi['ojek_tarif_minimum'] ?? 7000;
+            $this->ojek_tarif_per_km = $this->rekomendasi['ojek_tarif_per_km'] ?? 2000;
+            $this->ojek_surcharge_per_km = $this->rekomendasi['ojek_surcharge_per_km'] ?? 1000;
+
+            Notification::make()
+                ->title('Tarif Ojek Direset')
+                ->body('Tarif Ojek cabang berhasil dikembalikan ke rekomendasi Super Admin. Jangan lupa klik "Simpan Pengaturan".')
+                ->info()
+                ->send();
+        } elseif ($type === 'taxi') {
+            $this->taxi_tarif_minimum = $this->rekomendasi['taxi_tarif_minimum'] ?? 18000;
+            $this->taxi_tarif_per_km = $this->rekomendasi['taxi_tarif_per_km'] ?? 5000;
+            $this->taxi_tarif_per_km_lanjutan = $this->rekomendasi['taxi_tarif_per_km_lanjutan'] ?? 4000;
+            $this->taxi_surcharge_per_km = $this->rekomendasi['taxi_surcharge_per_km'] ?? 2000;
+
+            Notification::make()
+                ->title('Tarif Taxi Direset')
+                ->body('Tarif Taxi cabang berhasil dikembalikan ke rekomendasi Super Admin. Jangan lupa klik "Simpan Pengaturan".')
+                ->info()
+                ->send();
+        }
     }
 
     public function toggleAll(bool $status): void
@@ -204,12 +267,31 @@ class KelolaLayananCabangPage extends Page
 
         DB::beginTransaction();
         try {
+            // 1. Simpan tarif transportasi Ojek & Taxi Cabang
+            $cabang = Cabang::find($this->selectedCabangId);
+            if ($cabang) {
+                $cabang->update([
+                    'is_ojek_aktif' => (bool) $this->is_ojek_aktif,
+                    'ojek_tarif_minimum' => (int) ($this->ojek_tarif_minimum ?: $this->rekomendasi['ojek_tarif_minimum']),
+                    'ojek_tarif_per_km' => (int) ($this->ojek_tarif_per_km ?: $this->rekomendasi['ojek_tarif_per_km']),
+                    'ojek_surcharge_per_km' => (int) ($this->ojek_surcharge_per_km ?: $this->rekomendasi['ojek_surcharge_per_km']),
+
+                    'is_taxi_aktif' => (bool) $this->is_taxi_aktif,
+                    'taxi_tarif_minimum' => (int) ($this->taxi_tarif_minimum ?: $this->rekomendasi['taxi_tarif_minimum']),
+                    'taxi_tarif_per_km' => (int) ($this->taxi_tarif_per_km ?: $this->rekomendasi['taxi_tarif_per_km']),
+                    'taxi_tarif_per_km_lanjutan' => (int) ($this->taxi_tarif_per_km_lanjutan ?: $this->rekomendasi['taxi_tarif_per_km_lanjutan']),
+                    'taxi_surcharge_per_km' => (int) ($this->taxi_surcharge_per_km ?: $this->rekomendasi['taxi_surcharge_per_km']),
+
+                    'free_distance_km' => (float) ($this->free_distance_km ?: $this->rekomendasi['free_distance_km']),
+                ]);
+            }
+
+            // 2. Simpan tarif paket sub-layanan reguler
             foreach ($this->items as $subId => $data) {
                 $rawHarga = $data['custom_harga'] ?? null;
                 $parsedHarga = null;
                 if ($rawHarga !== '' && $rawHarga !== null) {
                     if (is_string($rawHarga)) {
-                        // Strip 'Rp', spaces, dots, and convert to integer
                         $clean = preg_replace('/[^0-9]/', '', $rawHarga);
                         $parsedHarga = $clean !== '' ? (float) $clean : null;
                     } else {
@@ -230,33 +312,13 @@ class KelolaLayananCabangPage extends Page
                         'custom_catatan_nb' => !empty($data['custom_catatan_nb']) ? trim($data['custom_catatan_nb']) : null,
                     ]
                 );
-
-                // Sync transportation availability and base fare to cabangs table
-                $subLayananModel = SubLayanan::with('layanan')->find($subId);
-                $isTersedia = (bool) ($data['is_tersedia'] ?? true);
-                if ($subLayananModel && $subLayananModel->layanan) {
-                    $slug = $subLayananModel->layanan->clean_slug;
-                    if ($slug === 'ojek') {
-                        $updateData = ['is_ojek_aktif' => $isTersedia];
-                        if ($parsedHarga !== null && $parsedHarga > 0) {
-                            $updateData['ojek_tarif_minimum'] = (int) $parsedHarga;
-                        }
-                        Cabang::where('id', $this->selectedCabangId)->update($updateData);
-                    } elseif ($slug === 'mobil' || $slug === 'taxi') {
-                        $updateData = ['is_taxi_aktif' => $isTersedia];
-                        if ($parsedHarga !== null && $parsedHarga > 0) {
-                            $updateData['taxi_tarif_minimum'] = (int) $parsedHarga;
-                        }
-                        Cabang::where('id', $this->selectedCabangId)->update($updateData);
-                    }
-                }
             }
 
             DB::commit();
 
             Notification::make()
                 ->title('Berhasil Disimpan')
-                ->body("Seluruh pengaturan layanan dan tarif Cabang {$this->selectedCabangNama} berhasil diperbarui.")
+                ->body("Seluruh konfigurasi tarif Ojek, Taxi, dan Layanan Cabang {$this->selectedCabangNama} berhasil diperbarui.")
                 ->success()
                 ->send();
         } catch (\Exception $e) {
