@@ -29,25 +29,22 @@ class AbsensiApiController extends Controller
 
         $fotoUrl = $absensi ? $absensi->getFirstMediaUrl('bukti-absensi') : null;
 
+        $times = \App\Services\AbsensiService::getMasterAbsensiTimes();
+        $jamMasukSetting = $times['jam_masuk_formatted'];
+        $jamKeluarSetting = $times['jam_keluar_formatted'];
+
         $isWithinTime = true;
         $timeStatus = 'open'; // 'early', 'open', 'late'
-        $timeMessage = 'Jadwal presensi sedang dibuka.';
-        $jamMasukSetting = $masterAbsensi ? Carbon::parse($masterAbsensi->jam_masuk)->format('H:i') : '07:30';
-        $jamKeluarSetting = $masterAbsensi ? Carbon::parse($masterAbsensi->jam_keluar)->format('H:i') : '09:00';
+        $timeMessage = "Jadwal presensi sedang dibuka ({$jamMasukSetting} - {$jamKeluarSetting} WIB).";
 
-        if ($masterAbsensi) {
-            $jamMasuk = Carbon::parse($masterAbsensi->jam_masuk)->format('H:i:s');
-            $jamKeluar = Carbon::parse($masterAbsensi->jam_keluar)->format('H:i:s');
-
-            if ($nowTime < $jamMasuk) {
-                $isWithinTime = false;
-                $timeStatus = 'early';
-                $timeMessage = "Presensi belum dibuka. Jadwal presensi dimulai pukul {$jamMasukSetting} hingga {$jamKeluarSetting} WIB.";
-            } elseif ($nowTime > $jamKeluar) {
-                $isWithinTime = false;
-                $timeStatus = 'late';
-                $timeMessage = "Waktu presensi telah berakhir pada pukul {$jamKeluarSetting} WIB.";
-            }
+        if ($nowTime < $times['jam_masuk']) {
+            $isWithinTime = false;
+            $timeStatus = 'early';
+            $timeMessage = "Presensi belum dibuka. Jadwal presensi dimulai pukul {$jamMasukSetting} hingga {$jamKeluarSetting} WIB.";
+        } elseif ($nowTime > $times['jam_keluar']) {
+            $isWithinTime = false;
+            $timeStatus = 'late';
+            $timeMessage = "Waktu presensi telah berakhir pada pukul {$jamKeluarSetting} WIB.";
         }
 
         return response()->json([
@@ -81,26 +78,24 @@ class AbsensiApiController extends Controller
         $nowTime = $now->format('H:i:s');
 
         // Validasi Jadwal Waktu Presensi terhadap Master Data Absensi
-        $masterAbsensi = \App\Models\AbsensiBase::first();
-        if ($masterAbsensi) {
-            $jamMasuk = Carbon::parse($masterAbsensi->jam_masuk)->format('H:i:s');
-            $jamKeluar = Carbon::parse($masterAbsensi->jam_keluar)->format('H:i:s');
-            $jamMasukFormatted = Carbon::parse($masterAbsensi->jam_masuk)->format('H:i');
-            $jamKeluarFormatted = Carbon::parse($masterAbsensi->jam_keluar)->format('H:i');
+        $times = \App\Services\AbsensiService::getMasterAbsensiTimes();
+        $jamMasuk = $times['jam_masuk'];
+        $jamKeluar = $times['jam_keluar'];
+        $jamMasukFormatted = $times['jam_masuk_formatted'];
+        $jamKeluarFormatted = $times['jam_keluar_formatted'];
 
-            if ($nowTime < $jamMasuk) {
-                return response()->json([
-                    'status' => 'error',
-                    'message' => "Presensi belum dibuka. Jadwal presensi dimulai pukul {$jamMasukFormatted} hingga {$jamKeluarFormatted} WIB.",
-                ], 422);
-            }
+        if ($nowTime < $jamMasuk) {
+            return response()->json([
+                'status' => 'error',
+                'message' => "Presensi belum dibuka. Jadwal presensi dimulai pukul {$jamMasukFormatted} hingga {$jamKeluarFormatted} WIB.",
+            ], 422);
+        }
 
-            if ($nowTime > $jamKeluar) {
-                return response()->json([
-                    'status' => 'error',
-                    'message' => "Waktu presensi telah berakhir pada pukul {$jamKeluarFormatted} WIB. Presensi di luar jam yang ditentukan tidak dapat diterima.",
-                ], 422);
-            }
+        if ($nowTime > $jamKeluar) {
+            return response()->json([
+                'status' => 'error',
+                'message' => "Waktu presensi telah berakhir pada pukul {$jamKeluarFormatted} WIB. Presensi di luar jam yang ditentukan tidak dapat diterima.",
+            ], 422);
         }
 
         // Identify any uploaded file key
