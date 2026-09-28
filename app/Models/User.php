@@ -98,7 +98,9 @@ class User extends Authenticatable implements HasAvatar, FilamentUser, HasMedia,
 
     public function tugas()
     {
-        return $this->belongsToMany(Transaksi::class, 'karyawan_tugas', 'karyawan_id', 'tugas_id')->withPivot('id');
+        return $this->belongsToMany(Transaksi::class, 'karyawan_tugas', 'karyawan_id', 'tugas_id')
+            ->withPivot(['id', 'is_selesai'])
+            ->withTimestamps();
     }
 
     public function karyawanTugas()
