@@ -12,17 +12,24 @@ use Filament\Forms\Components\Textarea;
 use Filament\Forms\Components\Toggle;
 use Filament\Forms\Components\Repeater;
 use Filament\Forms\Components\Grid;
+use Filament\Forms\Components\FileUpload;
+use Filament\Forms\Components\ColorPicker;
 use Filament\Resources\Resource;
 use Filament\Tables;
 use Filament\Tables\Table;
 use Filament\Tables\Columns\TextColumn;
 use Filament\Tables\Columns\IconColumn;
+use Filament\Tables\Columns\ImageColumn;
+use Filament\Tables\Columns\ColorColumn;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Str;
 
 class LayananResource extends Resource
 {
     protected static ?string $model = Layanan::class;
+
+    protected static ?string $modelLabel = 'Layanan';
+    protected static ?string $pluralModelLabel = 'Layanan';
 
     protected static ?string $navigationIcon = 'heroicon-o-squares-plus';
     protected static ?string $navigationGroup = 'Master Data';
@@ -92,11 +99,102 @@ class LayananResource extends Resource
                                     ->default(0)
                                     ->helperText('Semakin kecil angka, semakin awal ditampilkan.'),
 
+                                Toggle::make('is_transportasi')
+                                    ->label('Layanan Transportasi (Jarak / KM)')
+                                    ->helperText('Aktifkan jika layanan ini berbasis rute perjalanan Google Maps (seperti Ojek atau Taxi).')
+                                    ->reactive()
+                                    ->default(false),
+
                                 Toggle::make('is_active')
                                     ->label('Status Aktif')
                                     ->default(true)
                                     ->inline(false)
                                     ->helperText('Jika non-aktif, layanan ini disembunyikan dari website.'),
+                            ]),
+                    ]),
+
+                Section::make('Gambar & Warna Layanan')
+                    ->description('Upload file gambar atau logo layanan untuk ditampilkan pada kartu layanan di website.')
+                    ->icon('heroicon-o-photo')
+                    ->schema([
+                        Grid::make(3)
+                            ->schema([
+                                FileUpload::make('image_path')
+                                    ->label('File Gambar / Logo Layanan')
+                                    ->image()
+                                    ->disk('public')
+                                    ->directory('layanans')
+                                    ->imageCropAspectRatio('1:1')
+                                    ->maxSize(2048)
+                                    ->helperText('Format file: PNG, JPG, WebP, atau SVG. Maksimal 2 MB (Disarankan gambar persegi / rasio 1:1).')
+                                    ->columnSpan(2),
+
+                                ColorPicker::make('warna')
+                                    ->label('Warna Background / Aksen')
+                                    ->placeholder('#16A085')
+                                    ->helperText('Warna background bingkai gambar dan aksen layanan di website customer (kosongkan jika ingin warna bawaan).')
+                                    ->columnSpan(1),
+                            ]),
+                    ]),
+
+                Section::make('Rekomendasi Tarif Transportasi Standar (Acuan Pusat / Super Admin)')
+                    ->description('Atur formula rekomendasi perhitungan tarif perjalanan Google Maps. Nilai ini menjadi standar rekomendasi nasional yang dilihat oleh Manager Cabang sebagai acuan, sekaligus menjadi tarif default otomatis jika cabang belum menetapkan tarif khususnya.')
+                    ->icon('heroicon-o-sparkles')
+                    ->visible(fn (Forms\Get $get, ?Model $record) => 
+                        (bool) $get('is_transportasi') || 
+                        in_array(trim((string) ($get('slug') ?? $record?->slug), '/'), ['ojek', 'mobil', 'taxi'])
+                    )
+                    ->schema([
+                        Grid::make(3)
+                            ->schema([
+                                TextInput::make('tarif_minimum')
+                                    ->label('Rekomendasi Tarif Minimum Standar')
+                                    ->numeric()
+                                    ->prefix('Rp')
+                                    ->placeholder('Contoh: 7000')
+                                    ->required(fn (Forms\Get $get, ?Model $record) => 
+                                        (bool) $get('is_transportasi') || in_array(trim((string) ($get('slug') ?? $record?->slug), '/'), ['ojek', 'mobil', 'taxi'])
+                                    )
+                                    ->helperText('Rekomendasi tarif pembuka perjalanan terendah bagi seluruh cabang.'),
+
+                                TextInput::make('tarif_per_km')
+                                    ->label(fn (Forms\Get $get, ?Model $record) => 
+                                        in_array(trim((string) ($get('slug') ?? $record?->slug), '/'), ['mobil', 'taxi'])
+                                            ? 'Rekomendasi Tarif Per KM (1 - 10 km)'
+                                            : 'Rekomendasi Tarif Per KM'
+                                    )
+                                    ->numeric()
+                                    ->prefix('Rp')
+                                    ->placeholder('Contoh: 2000')
+                                    ->required(fn (Forms\Get $get, ?Model $record) => 
+                                        (bool) $get('is_transportasi') || in_array(trim((string) ($get('slug') ?? $record?->slug), '/'), ['ojek', 'mobil', 'taxi'])
+                                    )
+                                    ->helperText('Rekomendasi biaya per kilometer perjalanan.'),
+
+                                TextInput::make('tarif_per_km_lanjutan')
+                                    ->label('Rekomendasi Tarif Per KM Lanjutan (> 10 km)')
+                                    ->numeric()
+                                    ->prefix('Rp')
+                                    ->placeholder('Contoh: 4000')
+                                    ->visible(fn (Forms\Get $get, ?Model $record) => 
+                                        in_array(trim((string) ($get('slug') ?? $record?->slug), '/'), ['mobil', 'taxi'])
+                                    )
+                                    ->helperText('Rekomendasi tarif per kilometer untuk perjalanan jarak jauh di atas 10 km.'),
+
+                                TextInput::make('surcharge_per_km')
+                                    ->label('Rekomendasi Surcharge Jemput / KM')
+                                    ->numeric()
+                                    ->prefix('Rp')
+                                    ->placeholder('Contoh: 1000')
+                                    ->default(1000)
+                                    ->helperText('Rekomendasi biaya per KM jika penjemputan dari basecamp melebihi batas gratis.'),
+
+                                TextInput::make('free_distance_km')
+                                    ->label('Rekomendasi Kuota Jemput Gratis')
+                                    ->numeric()
+                                    ->suffix('KM')
+                                    ->default(3.0)
+                                    ->helperText('Rekomendasi batas jarak gratis dari basecamp driver ke titik penjemputan.'),
                             ]),
                     ]),
 
@@ -202,6 +300,19 @@ class LayananResource extends Resource
                     ->label('#')
                     ->sortable(),
 
+                ImageColumn::make('image_path')
+                    ->label('Gambar')
+                    ->disk('public')
+                    ->circular()
+                    ->defaultImageUrl(fn (Model $record) => $record->image_url)
+                    ->toggleable(),
+
+                ColorColumn::make('warna')
+                    ->label('Warna')
+                    ->getStateUsing(fn (Model $record) => $record->color_hex)
+                    ->copyable()
+                    ->toggleable(),
+
                 TextColumn::make('nama')
                     ->label('Nama Layanan')
                     ->searchable()
@@ -225,6 +336,14 @@ class LayananResource extends Resource
                     ->label('Total Sub-Paket')
                     ->badge()
                     ->color('success'),
+
+                IconColumn::make('is_transportasi')
+                    ->label('Transportasi')
+                    ->boolean()
+                    ->trueIcon('heroicon-o-truck')
+                    ->falseIcon('heroicon-o-minus')
+                    ->color(fn (bool $state): string => $state ? 'warning' : 'gray')
+                    ->toggleable(),
 
                 IconColumn::make('is_active')
                     ->label('Aktif')

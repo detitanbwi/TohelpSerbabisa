@@ -15,7 +15,7 @@ class TransaksiPolicy
      */
     public function viewAny(User $user): bool
     {
-        return $user->can('view_any_transaksi');
+        return $user->hasRole('manager_cabang') || $user->can('view_any_transaksi');
     }
 
     /**
@@ -23,6 +23,10 @@ class TransaksiPolicy
      */
     public function view(User $user, Transaksi $transaksi): bool
     {
+        if ($user->hasRole('manager_cabang')) {
+            return $user->managesCabang($transaksi->cabang_id);
+        }
+
         return $user->can('view_transaksi');
     }
 
@@ -39,6 +43,10 @@ class TransaksiPolicy
      */
     public function update(User $user, Transaksi $transaksi): bool
     {
+        if ($user->hasRole('manager_cabang')) {
+            return $user->managesCabang($transaksi->cabang_id);
+        }
+
         return $user->can('update_transaksi');
     }
 
@@ -47,6 +55,10 @@ class TransaksiPolicy
      */
     public function delete(User $user, Transaksi $transaksi): bool
     {
+        if ($user->hasRole('manager_cabang')) {
+            return $user->managesCabang($transaksi->cabang_id);
+        }
+
         return $user->can('delete_transaksi');
     }
 

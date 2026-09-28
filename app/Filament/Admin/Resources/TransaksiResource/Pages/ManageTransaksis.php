@@ -20,6 +20,6 @@ class ManageTransaksis extends ManageRecords
 
     public function getTitle(): string|Htmlable
     {
-        return 'Transaksi';
+        return 'Daftar Transaksi';
     }
 }

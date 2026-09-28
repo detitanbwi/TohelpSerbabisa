@@ -10,6 +10,11 @@ class ViewRole extends ViewRecord
 {
     protected static string $resource = RoleResource::class;
 
+    public function getTitle(): string|\Illuminate\Contracts\Support\Htmlable
+    {
+        return 'Detail Peran';
+    }
+
     protected function getActions(): array
     {
         return [

@@ -16,6 +16,11 @@ class EditRole extends EditRecord
 {
     protected static string $resource = RoleResource::class;
 
+    public function getTitle(): string|\Illuminate\Contracts\Support\Htmlable
+    {
+        return 'Ubah Data Peran';
+    }
+
     public Collection $permissions;
 
     protected function getActions(): array

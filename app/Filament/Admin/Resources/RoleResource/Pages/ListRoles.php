@@ -10,10 +10,16 @@ class ListRoles extends ListRecords
 {
     protected static string $resource = RoleResource::class;
 
+    public function getTitle(): string|\Illuminate\Contracts\Support\Htmlable
+    {
+        return 'Peran & Hak Akses';
+    }
+
     protected function getActions(): array
     {
         return [
-            Actions\CreateAction::make(),
+            Actions\CreateAction::make()
+                ->label('Tambah Peran Baru'),
         ];
     }
 }

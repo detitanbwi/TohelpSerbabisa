@@ -14,11 +14,14 @@
             <div class="col-lg-3 col-md-6">
                 <h5 class="fw-bold mb-3">Layanan</h5>
                 <ul class="list-unstyled">
-                    <li><a href="#" class="text-dark text-decoration-none">Transportasi (Ngojek)</a></li>
-                    <li><a href="#" class="text-dark text-decoration-none">Bersih-Bersih Rumah</a></li>
-                    <li><a href="#" class="text-dark text-decoration-none">Pindahan/Angkut Barang</a></li>
-                    <li><a href="#" class="text-dark text-decoration-none">Lain-Lain/Jasa Sesuai Permintaan</a>
-                    </li>
+                    @php
+                        $footerLayanans = \App\Models\Layanan::where('is_active', true)->orderBy('urutan')->take(5)->get();
+                    @endphp
+                    @forelse($footerLayanans as $fLayanan)
+                        <li class="mb-1"><a href="{{ $fLayanan->route_url }}" class="text-dark text-decoration-none">{{ $fLayanan->nama }}</a></li>
+                    @empty
+                        <li><a href="{{ route('index') }}#services" class="text-dark text-decoration-none">Semua Layanan</a></li>
+                    @endforelse
                 </ul>
             </div>
 

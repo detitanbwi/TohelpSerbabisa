@@ -94,323 +94,57 @@
             </div>
         </div>
     </section>
-    {{-- 
-    <section id="services" class="">
-        <div class="service-block position-relative bg-secondary">
-            <div class="jarallax service-bg"
-                style="background-image: linear-gradient(rgba(0, 0, 0, 0.5), rgba(0, 0, 0, 0.5)), url(images/ojek.png); background-size: cover; background-repeat: no-repeat; background-position: center; ">
-            </div>
-            <div class="container service-content position-absolute top-50 start-50 translate-middle">
-                <div class="row align-items-center">
-                    <div class="col-lg-9">
-                        <h3 class="display-6 fw-semibold text-white mb-4">Transportasi (Ngojek)</h3>
-                        <p class="text-white">Layanan ojek kami siap mengantar Anda ke mana saja dengan cepat dan aman.
-                        </p>
-                    </div>
-                    <div class="col-lg-3 text-lg-end">
-                        <a href="{{ route('ojek') }}" class="btn btn-outline-light service-btn">Pesan Sekarang</a>
-                    </div>
-                </div>
-            </div>
-        </div>
-        <div class="service-block position-relative bg-secondary">
-            <div class="jarallax service-bg"
-                style="background-image: linear-gradient(rgba(0, 0, 0, 0.5), rgba(0, 0, 0, 0.5)), url(images/ojek.png); background-size: cover; background-repeat: no-repeat; background-position: center; ">
-            </div>
-            <div class="container service-content position-absolute top-50 start-50 translate-middle">
-                <div class="row align-items-center">
-                    <div class="col-lg-9">
-                        <h3 class="display-6 fw-semibold text-white mb-4">Transportasi (Mobil)</h3>
-                        <p class="text-white">Layanan mobil kami siap mengantar Anda ke mana saja dengan cepat dan aman.
-                        </p>
-                    </div>
-                    <div class="col-lg-3 text-lg-end">
-                        <a href="{{ route('taxi') }}" class="btn btn-outline-light service-btn">Pesan Sekarang</a>
-                    </div>
-                </div>
-            </div>
-        </div>
-        <div class="service-block position-relative bg-secondary">
-            <div class="jarallax service-bg"
-                style="background-image: linear-gradient(rgba(0, 0, 0, 0.5), rgba(0, 0, 0, 0.5)), url(images/bersih-rumah.png); background-size: cover; background-repeat: no-repeat; background-position: center;">
-            </div>
-            <div class="container service-content position-absolute top-50 start-50 translate-middle">
-                <div class="row align-items-center">
-                    <div class="col-lg-9">
-                        <h3 class="display-6 fw-semibold text-white mb-4">Bersih-Bersih Rumah</h3>
-                        <p class="text-white">Layanan pembersihan rumah profesional untuk memastikan lingkungan Anda
-                            tetap bersih dan nyaman.</p>
-                    </div>
-                    <div class="col-lg-3 text-lg-end">
-                        <a href="{{ route('bersih') }}" class="btn btn-outline-light service-btn">Pesan Sekarang</a>
-                    </div>
-                </div>
-            </div>
-        </div>
-        <div class="service-block position-relative bg-secondary">
-            <div class="jarallax service-bg"
-                style="background-image: linear-gradient(rgba(0, 0, 0, 0.5), rgba(0, 0, 0, 0.5)), url(images/jasa-angkut.jpg); background-size: cover; background-repeat: no-repeat; background-position: center;">
-            </div>
-            <div class="container service-content position-absolute top-50 start-50 translate-middle">
-                <div class="row align-items-center">
-                    <div class="col-lg-9">
-                        <h3 class="display-6 fw-semibold text-white mb-4">Jasa Pindahan/Angkut Barang</h3>
-                        <p class="text-white">Layanan angkut barang kami membantu Anda memindahkan barang ke mana saja
-                            dengan cepat, aman, dan efisien.</p>
-                    </div>
-                    <div class="col-lg-3 text-lg-end">
-                        <a href="{{ route('pindahan') }}" class="btn btn-outline-light service-btn">Pesan Sekarang</a>
-                    </div>
-                </div>
-            </div>
-        </div>
-        <div class="service-block position-relative bg-secondary">
-            <div class="jarallax service-bg"
-                style="background-image: linear-gradient(rgba(0, 0, 0, 0.5), rgba(0, 0, 0, 0.5)), url(images/jasa-custom.jpg); background-size: cover; background-repeat: no-repeat; background-position: center;">
-            </div>
-            <div class="container service-content position-absolute top-50 start-50 translate-middle">
-                <div class="row align-items-center">
-                    <div class="col-lg-9">
-                        <h3 class="display-6 fw-semibold text-white mb-4">Jasa Sesuai Permintaan</h3>
-                        <p class="text-white">Dari membantu belanja, mengurus keperluan administrasi, hingga
-                            tugas-tugas khusus lainnya, kami siap melayani Anda.</p>
-                    </div>
-                    <div class="col-lg-3 text-lg-end">
-                        <a href="{{ route('kustom') }}" class="btn btn-outline-light service-btn">Pesan Sekarang</a>
-                    </div>
-                </div>
-            </div>
-        </div>
-    </section> --}}
 
     <section id="services">
-        <div class="container">
-            <div class="text-center mb-5">
-                <h2 class="display-4 fw-bold">Kami Siap Membantu</h2>
-                <p class="lead">Apapun permasalahan Anda? Serahkan pada kami untuk solusi yang praktis dan terpercaya!</p>
-            </div>
+        <style>
+            .card-custom {
+                transition: transform 0.3s ease, box-shadow 0.3s ease;
+                border-radius: 16px;
+                overflow: hidden;
+            }
 
-            @php
-                $services = [
-                    'Ojek' => [
-                        'icon' => 'fas fa-motorcycle',
-                        'color' => '#FF5733', // Bright Red-Orange
-                        'items' => ['Ojek Motor'],
-                        'isAnchor' => true,
-                        'route' => route('ojek'),
-                    ],
-                    'Mobil' => [
-                        'icon' => 'fas fa-taxi',
-                        'color' => '#2E86C1', // Deep Blue
-                        'items' => ['Ojek Mobil'],
-                        'isAnchor' => true,
-                        'route' => route('taxi'),
-                    ],
-                    'Angkut Barang' => [
-                        'icon' => 'fas fa-truck',
-                        'color' => '#F4D03F', // Golden Yellow
-                        'items' => ['Tossa', 'Pick Up'],
-                        'isAnchor' => true,
-                        'route' => route('pindahan'),
-                    ],
-                    'Bersih Bersih' => [
-                        'icon' => 'fas fa-broom',
-                        'color' => '#16A085', // Teal Green
-                        'items' => ['Rumah Subsidi', 'Rumah Komersil', 'Ruang Tamu', 'Tandon', 'Dan Lain-Lain'],
-                        'isAnchor' => true,
-                        'route' => route('bersih'),
-                    ],
-                    'Jastip' => [
-                        'icon' => 'fas fa-shopping-bag',
-                        'color' => '#E74C3C', // Bold Red
-                        'items' => ['Jastip Makanan', 'Jastip Minuman', 'Jastip Barang'],
-                        'isAnchor' => true,
-                        'route' => route('jastip'),
-                    ],
-                    'Daily Activity' => [
-                        'icon' => 'fas fa-tasks',
-                        'color' => '#9B59B6', // Purple
-                        'items' => ['Rawat Peliharaan', 'Pasang Gas/Galon', 'Jaga Anak', 'Dorong Motor', 'Ban Bocor'],
-                        'isAnchor' => true,
-                        'route' => route('daily'),
-                    ],
-                    'Jasa Nemenin' => [
-                        'icon' => 'fas fa-users',
-                        'color' => '#F39C12', // Orange
-                        'items' => [
-                            'Teman Ngopi',
-                            'Teman Nonton',
-                            'Teman Curhat',
-                            'Teman Acara (Kondangan, Pesta, Wisuda, dll)',
-                            'Teman Wisata / Liburan',
-                            'Night Ride',
-                        ],
-                        'isAnchor' => true,
-                        'route' => route('nemenin'),
-                    ],
-                    'Laundry' => [
-                        'icon' => 'fas fa-tshirt',
-                        'color' => '#3498DB', // Light Blue
-                        'items' => ['Antar Cuci Sepeda', 'Antar Cuci Mobil', 'Antar Cuci Baju'],
-                        'message' =>
-                            'Hii kak, saya ingin meminta bantuan To Help\n\n' .
-                            'ID Order : [order_id]\n' .
-                            'Jenis Jasa : laundry\n\n' .
-                            'Permintaan (pilih salah satu) : pakaian/kendaraan/perabotan\n' .
-                            'Alamat : \n' .
-                            'Hari/tanggal : \n' .
-                            'Nama : \n' .
-                            'Nomor WhatsApp : ',
-                    ],
-                    'All Service' => [
-                        'icon' => 'fas fa-tools',
-                        'color' => '#34495E', // Dark Slate
-                        'items' => ['Antar Service Sepeda', 'Antar Service Mobil', 'Antar Service Elektronik'],
-                        'isAnchor' => true,
-                        'route' => route('service'),
-                    ],
-                    'Travel' => [
-                        'icon' => 'fas fa-car',
-                        'color' => '#1ABC9C', // Soft Cyan
-                        'items' => ['Driver Only', 'Rental Motor', 'Rental Mobil'],
-                        'isAnchor' => true,
-                        'route' => route('travel'),
-                    ],
-                    'Editing' => [
-                        'icon' => 'fas fa-camera',
-                        'color' => '#E84393', // Pink
-                        'items' => ['Edit Foto/Video', 'Fotographer', 'Videographer'],
-                        'isAnchor' => true,
-                        'route' => route('editing'),
-                    ],
-                    'Bantuan Online' => [
-                        'icon' => 'fas fa-headset',
-                        'color' => '#27AE60', // Green
-                        'items' => ['SleepCall', 'Stalker', 'Joki Game', 'Buzzer'],
-                        'isAnchor' => true,
-                        'route' => route('bantuan'),
-                    ],
-                    'Joki Tugas' => [
-                        'icon' => 'fas fa-book',
-                        'color' => '#8E44AD', // Dark Purple
-                        'items' => ['Skripsi', 'Makalah', 'Praktikum', 'Pekerjaan Rumah (PR)'],
-                        'isAnchor' => true,
-                        'route' => route('joki-tugas'),
-                    ],
-                    'Teknisi' => [
-                        'icon' => 'fas fa-wrench',
-                        'color' => '#F1C40F', // Yellow
-                        'items' => ['Teknisi Bangunan', 'Teknisi Listrik', 'Teknisi Air'],
-                        'isAnchor' => true,
-                        'route' => route('teknisi'),
-                    ],
-                    'Penitipan Barang' => [
-                        'icon' => 'fas fa-boxes',
-                        'color' => '#3498DB', // Light Blue
-                        'items' => [
-                            'Packing',
-                            'Unboxing',
-                            'Titip Barang',
-                            'Titip Kendaraan',
-                        ],
-                        'isAnchor' => true,
-                        'route' => route('penitipan'),
-                    ],
-                    'Jasa IT' => [
-                        'icon' => 'fas fa-laptop',
-                        'color' => '#E74C3C', // Bold Red
-                        'items' => ['Website', 'Aplikasi Mobile'],
-                        'message' =>
-                            'Hii kak, saya ingin meminta bantuan To Help\n\n' .
-                            'ID Order : [order_id]\n' .
-                            'Jenis Jasa : Jasa IT\n' .
-                            'Tipe Jasa : (Website/Aplikasi Mobile)\n' .
-                            'Deadline : \n' .
-                            'Nama : \n' .
-                            'Nomor WhatsApp : ',
-                    ],
-                ];
-            @endphp
+            .card-custom:hover {
+                transform: translateY(-8px);
+                box-shadow: 0 15px 30px rgba(0, 0, 0, 0.08);
+            }
 
+            .card-header-icon {
+                height: 56px;
+                width: 56px;
+                min-width: 56px;
+                border-radius: 14px;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                margin-right: 14px;
+            }
 
-            <style>
-                .card-custom {
-                    transition: transform 0.3s ease, box-shadow 0.3s ease;
-                    border-radius: 15px;
-                    overflow: hidden;
-                }
+            .card-footer-btn {
+                transition: all 0.3s ease;
+                border-radius: 12px;
+            }
 
-                .card-custom:hover {
-                    transform: translateY(-10px);
-                    box-shadow: 0 15px 30px rgba(0, 0, 0, 0.1);
-                }
+            .card-footer-btn:hover {
+                transform: scale(1.02);
+                box-shadow: 0 5px 15px rgba(22, 160, 133, 0.2);
+            }
 
-                .card-header-icon {
-                    background-size: cover;
-                    background-position: center;
-                    height: 60px;
-                    width: 60px;
-                    border-radius: 15px;
-                    display: flex;
-                    align-items: center;
-                    justify-content: center;
-                    margin-right: 15px;
-                }
+            #services-container {
+                transition: opacity 0.25s ease;
+            }
 
-                .card-footer-btn {
-                    transition: all 0.3s ease;
-                }
+            #services-container.loading {
+                opacity: 0.35;
+                pointer-events: none;
+            }
+        </style>
 
-                .card-footer-btn:hover {
-                    transform: scale(1.05);
-                    box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
-                }
-            </style>
-
-            <div class="container py-4">
-                <div class="row row-cols-1 row-cols-md-2 row-cols-lg-3 g-4">
-                    @foreach ($services as $category => $service)
-                        <div class="col">
-                            <div class="card card-custom h-100 border-0 shadow-sm">
-                                <div class="card-body">
-                                    <div class="d-flex align-items-center mb-3">
-                                        <div class="card-header-icon"
-                                            style="background-color: {{ $service['color'] }}; color: white;">
-                                            <i class="{{ $service['icon'] }} fa-2x"></i>
-                                        </div>
-                                        <h4 class="card-title fw-bold mb-0">{{ $category }}</h4>
-                                    </div>
-                                    <ul class="list-unstyled">
-                                        @foreach ($service['items'] as $item)
-                                            <li class="mb-2 d-flex align-items-center">
-                                                <i class="fas fa-circle me-2"
-                                                    style="color: {{ $service['color'] }}; font-size: 0.5rem;"></i>
-                                                <span class="text-muted">{{ $item }}</span>
-                                            </li>
-                                        @endforeach
-                                    </ul>
-                                </div>
-                                <div class="card-footer bg-transparent border-0 p-3">
-                                    @if (isset($service['isAnchor']) && $service['isAnchor'] === true)
-                                        <a href="{{ $service['route'] }}"
-                                            class="btn btn-success btn-lg w-100 card-footer-btn"
-                                            data-jasa="{{ $category }}">
-                                            Selengkapnya
-                                        </a>
-                                    @else
-                                        <button type="button"
-                                            class="btn btn-success btn-lg w-100 card-footer-btn order-btn"
-                                            data-jasa="{{ $category }}"
-                                            @if (isset($service['message'])) data-message="{{ $service['message'] }}" @endif>
-                                            <i class="fab fa-whatsapp me-2"></i>Pesan Sekarang
-                                        </button>
-                                    @endif
-                                </div>
-                            </div>
-                        </div>
-                    @endforeach
-                </div>
-            </div>
+        <div id="services-wrapper">
+            @include('pages.beranda.services-section', [
+                'layanans' => $layanans ?? \App\Services\LayananService::getAvailableLayanansForCabang($activeCabang->id ?? ($globalActiveCabang->id ?? null)),
+                'activeCabang' => $activeCabang ?? $globalActiveCabang,
+            ])
+        </div>
     </section>
 
     <style>
@@ -591,11 +325,53 @@
 @push('scripts')
     <script>
         let CABANG_WA = "{{ $globalActiveCabang->formatted_no_wa ?? '6285695908981' }}";
+        
         window.addEventListener('tohelp:cabang-changed', function(e) {
             if (e.detail && e.detail.no_wa) {
                 CABANG_WA = e.detail.no_wa;
             }
+
+            if (e.detail && e.detail.id) {
+                refreshServicesComponent(e.detail.id, e.detail.nama);
+            }
         });
+
+        function refreshServicesComponent(cabangId, cabangNama) {
+            const wrapper = document.getElementById('services-wrapper');
+            const container = document.getElementById('services-container');
+            if (!wrapper) {
+                window.location.reload();
+                return;
+            }
+
+            if (container) {
+                container.classList.add('loading');
+            }
+
+            fetch(`{{ route('index') }}?cabang_id=${cabangId}&services_only=1`, {
+                headers: {
+                    'X-Requested-With': 'XMLHttpRequest'
+                }
+            })
+            .then(res => {
+                if (!res.ok) throw new Error('Network response not ok');
+                return res.text();
+            })
+            .then(html => {
+                wrapper.innerHTML = html;
+
+                // Sync browser URL query without reload
+                if (window.history && window.history.replaceState) {
+                    const newUrl = new URL(window.location.href);
+                    newUrl.searchParams.set('cabang_id', cabangId);
+                    window.history.replaceState({}, '', newUrl.toString());
+                }
+            })
+            .catch(err => {
+                console.error('Error refreshing services component, falling back to reload:', err);
+                window.location.reload();
+            });
+        }
 
         // Fungsi untuk mengirim pesan WhatsApp
         function sendWhatsAppMessage() {

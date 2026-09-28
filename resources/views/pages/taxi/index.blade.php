@@ -85,6 +85,22 @@
                 </div>
             @endif
 
+            <div id="branch-inactive-alert" class="row justify-content-center mb-4" style="{{ $isLayananAktif ? 'display: none;' : '' }}">
+                <div class="col-md-8">
+                    <div class="alert alert-warning border-0 shadow-sm rounded-4 p-4 text-center">
+                        <i class="fas fa-taxi fa-3x text-warning mb-3"></i>
+                        <h4 class="fw-bold text-dark mb-2">Layanan Taxi (Mobil) Belum Tersedia di Cabang Ini</h4>
+                        <p class="text-muted mb-3">
+                            Mohon maaf, layanan <strong>Taxi (Mobil)</strong> saat ini belum dibuka untuk operasional <strong><span class="active-cabang-name">Cabang {{ $activeCabang->nama ?? 'ini' }}</span></strong>.
+                            Silakan ganti wilayah operasional Anda ke cabang lain yang menyediakan layanan ini.
+                        </p>
+                        <button type="button" class="btn btn-primary rounded-pill px-4 py-2 fw-semibold shadow-sm" data-bs-toggle="modal" data-bs-target="#modalGlobalPilihLokasi">
+                            <i class="fas fa-exchange-alt me-1"></i> Ganti Wilayah / Cabang Lain
+                        </button>
+                    </div>
+                </div>
+            </div>
+
             <div id="map" style="height: 400px; width: 100%; margin-bottom: 20px;"></div>
 
             <button id="useMyLocation" class="btn btn-primary mb-3">
@@ -145,6 +161,7 @@
             let BASECAMP_LNG = parseFloat("{{ $activeCabang->lng ?? $activeCabang->long ?? config('services.location.basecamp_long', 113.7233) }}");
             let CABANG_ID = {{ $activeCabang->id ?? 1 }};
             let CABANG_WA = "{{ $activeCabang->formatted_no_wa ?? '6285695908981' }}";
+            let IS_LAYANAN_AKTIF = {{ $isLayananAktif ? 'true' : 'false' }};
             const BASE_FEE = parseFloat("{{ $tarifDasar->harga ?? 2000 }}"); // Base fee for car
 
             // Listen for non-reload branch changes
@@ -155,6 +172,17 @@
                     CABANG_ID = parseInt(e.detail.id);
                     if (e.detail.no_wa) {
                         CABANG_WA = e.detail.no_wa;
+                    }
+
+                    if (typeof e.detail.is_taxi_aktif !== 'undefined') {
+                        IS_LAYANAN_AKTIF = Boolean(e.detail.is_taxi_aktif);
+                        if (!IS_LAYANAN_AKTIF) {
+                            $('#branch-inactive-alert').slideDown();
+                            $('#order').fadeOut();
+                        } else {
+                            $('#branch-inactive-alert').slideUp();
+                            $('#order').fadeIn();
+                        }
                     }
 
                     if (typeof map !== 'undefined' && map) {
@@ -752,6 +780,15 @@
 
             // Modify the order click handler
             $('#order').click(async function() {
+                if (!IS_LAYANAN_AKTIF) {
+                    Swal.fire({
+                        title: 'Layanan Belum Tersedia',
+                        text: 'Mohon maaf, layanan Taxi (Mobil) belum tersedia untuk cabang ini.',
+                        icon: 'warning'
+                    });
+                    return;
+                }
+
                 const lat_awal = parseFloat($('#lat_awal').val());
                 const lng_awal = parseFloat($('#lng_awal').val());
                 const lat_akhir = parseFloat($('#lat_akhir').val());

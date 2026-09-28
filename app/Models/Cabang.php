@@ -10,6 +10,21 @@ class Cabang extends Model
 {
     protected $guarded = ['id'];
 
+    protected $casts = [
+        'lat' => 'float',
+        'lng' => 'float',
+        'free_distance_km' => 'float',
+        'is_ojek_aktif' => 'boolean',
+        'ojek_tarif_minimum' => 'integer',
+        'ojek_tarif_per_km' => 'integer',
+        'ojek_surcharge_per_km' => 'integer',
+        'is_taxi_aktif' => 'boolean',
+        'taxi_tarif_minimum' => 'integer',
+        'taxi_tarif_per_km' => 'integer',
+        'taxi_tarif_per_km_lanjutan' => 'integer',
+        'taxi_surcharge_per_km' => 'integer',
+    ];
+
     protected static function booted(): void
     {
         static::saved(function (Cabang $cabang) {
@@ -24,6 +39,9 @@ class Cabang extends Model
                         $otherManaged = Cabang::where('manager_id', $oldManagerId)->where('id', '!=', $cabang->id)->exists();
                         if (! $otherManaged) {
                             $oldManager->syncRoles(['karyawan']);
+                            if (empty($oldManager->tipe_karyawan)) {
+                                $oldManager->update(['tipe_karyawan' => 'helpman']);
+                            }
                         }
                     }
                 }
@@ -37,8 +55,11 @@ class Cabang extends Model
 
                     $newManager = User::find($newManagerId);
                     if ($newManager) {
-                        // Update user's cabang_id to this cabang
-                        $newManager->update(['cabang_id' => $cabang->id]);
+                        // Update user's cabang_id to this cabang and clear tipe_karyawan
+                        $newManager->update([
+                            'cabang_id' => $cabang->id,
+                            'tipe_karyawan' => null,
+                        ]);
                         // Ensure role is manager_cabang
                         \Spatie\Permission\Models\Role::firstOrCreate(['name' => 'manager_cabang', 'guard_name' => 'web']);
                         if (! $newManager->hasRole('super_admin')) {
@@ -81,6 +102,18 @@ class Cabang extends Model
         return $this->hasMany(User::class, 'cabang_id');
     }
 
+    public function personils(): HasMany
+    {
+        return $this->hasMany(User::class, 'cabang_id')
+            ->whereDoesntHave('roles', function ($query) {
+                $query->where('name', 'super_admin');
+            })
+            ->where(function ($query) {
+                $query->where('email', '!=', 'admin@gmail.com')
+                    ->orWhereNull('email');
+            });
+    }
+
     public function managers(): HasMany
     {
         return $this->hasMany(User::class, 'cabang_id')->whereHas('roles', function ($query) {
@@ -102,6 +135,14 @@ class Cabang extends Model
                 $query->where('name', 'karyawan');
             })
             ->where('is_visible', true);
+    }
+
+    /**
+     * Mutator to ensure no_wa only contains numbers/digits.
+     */
+    public function setNoWaAttribute($value): void
+    {
+        $this->attributes['no_wa'] = $value ? preg_replace('/[^0-9]/', '', (string) $value) : null;
     }
 
     /**

@@ -28,8 +28,38 @@ class TransaksiResource extends Resource
 {
     protected static ?string $model = Transaksi::class;
 
+    protected static ?string $modelLabel = 'Transaksi';
+    protected static ?string $pluralModelLabel = 'Transaksi';
+
     protected static ?string $navigationIcon = 'heroicon-o-rectangle-stack';
     protected static ?string $navigationLabel = 'Transaksi';
+
+    public static function canAccess(): bool
+    {
+        $user = auth()->user();
+
+        return $user?->hasAnyRole(['super_admin', 'manager_cabang']) || ($user?->can('view_any_transaksi') ?? false);
+    }
+
+    public static function shouldRegisterNavigation(): bool
+    {
+        return static::canAccess();
+    }
+
+    public static function getEloquentQuery(): Builder
+    {
+        $query = parent::getEloquentQuery()
+            ->with(['voucher', 'cabang', 'tugas']);
+
+        $user = auth()->user();
+
+        if ($user && $user->hasRole('manager_cabang') && ! $user->hasRole('super_admin')) {
+            $cabangIds = $user->getCabangIds();
+            $query->whereIn('cabang_id', $cabangIds);
+        }
+
+        return $query;
+    }
 
     public static function canCreate(): bool
     {
@@ -56,10 +86,11 @@ class TransaksiResource extends Resource
     public static function table(Table $table): Table
     {
         return $table
-            ->query(Transaksi::query()->with(['voucher', 'cabang', 'tugas'])->orderBy('created_at', 'desc'))
+            ->defaultSort('created_at', 'desc')
+            ->recordUrl(fn (Transaksi $record): string => TransaksiResource::getUrl('detail', ['record' => $record]))
             ->columns([
                 Tables\Columns\TextColumn::make('order_id')
-                    ->label('ID Order')
+                    ->label('ID Pesanan')
                     ->searchable()
                     ->sortable(),
                 Tables\Columns\TextColumn::make('voucher.nama')
@@ -76,27 +107,11 @@ class TransaksiResource extends Resource
                     ->getStateUsing(fn(Transaksi $transaksi) => $transaksi->jasa ?? '-')
                     ->searchable()
                     ->sortable(),
-                Tables\Columns\TextColumn::make('total_harga')
-                    ->label('Total Harga')
-                    ->weight(FontWeight::Bold)
-                    ->money('IDR')
-                    ->sortable(),
-                Tables\Columns\TextColumn::make('tip')
-                    ->label('Tip Driver')
-                    ->money('IDR')
-                    ->color('success')
-                    ->sortable(),
                 Tables\Columns\TextColumn::make('cabang.nama')
                     ->label('Cabang')
                     ->getStateUsing(fn(Transaksi $transaksi) => $transaksi->cabang->nama ?? '-')
                     ->searchable()
                     ->sortable(),
-                Tables\Columns\TextColumn::make('tugas.name')
-                    ->label('Helpman')
-                    ->badge()
-                    ->searchable()
-                    ->placeholder('Belum Ditugaskan')
-                    ->toggleable(),
                 Tables\Columns\TextColumn::make('status_transaksi')
                     ->label('Status Transaksi')
                     ->badge()
@@ -115,18 +130,20 @@ class TransaksiResource extends Resource
                         };
                     }),
                 Tables\Columns\TextColumn::make('created_at')
-                    ->label('Waktu Order')
+                    ->label('Waktu Pesanan')
                     ->dateTime('d M Y H:i')
                     ->sortable(),
                 Tables\Columns\TextColumn::make('updated_at')
-                    ->dateTime()
+                    ->label('Terakhir Diperbarui')
+                    ->dateTime('d M Y H:i')
                     ->sortable()
                     ->toggleable(isToggledHiddenByDefault: true),
             ])
             ->filters([
                 Tables\Filters\SelectFilter::make('cabang_id')
                     ->options(Cabang::all()->pluck('nama', 'id'))
-                    ->label('Cabang'),
+                    ->label('Cabang')
+                    ->visible(fn () => auth()->user()?->hasRole('super_admin')),
                 Tables\Filters\SelectFilter::make('status_transaksi')
                     ->options([
                         'belum' => 'Belum Selesai',
@@ -137,12 +154,26 @@ class TransaksiResource extends Resource
                     ->multiple()
                     ->preload()
                     ->searchable()
-                    ->options(Transaksi::query()->distinct('jenis')->pluck('jenis', 'jenis')->mapWithKeys(fn($item) => [$item => ucwords($item)])),
+                    ->options(function () {
+                        $query = Transaksi::query();
+                        $user = auth()->user();
+                        if ($user && $user->hasRole('manager_cabang') && ! $user->hasRole('super_admin')) {
+                            $query->whereIn('cabang_id', $user->getCabangIds());
+                        }
+
+                        return $query->distinct('jenis')->pluck('jenis', 'jenis')->mapWithKeys(fn($item) => [$item => ucwords($item)]);
+                    }),
                 DateRangeFilter::make('created_at')->timezone('Asia/Jakarta')
-                    ->label('Tanggal')
+                    ->label('Tanggal'),
             ], layout: FiltersLayout::AboveContent)
+            ->filtersFormColumns(['sm' => 1, 'md' => 2, 'lg' => 4])
             ->actions([
                 Tables\Actions\ActionGroup::make([
+                    Tables\Actions\Action::make('detailTransaksi')
+                        ->label('Detail Transaksi')
+                        ->icon('heroicon-o-eye')
+                        ->color('info')
+                        ->url(fn (Transaksi $record): string => TransaksiResource::getUrl('detail', ['record' => $record])),
                     SimpleMap::make('showMap')
                         ->icon('heroicon-o-map')
                         ->label('Lihat Peta')
@@ -155,48 +186,6 @@ class TransaksiResource extends Resource
                         ->language('id')
                         ->region('id')
                         ->visible(fn(Transaksi $transaksi) => ($transaksi->titik_jemput && $transaksi->titik_tujuan) && $transaksi->status_transaksi !== 'batal'),
-                    Tables\Actions\Action::make('ubahHarga')
-                        ->label('Ubah Harga')
-                        ->modalHeading('Ubah Harga & Tip Transaksi')
-                        ->modalDescription('Sesuaikan total harga atau nominal tip transaksi.')
-                        ->modalSubmitActionLabel('Simpan Perubahan')
-                        ->modalWidth('md')
-                        ->color('success')
-                        ->icon('heroicon-o-currency-dollar')
-                        ->fillForm(fn (Transaksi $record): array => [
-                            'total_harga' => $record->total_harga,
-                            'tip' => $record->tip ?? 0,
-                        ])
-                        ->form([
-                            Forms\Components\TextInput::make('total_harga')
-                                ->label('Total Harga')
-                                ->prefix('Rp')
-                                ->numeric()
-                                ->required()
-                                ->minValue(0),
-                            Forms\Components\TextInput::make('tip')
-                                ->label('Nominal Tip Driver/Petugas')
-                                ->prefix('Rp')
-                                ->numeric()
-                                ->default(0)
-                                ->minValue(0),
-                        ])
-                        ->action(function (Transaksi $transaksi, array $data) {
-                            $totalHarga = (int) ($data['total_harga'] ?? 0);
-                            $tip = (int) ($data['tip'] ?? 0);
-
-                            $transaksi->update([
-                                'total_harga' => $totalHarga,
-                                'tip' => $tip,
-                            ]);
-
-                            Notification::make()
-                                ->title('Sukses')
-                                ->body('Harga dan tip transaksi berhasil diperbarui.')
-                                ->success()
-                                ->send();
-                        })
-                        ->hidden(fn(Transaksi $transaksi) => $transaksi->status_transaksi === 'batal'),
                     Tables\Actions\DeleteAction::make()
                         ->label('Batalkan Transaksi')
                         ->action(function (Transaksi $transaksi) {
@@ -223,6 +212,7 @@ class TransaksiResource extends Resource
     {
         return [
             'index' => Pages\ManageTransaksis::route('/'),
+            'detail' => Pages\DetailTransaksi::route('/{record}/detail'),
         ];
     }
 }

@@ -30,7 +30,7 @@ class UserSeeder extends Seeder
                 'username' => 'admin',
                 'email' => 'admin@gmail.com',
                 'password' => Hash::make('password'),
-                'cabang_id' => $defaultCabang?->id,
+                'cabang_id' => null,
             ]);
         } else {
             $legacyAdmin->update([
@@ -38,7 +38,7 @@ class UserSeeder extends Seeder
                 'username' => 'admin',
                 'email' => 'admin@gmail.com',
                 'password' => Hash::make('password'),
-                'cabang_id' => $defaultCabang?->id,
+                'cabang_id' => null,
             ]);
         }
         $legacyAdmin->syncRoles(['super_admin']);
@@ -51,7 +51,7 @@ class UserSeeder extends Seeder
                 'username' => 'admin_tohelp',
                 'email' => 'admin@tohelp.com',
                 'password' => Hash::make('password'),
-                'cabang_id' => $defaultCabang?->id,
+                'cabang_id' => null,
             ]);
         } else {
             $admin->update([
@@ -59,7 +59,7 @@ class UserSeeder extends Seeder
                 'username' => 'admin_tohelp',
                 'email' => 'admin@tohelp.com',
                 'password' => Hash::make('password'),
-                'cabang_id' => $defaultCabang?->id,
+                'cabang_id' => null,
             ]);
         }
         $admin->syncRoles(['super_admin']);
@@ -72,7 +72,7 @@ class UserSeeder extends Seeder
                 'username' => 'owner',
                 'email' => 'owner@tohelp.com',
                 'password' => Hash::make('password'),
-                'cabang_id' => $defaultCabang?->id,
+                'cabang_id' => null,
             ]);
         } else {
             $owner->update([
@@ -80,7 +80,7 @@ class UserSeeder extends Seeder
                 'username' => 'owner',
                 'email' => 'owner@tohelp.com',
                 'password' => Hash::make('password'),
-                'cabang_id' => $defaultCabang?->id,
+                'cabang_id' => null,
             ]);
         }
         $owner->syncRoles(['super_admin']);

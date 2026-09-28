@@ -6,8 +6,6 @@ use Exception;
 use App\Models\Cabang;
 use App\Models\Voucher;
 use App\Models\Transaksi;
-use App\Models\TarifDasar;
-use App\Models\TarifJarak;
 use Illuminate\Support\Str;
 use App\Helpers\OrderHelper;
 use Illuminate\Http\Request;
@@ -25,18 +23,28 @@ class OjekController extends Controller
         $hasSelectedCabang = session()->has('selected_cabang_id') || $request->has('cabang_id');
         $cabangId = $request->get('cabang_id') ?? session('selected_cabang_id') ?? ($cabang->first()?->id ?? 1);
         $activeCabang = Cabang::find($cabangId) ?? $cabang->first();
+        $isLayananAktif = (bool) ($activeCabang?->is_ojek_aktif ?? true);
 
         return view('pages.transportasi.index', [
-            'tarifDasar' => TarifDasar::whereJenis('Motor')->first(),
-            'tarifJarak' => TarifJarak::whereJenis('Motor')->first(),
             'cabang' => $cabang,
             'activeCabang' => $activeCabang,
             'hasSelectedCabang' => $hasSelectedCabang,
+            'isLayananAktif' => $isLayananAktif,
         ]);
     }
 
     public function showPricing(Request $request)
     {
+        $cabangId = $request->cabang ?? $request->cabang_id ?? session('selected_cabang_id');
+        $cabang = $cabangId ? Cabang::find($cabangId) : Cabang::first();
+
+        if ($cabang && ! $cabang->is_ojek_aktif) {
+            return response()->json([
+                'status' => 'error',
+                'message' => "Layanan Ojek saat ini belum tersedia untuk wilayah Cabang {$cabang->nama}",
+            ], 422);
+        }
+
         $discount = null;
         if($request->discount)
         {
@@ -50,7 +58,6 @@ class OjekController extends Controller
                 ], 404);
             }
         }
-        $cabangId = $request->cabang ?? $request->cabang_id ?? session('selected_cabang_id');
         $harga = getPricing('Motor', $request->jarakBaseCampKeTitikJemput, $request->jarakTitikJemputKeTitikTujuan, $request->jarakBaseCampKeTitikTujuan, $request->jarakTitikTujuanKeTitikJemput, $discount->persentase ?? null, $cabangId);
 
         return response()->json([
@@ -66,6 +73,14 @@ class OjekController extends Controller
 
         try {
             $cabangId = $request->cabang ?? $request->cabang_id ?? session('selected_cabang_id') ?? Cabang::first()?->id;
+            $cabang = $cabangId ? Cabang::find($cabangId) : Cabang::first();
+
+            if ($cabang && ! $cabang->is_ojek_aktif) {
+                return response()->json([
+                    'status' => 'error',
+                    'message' => "Layanan Ojek saat ini belum tersedia untuk wilayah Cabang {$cabang->nama}",
+                ], 422);
+            }
             $tip = max(0, (int) ($request->tip ?? 0));
             $basePrice = getPricing(
                 'Motor',

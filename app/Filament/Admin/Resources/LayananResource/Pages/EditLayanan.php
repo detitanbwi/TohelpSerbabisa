@@ -10,6 +10,11 @@ class EditLayanan extends EditRecord
 {
     protected static string $resource = LayananResource::class;
 
+    public function getTitle(): string|\Illuminate\Contracts\Support\Htmlable
+    {
+        return 'Ubah Data Layanan';
+    }
+
     protected function getHeaderActions(): array
     {
         return [
