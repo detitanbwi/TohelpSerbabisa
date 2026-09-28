@@ -9,7 +9,7 @@ use Filament\Widgets\ChartWidget;
 
 class KomparasiCabangChartWidget extends ChartWidget
 {
-    protected static ?string $heading = 'Komparasi Omset Antar Cabang';
+    protected static ?string $heading = 'Komparasi Volume Pesanan Antar Cabang';
     protected static ?int $sort = 4;
     protected int | string | array $columnSpan = ['md' => 1, 'xl' => 1];
     protected static ?string $maxHeight = '320px';
@@ -34,7 +34,6 @@ class KomparasiCabangChartWidget extends ChartWidget
     {
         $filter = $this->filter ?? '30';
         $query = Transaksi::query()
-            ->where('status_transaksi', 'sukses')
             ->whereNotNull('cabang_id');
 
         if ($filter === 'this_month') {
@@ -46,25 +45,25 @@ class KomparasiCabangChartWidget extends ChartWidget
 
         $cabangs = Cabang::pluck('nama', 'id')->toArray();
 
-        $records = $query->select(['cabang_id', 'total_harga'])
+        $records = $query->select(['id', 'cabang_id', 'status_transaksi'])
             ->get()
             ->groupBy('cabang_id')
             ->map(function ($items) {
                 return [
-                    'omset' => $items->sum('total_harga'),
-                    'count' => $items->count(),
+                    'total' => $items->count(),
+                    'sukses' => $items->where('status_transaksi', 'sukses')->count(),
                 ];
             })
-            ->sortByDesc('omset')
+            ->sortByDesc('total')
             ->take(6);
 
         if ($records->isEmpty()) {
             return [
                 'datasets' => [
                     [
-                        'label' => 'Total Omset (Rp)',
+                        'label' => 'Total Pesanan Masuk',
                         'data' => [0],
-                        'backgroundColor' => '#E2E8F0',
+                        'backgroundColor' => '#CBD5E1',
                     ],
                 ],
                 'labels' => ['Belum Ada Transaksi Cabang'],
@@ -72,20 +71,28 @@ class KomparasiCabangChartWidget extends ChartWidget
         }
 
         $labels = [];
-        $data = [];
+        $totalData = [];
+        $suksesData = [];
 
         foreach ($records as $cabangId => $stat) {
             $cabangName = $cabangs[$cabangId] ?? "Cabang #{$cabangId}";
             $labels[] = $cabangName;
-            $data[] = (int) $stat['omset'];
+            $totalData[] = (int) $stat['total'];
+            $suksesData[] = (int) $stat['sukses'];
         }
 
         return [
             'datasets' => [
                 [
-                    'label' => 'Total Omset (Rp)',
-                    'data' => $data,
+                    'label' => 'Total Pesanan Masuk',
+                    'data' => $totalData,
                     'backgroundColor' => '#3B82F6',
+                    'borderRadius' => 6,
+                ],
+                [
+                    'label' => 'Pesanan Sukses',
+                    'data' => $suksesData,
+                    'backgroundColor' => '#10B981',
                     'borderRadius' => 6,
                 ],
             ],

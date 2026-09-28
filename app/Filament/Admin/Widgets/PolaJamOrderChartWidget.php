@@ -9,7 +9,7 @@ use Filament\Widgets\ChartWidget;
 class PolaJamOrderChartWidget extends ChartWidget
 {
     protected static ?string $heading = 'Pola Jam Sibuk Pesanan (Peak Hours)';
-    protected static ?int $sort = 5;
+    protected static ?int $sort = 6;
     protected int | string | array $columnSpan = ['md' => 1, 'xl' => 1];
     protected static ?string $maxHeight = '320px';
 

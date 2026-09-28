@@ -6,9 +6,9 @@ use App\Models\Transaksi;
 use Carbon\Carbon;
 use Filament\Widgets\ChartWidget;
 
-class TrenPendapatanChartWidget extends ChartWidget
+class TrenPesananChartWidget extends ChartWidget
 {
-    protected static ?string $heading = 'Tren Pendapatan & Pertumbuhan Omset';
+    protected static ?string $heading = 'Tren Volume Pesanan Harian';
     protected static ?int $sort = 2;
     protected int | string | array $columnSpan = ['md' => 1, 'xl' => 2];
     protected static ?string $maxHeight = '320px';
@@ -42,20 +42,19 @@ class TrenPendapatanChartWidget extends ChartWidget
         $endDate = Carbon::now('Asia/Jakarta')->endOfDay();
 
         $query = Transaksi::query()
-            ->where('status_transaksi', 'sukses')
             ->whereBetween('created_at', [$startDate, $endDate]);
 
         if (! $isSuperAdmin) {
             $query->whereIn('cabang_id', $cabangIds);
         }
 
-        $records = $query->select(['total_harga', 'komisi_admin', 'tip', 'created_at'])
+        $records = $query->select(['id', 'status_transaksi', 'created_at'])
             ->get()
             ->groupBy(fn ($item) => Carbon::parse($item->created_at)->timezone('Asia/Jakarta')->format('Y-m-d'));
 
         $labels = [];
-        $gmvData = [];
-        $secondaryData = [];
+        $totalOrdersData = [];
+        $suksesOrdersData = [];
 
         for ($i = $days - 1; $i >= 0; $i--) {
             $targetDate = Carbon::now('Asia/Jakarta')->subDays($i);
@@ -63,29 +62,24 @@ class TrenPendapatanChartWidget extends ChartWidget
             $labels[] = $targetDate->translatedFormat($days > 30 ? 'd/m' : 'd M');
 
             $dailyItems = $records->get($key, collect());
-            $gmvData[] = (int) $dailyItems->sum('total_harga');
-
-            if ($isSuperAdmin) {
-                $secondaryData[] = (int) $dailyItems->sum('komisi_admin');
-            } else {
-                $secondaryData[] = (int) $dailyItems->sum('tip');
-            }
+            $totalOrdersData[] = $dailyItems->count();
+            $suksesOrdersData[] = $dailyItems->where('status_transaksi', 'sukses')->count();
         }
 
         $datasets = [
             [
-                'label' => 'Total Omset (GMV)',
-                'data' => $gmvData,
-                'borderColor' => '#F59E0B',
-                'backgroundColor' => 'rgba(245, 158, 11, 0.12)',
+                'label' => 'Total Pesanan Masuk',
+                'data' => $totalOrdersData,
+                'borderColor' => '#3B82F6',
+                'backgroundColor' => 'rgba(59, 130, 246, 0.12)',
                 'fill' => true,
                 'tension' => 0.35,
             ],
             [
-                'label' => $isSuperAdmin ? 'Komisi Platform' : 'Tip Mitra',
-                'data' => $secondaryData,
-                'borderColor' => $isSuperAdmin ? '#10B981' : '#3B82F6',
-                'backgroundColor' => $isSuperAdmin ? 'rgba(16, 185, 129, 0.1)' : 'rgba(59, 130, 246, 0.1)',
+                'label' => 'Pesanan Selesai / Sukses',
+                'data' => $suksesOrdersData,
+                'borderColor' => '#10B981',
+                'backgroundColor' => 'rgba(16, 185, 129, 0.15)',
                 'fill' => true,
                 'tension' => 0.35,
             ],

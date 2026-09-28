@@ -4,6 +4,8 @@ namespace App\Filament\Admin\Widgets;
 
 use App\Models\Absensi;
 use App\Models\Cabang;
+use App\Models\Layanan;
+use App\Models\SubLayanan;
 use App\Models\Transaksi;
 use App\Models\User;
 use Carbon\Carbon;
@@ -33,9 +35,8 @@ class AdminStatsOverviewWidget extends BaseWidget
         $cabangIds = $user->getCabangIds();
 
         $now = Carbon::now('Asia/Jakarta');
+        $todayStart = $now->copy()->startOfDay();
         $startThisMonth = $now->copy()->startOfMonth();
-        $startLastMonth = $now->copy()->subMonth()->startOfMonth();
-        $endLastMonth = $now->copy()->subMonth()->endOfMonth();
 
         // Helper function for base transaction query
         $transaksiBaseQuery = function () use ($isSuperAdmin, $cabangIds) {
@@ -47,128 +48,34 @@ class AdminStatsOverviewWidget extends BaseWidget
             return $q;
         };
 
-        // 1. Omset Bulan Ini & Bulan Lalu
-        $omsetBulanIni = (clone $transaksiBaseQuery())
-            ->where('status_transaksi', 'sukses')
-            ->where('created_at', '>=', $startThisMonth)
-            ->sum('total_harga') ?? 0;
-
-        $omsetBulanLalu = (clone $transaksiBaseQuery())
-            ->where('status_transaksi', 'sukses')
-            ->whereBetween('created_at', [$startLastMonth, $endLastMonth])
-            ->sum('total_harga') ?? 0;
-
-        $omsetDiffPercent = $omsetBulanLalu > 0
-            ? round((($omsetBulanIni - $omsetBulanLalu) / $omsetBulanLalu) * 100, 1)
-            : ($omsetBulanIni > 0 ? 100 : 0);
-
-        // Sparkline 7 hari terakhir untuk Omset
-        $sparklineOmset = [];
-        for ($i = 6; $i >= 0; $i--) {
-            $dayStart = $now->copy()->subDays($i)->startOfDay();
-            $dayEnd = $now->copy()->subDays($i)->endOfDay();
-            $sparklineOmset[] = (int) ((clone $transaksiBaseQuery())
-                ->where('status_transaksi', 'sukses')
-                ->whereBetween('created_at', [$dayStart, $dayEnd])
-                ->sum('total_harga') ?? 0);
-        }
-
-        $statOmsetLabel = $isSuperAdmin ? 'Total Omset (GMV) Bulan Ini' : 'Omset Cabang Bulan Ini';
-        $statOmset = Stat::make($statOmsetLabel, 'Rp ' . number_format($omsetBulanIni, 0, ',', '.'))
-            ->description(($omsetDiffPercent >= 0 ? "+{$omsetDiffPercent}%" : "{$omsetDiffPercent}%") . ' dibanding bulan lalu')
-            ->descriptionIcon($omsetDiffPercent >= 0 ? 'heroicon-m-arrow-trending-up' : 'heroicon-m-arrow-trending-down')
-            ->chart($sparklineOmset)
-            ->color($omsetDiffPercent >= 0 ? 'success' : 'danger');
-
-        // 2. Card 2: Komisi Bersih (Pusat) ATAU Total Tip Mitra (Cabang)
+        // 1. Card 1: Jumlah Layanan & Sub-Layanan Aktif
         if ($isSuperAdmin) {
-            $komisiBulanIni = (clone $transaksiBaseQuery())
-                ->where('status_transaksi', 'sukses')
-                ->where('created_at', '>=', $startThisMonth)
-                ->sum('komisi_admin') ?? 0;
+            $totalLayanan = Layanan::where('is_active', true)->count();
+            $totalSubLayanan = SubLayanan::where('is_active', true)->count();
 
-            $sparklineKomisi = [];
-            for ($i = 6; $i >= 0; $i--) {
-                $dayStart = $now->copy()->subDays($i)->startOfDay();
-                $dayEnd = $now->copy()->subDays($i)->endOfDay();
-                $sparklineKomisi[] = (int) ((clone $transaksiBaseQuery())
-                    ->where('status_transaksi', 'sukses')
-                    ->whereBetween('created_at', [$dayStart, $dayEnd])
-                    ->sum('komisi_admin') ?? 0);
-            }
-
-            $statCard2 = Stat::make('Pendapatan Komisi Platform', 'Rp ' . number_format($komisiBulanIni, 0, ',', '.'))
-                ->description('Total komisi bersih terkumpul bulan ini')
-                ->descriptionIcon('heroicon-m-banknotes')
-                ->chart($sparklineKomisi)
-                ->color('emerald');
+            $statCard1 = Stat::make('Katalog Layanan Aktif', "{$totalLayanan} Layanan")
+                ->description("{$totalSubLayanan} sub-layanan / paket siap dipesan")
+                ->descriptionIcon('heroicon-m-squares-2x2')
+                ->color('primary');
         } else {
-            $tipBulanIni = (clone $transaksiBaseQuery())
-                ->where('status_transaksi', 'sukses')
-                ->where('created_at', '>=', $startThisMonth)
-                ->sum('tip') ?? 0;
+            $totalLayananCabang = Layanan::where('is_active', true)->count();
+            $totalSubLayananCabang = SubLayanan::where('is_active', true)->count();
 
-            $sparklineTip = [];
-            for ($i = 6; $i >= 0; $i--) {
-                $dayStart = $now->copy()->subDays($i)->startOfDay();
-                $dayEnd = $now->copy()->subDays($i)->endOfDay();
-                $sparklineTip[] = (int) ((clone $transaksiBaseQuery())
-                    ->where('status_transaksi', 'sukses')
-                    ->whereBetween('created_at', [$dayStart, $dayEnd])
-                    ->sum('tip') ?? 0);
-            }
-
-            $statCard2 = Stat::make('Total Tip Mitra Cabang', 'Rp ' . number_format($tipBulanIni, 0, ',', '.'))
-                ->description('Apresiasi pelanggan kepada personil bulan ini')
-                ->descriptionIcon('heroicon-m-heart')
-                ->chart($sparklineTip)
-                ->color('amber');
+            $statCard1 = Stat::make('Layanan Aktif Cabang', "{$totalLayananCabang} Layanan")
+                ->description("{$totalSubLayananCabang} sub-layanan tersedia untuk pelanggan")
+                ->descriptionIcon('heroicon-m-rectangle-stack')
+                ->color('primary');
         }
 
-        // 3. Card 3: Pesanan Sukses & Completion Rate
-        $totalOrderBulanIni = (clone $transaksiBaseQuery())
-            ->where('created_at', '>=', $startThisMonth)
-            ->count();
-
-        $orderSuksesBulanIni = (clone $transaksiBaseQuery())
-            ->where('status_transaksi', 'sukses')
-            ->where('created_at', '>=', $startThisMonth)
-            ->count();
-
-        $orderBatalBulanIni = (clone $transaksiBaseQuery())
-            ->where('status_transaksi', 'batal')
-            ->where('created_at', '>=', $startThisMonth)
-            ->count();
-
-        $completionRate = $totalOrderBulanIni > 0
-            ? round(($orderSuksesBulanIni / $totalOrderBulanIni) * 100, 1)
-            : 0;
-
-        $sparklineOrders = [];
-        for ($i = 6; $i >= 0; $i--) {
-            $dayStart = $now->copy()->subDays($i)->startOfDay();
-            $dayEnd = $now->copy()->subDays($i)->endOfDay();
-            $sparklineOrders[] = (clone $transaksiBaseQuery())
-                ->where('status_transaksi', 'sukses')
-                ->whereBetween('created_at', [$dayStart, $dayEnd])
-                ->count();
-        }
-
-        $statCard3 = Stat::make('Order Sukses Bulan Ini', number_format($orderSuksesBulanIni, 0, ',', '.') . ' Pesanan')
-            ->description("Keberhasilan {$completionRate}% ({$orderBatalBulanIni} batal)")
-            ->descriptionIcon('heroicon-m-check-badge')
-            ->chart($sparklineOrders)
-            ->color($completionRate >= 80 ? 'success' : ($completionRate >= 60 ? 'warning' : 'danger'));
-
-        // 4. Card 4: Cabang & Personil (Pusat) ATAU Helpman Siaga Hari Ini (Cabang)
+        // 2. Card 2: Jumlah Cabang & Personil (Pusat) ATAU Helpman Siaga Hari Ini (Cabang)
         if ($isSuperAdmin) {
             $totalCabang = Cabang::count();
             $totalPersonil = User::whereHas('roles', fn ($q) => $q->where('name', 'karyawan'))->count();
 
-            $statCard4 = Stat::make('Jaringan Operasional', "{$totalCabang} Cabang")
+            $statCard2 = Stat::make('Jaringan Cabang', "{$totalCabang} Cabang")
                 ->description("Didukung {$totalPersonil} personil aktif di seluruh cabang")
                 ->descriptionIcon('heroicon-m-building-office-2')
-                ->color('primary');
+                ->color('info');
         } else {
             $todayDate = Carbon::today('Asia/Jakarta')->toDateString();
 
@@ -192,14 +99,81 @@ class AdminStatsOverviewWidget extends BaseWidget
                 ? round(($helpmanSiagaHariIni / $totalHelpmanCabang) * 100, 1)
                 : 0;
 
-            $statCard4 = Stat::make('Helpman Siaga Hari Ini', "{$helpmanSiagaHariIni} / {$totalHelpmanCabang} Personil")
+            $statCard2 = Stat::make('Helpman Siaga Hari Ini', "{$helpmanSiagaHariIni} / {$totalHelpmanCabang} Personil")
                 ->description("{$persenSiaga}% armada telah presensi & siap bertugas")
                 ->descriptionIcon('heroicon-m-user-group')
                 ->color($persenSiaga >= 70 ? 'success' : ($persenSiaga >= 40 ? 'warning' : 'danger'));
         }
 
+        // 3. Card 3: Pesanan Masuk Hari Ini
+        $ordersHariIni = (clone $transaksiBaseQuery())
+            ->where('created_at', '>=', $todayStart)
+            ->count();
+
+        $ordersSuksesHariIni = (clone $transaksiBaseQuery())
+            ->where('status_transaksi', 'sukses')
+            ->where('created_at', '>=', $todayStart)
+            ->count();
+
+        $ordersProsesHariIni = (clone $transaksiBaseQuery())
+            ->where('created_at', '>=', $todayStart)
+            ->whereIn('status_tugas', ['belum', 'proses'])
+            ->where('status_transaksi', '!=', 'batal')
+            ->count();
+
+        // Sparkline 7 hari terakhir untuk volume pesanan
+        $sparklineOrders7Hari = [];
+        for ($i = 6; $i >= 0; $i--) {
+            $dayStart = $now->copy()->subDays($i)->startOfDay();
+            $dayEnd = $now->copy()->subDays($i)->endOfDay();
+            $sparklineOrders7Hari[] = (clone $transaksiBaseQuery())
+                ->whereBetween('created_at', [$dayStart, $dayEnd])
+                ->count();
+        }
+
+        $statCard3 = Stat::make('Pesanan Masuk Hari Ini', "{$ordersHariIni} Pesanan")
+            ->description("{$ordersSuksesHariIni} selesai · {$ordersProsesHariIni} dalam proses")
+            ->descriptionIcon('heroicon-m-calendar-days')
+            ->chart($sparklineOrders7Hari)
+            ->color('warning');
+
+        // 4. Card 4: Order Sukses & Completion Rate Bulan Ini
+        $totalOrderBulanIni = (clone $transaksiBaseQuery())
+            ->where('created_at', '>=', $startThisMonth)
+            ->count();
+
+        $orderSuksesBulanIni = (clone $transaksiBaseQuery())
+            ->where('status_transaksi', 'sukses')
+            ->where('created_at', '>=', $startThisMonth)
+            ->count();
+
+        $orderBatalBulanIni = (clone $transaksiBaseQuery())
+            ->where('status_transaksi', 'batal')
+            ->where('created_at', '>=', $startThisMonth)
+            ->count();
+
+        $completionRate = $totalOrderBulanIni > 0
+            ? round(($orderSuksesBulanIni / $totalOrderBulanIni) * 100, 1)
+            : 0;
+
+        $sparklineSukses7Hari = [];
+        for ($i = 6; $i >= 0; $i--) {
+            $dayStart = $now->copy()->subDays($i)->startOfDay();
+            $dayEnd = $now->copy()->subDays($i)->endOfDay();
+            $sparklineSukses7Hari[] = (clone $transaksiBaseQuery())
+                ->where('status_transaksi', 'sukses')
+                ->whereBetween('created_at', [$dayStart, $dayEnd])
+                ->count();
+        }
+
+        $statCard4 = Stat::make('Order Sukses Bulan Ini', "{$orderSuksesBulanIni} Pesanan")
+            ->description("Tingkat penyelesaian {$completionRate}% ({$orderBatalBulanIni} batal)")
+            ->descriptionIcon('heroicon-m-check-badge')
+            ->chart($sparklineSukses7Hari)
+            ->color($completionRate >= 80 ? 'success' : ($completionRate >= 60 ? 'warning' : 'danger'));
+
         return [
-            $statOmset,
+            $statCard1,
             $statCard2,
             $statCard3,
             $statCard4,
