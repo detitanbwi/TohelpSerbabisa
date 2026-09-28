@@ -75,7 +75,7 @@ class RoleResource extends Resource implements HasShieldPermissions
             ->columns([
                 Tables\Columns\TextColumn::make('name')
                     ->weight('font-medium')
-                    ->label('Nama Role')
+                    ->label('Nama Peran')
                     ->formatStateUsing(fn ($state): string => Str::headline($state))
                     ->searchable()
                     ->sortable(),
@@ -178,12 +178,12 @@ class RoleResource extends Resource implements HasShieldPermissions
 
     public static function getModelLabel(): string
     {
-        return __('filament-shield::filament-shield.resource.label.role');
+        return 'Peran';
     }
 
     public static function getPluralModelLabel(): string
     {
-        return __('filament-shield::filament-shield.resource.label.roles');
+        return 'Peran';
     }
 
     public static function shouldRegisterNavigation(): bool
@@ -193,14 +193,12 @@ class RoleResource extends Resource implements HasShieldPermissions
 
     public static function getNavigationGroup(): ?string
     {
-        return Utils::isResourceNavigationGroupEnabled()
-            ? __('filament-shield::filament-shield.nav.group')
-            : '';
+        return 'Pengaturan';
     }
 
     public static function getNavigationLabel(): string
     {
-        return __('filament-shield::filament-shield.nav.role.label');
+        return 'Peran & Hak Akses';
     }
 
     public static function getNavigationIcon(): string

@@ -10,6 +10,11 @@ class ListCabangs extends ListRecords
 {
     protected static string $resource = CabangResource::class;
 
+    public function getTitle(): string|\Illuminate\Contracts\Support\Htmlable
+    {
+        return 'Manajemen Cabang';
+    }
+
     protected function getHeaderActions(): array
     {
         return [

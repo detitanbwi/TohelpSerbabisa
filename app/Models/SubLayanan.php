@@ -51,10 +51,10 @@ class SubLayanan extends Model
         $layananSlug = $this->layanan?->clean_slug;
 
         if ($cabang) {
-            if ($layananSlug === 'ojek' && ! $cabang->is_ojek_aktif) {
+            if ($layananSlug === 'ojek' && !$cabang->is_ojek_aktif) {
                 return false;
             }
-            if (($layananSlug === 'mobil' || $layananSlug === 'taxi') && ! $cabang->is_taxi_aktif) {
+            if (($layananSlug === 'mobil' || $layananSlug === 'taxi') && !$cabang->is_taxi_aktif) {
                 return false;
             }
         }

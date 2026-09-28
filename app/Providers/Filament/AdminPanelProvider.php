@@ -93,15 +93,15 @@ class AdminPanelProvider extends PanelProvider
             // topbar
             ->userMenuItems([
                 'profile' => MenuItem::make()
-                ->label(fn() => "Edit Profile")
-                ->url(fn (): string => EditProfilePage::getUrl())
+                    ->label(fn() => "Edit Profil")
+                    ->url(fn (): string => EditProfilePage::getUrl())
                     ->icon('heroicon-m-cog-6-tooth')
                     ->visible(function (): bool {
                         return auth()->user()->can('page_EditProfilePage');
                     }),
-                    ])
-                    // sidebar
-                    ->navigation(function (NavigationBuilder $builder): NavigationBuilder {
+            ])
+            // sidebar
+            ->navigation(function (NavigationBuilder $builder): NavigationBuilder {
                 return $builder->groups([
                     NavigationGroup::make('')
                         ->items([
@@ -117,26 +117,25 @@ class AdminPanelProvider extends PanelProvider
                             ...(UserLainResource::canAccess() ? UserLainResource::getNavigationItems() : []),
                             ...AbsensiBasePage::getNavigationItems(),
                         ]),
-                        NavigationGroup::make('Settings')
+                    NavigationGroup::make('Pengaturan')
                         ->items([
-                            NavigationItem::make('Roles & Permissions')
-                            ->icon('heroicon-s-shield-check')
-                            ->visible(fn() => auth()->user()->can('view_role') && auth()->user()->can('view_any_role'))
-                            ->url(fn() => route('filament.admin.resources.shield.roles.index'))
-                            ->isActiveWhen(fn() => request()->routeIs('filament.admin.resources.shield.roles.*')),
-                            NavigationItem::make('Environment Editor')
-                            ->icon('heroicon-s-cog')
-                            ->url(fn() => route('filament.admin.pages.env-editor'))
-                            ->visible(fn() => auth()->user()->can('page_ViewEnv'))
-                            ->isActiveWhen(fn() => request()->routeIs('filament.admin.pages.env-editor')),
-                            NavigationItem::make('Logs')
-                            ->icon('heroicon-s-newspaper')
-                            ->url(fn() => route('filament.admin.pages.logs'))
-                            ->visible(fn() => auth()->user()->can('page_Logs'))
-                            ->isActiveWhen(fn() => request()->routeIs('filament.admin.pages.logs')),
+                            NavigationItem::make('Peran & Hak Akses')
+                                ->icon('heroicon-s-shield-check')
+                                ->visible(fn() => auth()->user()->can('view_role') && auth()->user()->can('view_any_role'))
+                                ->url(fn() => route('filament.admin.resources.shield.roles.index'))
+                                ->isActiveWhen(fn() => request()->routeIs('filament.admin.resources.shield.roles.*')),
+                            NavigationItem::make('Editor Environment (.env)')
+                                ->icon('heroicon-s-cog')
+                                ->url(fn() => route('filament.admin.pages.env-editor'))
+                                ->visible(fn() => auth()->user()->can('page_ViewEnv'))
+                                ->isActiveWhen(fn() => request()->routeIs('filament.admin.pages.env-editor')),
+                            NavigationItem::make('Log Aktivitas Sistem')
+                                ->icon('heroicon-s-newspaper')
+                                ->url(fn() => route('filament.admin.pages.logs'))
+                                ->visible(fn() => auth()->user()->can('page_Logs'))
+                                ->isActiveWhen(fn() => request()->routeIs('filament.admin.pages.logs')),
                         ]),
-                        
-                    ]);
-                });
+                ]);
+            });
     }
 }

@@ -28,6 +28,9 @@ class TransaksiResource extends Resource
 {
     protected static ?string $model = Transaksi::class;
 
+    protected static ?string $modelLabel = 'Transaksi';
+    protected static ?string $pluralModelLabel = 'Transaksi';
+
     protected static ?string $navigationIcon = 'heroicon-o-rectangle-stack';
     protected static ?string $navigationLabel = 'Transaksi';
 
@@ -86,7 +89,7 @@ class TransaksiResource extends Resource
             ->defaultSort('created_at', 'desc')
             ->columns([
                 Tables\Columns\TextColumn::make('order_id')
-                    ->label('ID Order')
+                    ->label('ID Pesanan')
                     ->searchable()
                     ->sortable(),
                 Tables\Columns\TextColumn::make('voucher.nama')
@@ -142,11 +145,12 @@ class TransaksiResource extends Resource
                         };
                     }),
                 Tables\Columns\TextColumn::make('created_at')
-                    ->label('Waktu Order')
+                    ->label('Waktu Pesanan')
                     ->dateTime('d M Y H:i')
                     ->sortable(),
                 Tables\Columns\TextColumn::make('updated_at')
-                    ->dateTime()
+                    ->label('Terakhir Diperbarui')
+                    ->dateTime('d M Y H:i')
                     ->sortable()
                     ->toggleable(isToggledHiddenByDefault: true),
             ])

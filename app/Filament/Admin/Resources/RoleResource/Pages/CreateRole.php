@@ -12,6 +12,11 @@ class CreateRole extends CreateRecord
 {
     protected static string $resource = RoleResource::class;
 
+    public function getTitle(): string|\Illuminate\Contracts\Support\Htmlable
+    {
+        return 'Tambah Peran';
+    }
+
     public Collection $permissions;
 
     protected function mutateFormDataBeforeCreate(array $data): array

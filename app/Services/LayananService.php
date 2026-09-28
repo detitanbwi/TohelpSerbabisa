@@ -23,9 +23,11 @@ class LayananService
                 $cabangId = session('selected_cabang_id') ?? request('cabang_id') ?? Cabang::first()?->id;
             }
 
-            return Layanan::with(['subLayanans' => function ($q) {
+            return Layanan::with([
+                'subLayanans' => function ($q) {
                     $q->where('is_active', true)->orderBy('urutan');
-                }])
+                }
+            ])
                 ->where('is_active', true)
                 ->orderBy('urutan')
                 ->get()
@@ -52,16 +54,18 @@ class LayananService
     {
         try {
             $cleanSlug = trim($slug, '/');
-            $layanan = Layanan::with(['subLayanans' => function ($q) {
-                $q->where('is_active', true)->orderBy('urutan');
-            }])
-            ->where(function ($query) use ($cleanSlug, $slug) {
-                $query->where('slug', $cleanSlug)
-                      ->orWhere('slug', '/' . $cleanSlug)
-                      ->orWhere('slug', $slug);
-            })
-            ->where('is_active', true)
-            ->first();
+            $layanan = Layanan::with([
+                'subLayanans' => function ($q) {
+                    $q->where('is_active', true)->orderBy('urutan');
+                }
+            ])
+                ->where(function ($query) use ($cleanSlug, $slug) {
+                    $query->where('slug', $cleanSlug)
+                        ->orWhere('slug', '/' . $cleanSlug)
+                        ->orWhere('slug', $slug);
+                })
+                ->where('is_active', true)
+                ->first();
 
             if (!$layanan) {
                 return null;

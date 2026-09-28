@@ -21,6 +21,9 @@ class AbsensiResource extends Resource
 {
     protected static ?string $model = Absensi::class;
 
+    protected static ?string $modelLabel = 'Riwayat Kehadiran';
+    protected static ?string $pluralModelLabel = 'Riwayat Kehadiran';
+
     protected static ?string $navigationIcon = 'heroicon-o-rectangle-stack';
     protected static ?string $navigationLabel = 'Riwayat Kehadiran';
 

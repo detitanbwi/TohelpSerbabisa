@@ -76,7 +76,7 @@ class KaryawanPanelProvider extends PanelProvider
             // topbar
             ->userMenuItems([
                 'profile' => MenuItem::make()
-                    ->label(fn() => "Edit Profile")
+                    ->label(fn() => "Edit Profil")
                     ->url(fn (): string => EditProfilePage::getUrl())
                     ->icon('heroicon-m-cog-6-tooth'),
             ])

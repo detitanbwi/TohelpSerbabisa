@@ -196,8 +196,8 @@
             </x-filament::section>
         </div>
 
-        {{-- Kuota Radius Free Jemput Basecamp --}}
-        <x-filament::section icon="heroicon-o-map-pin" :heading="'Kuota Radius Free Jemput Basecamp - Cabang ' . $this->selectedCabangNama">
+        {{-- Kuota Radius Bebas Biaya Jemput Basecamp --}}
+        <x-filament::section icon="heroicon-o-map-pin" :heading="'Kuota Radius Bebas Biaya Jemput Basecamp - Cabang ' . $this->selectedCabangNama">
             <div class="max-w-md">
                 <label class="block text-xs font-semibold text-gray-700 dark:text-gray-300 mb-1">Batas Radius Penjemputan Gratis (KM)</label>
                 <x-filament::input.wrapper suffix="KM">

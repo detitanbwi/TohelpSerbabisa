@@ -24,6 +24,9 @@ class LayananResource extends Resource
 {
     protected static ?string $model = Layanan::class;
 
+    protected static ?string $modelLabel = 'Layanan';
+    protected static ?string $pluralModelLabel = 'Layanan';
+
     protected static ?string $navigationIcon = 'heroicon-o-squares-plus';
     protected static ?string $navigationGroup = 'Master Data';
     protected static ?string $navigationLabel = 'Master Layanan';

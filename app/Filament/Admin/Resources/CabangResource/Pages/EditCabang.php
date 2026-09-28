@@ -10,6 +10,11 @@ class EditCabang extends EditRecord
 {
     protected static string $resource = CabangResource::class;
 
+    public function getTitle(): string|\Illuminate\Contracts\Support\Htmlable
+    {
+        return 'Ubah Data Cabang';
+    }
+
     protected function getHeaderActions(): array
     {
         return [

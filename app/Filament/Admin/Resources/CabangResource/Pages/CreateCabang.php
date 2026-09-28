@@ -10,6 +10,11 @@ class CreateCabang extends CreateRecord
 {
     protected static string $resource = CabangResource::class;
 
+    public function getTitle(): string|\Illuminate\Contracts\Support\Htmlable
+    {
+        return 'Tambah Cabang';
+    }
+
     protected function getRedirectUrl(): string
     {
         return $this->getResource()::getUrl('index');

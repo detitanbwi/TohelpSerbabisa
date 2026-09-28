@@ -26,6 +26,9 @@ class CabangResource extends Resource
 {
     protected static ?string $model = Cabang::class;
 
+    protected static ?string $modelLabel = 'Cabang';
+    protected static ?string $pluralModelLabel = 'Cabang';
+
     protected static ?string $navigationIcon = 'heroicon-o-building-office-2';
     protected static ?string $navigationGroup = 'Master Data';
     protected static ?string $navigationLabel = 'Manajemen Cabang';
@@ -356,7 +359,7 @@ class CabangResource extends Resource
                     ->sortable(),
 
                 TextColumn::make('free_distance_km')
-                    ->label('Free Jemput')
+                    ->label('Gratis Jemput')
                     ->formatStateUsing(fn ($state) => number_format($state ?? 3.0, 1) . ' KM')
                     ->badge()
                     ->color('success')

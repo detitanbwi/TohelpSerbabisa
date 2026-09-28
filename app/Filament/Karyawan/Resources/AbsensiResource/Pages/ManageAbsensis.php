@@ -16,6 +16,7 @@ class ManageAbsensis extends ManageRecords
     {
         return [
             Actions\CreateAction::make()
+                ->label('Catat Presensi')
                 ->closeModalByClickingAway(false)
                 ->mutateFormDataUsing(function(array $data)
                 {
@@ -39,6 +40,6 @@ class ManageAbsensis extends ManageRecords
 
     public function getTitle(): string|Htmlable
     {
-        return 'Absensi';
+        return 'Riwayat Kehadiran & Presensi';
     }
 }
