@@ -150,14 +150,59 @@ class Layanan extends Model
     }
 
     /**
+     * Determine if this service has an uploaded image or fallback.
+     */
+    public function getIsImageAttribute(): bool
+    {
+        return true;
+    }
+
+    /**
+     * Get full public URL for service image.
+     */
+    public function getImageUrlAttribute(): string
+    {
+        if (!empty($this->image_path)) {
+            if (str_starts_with($this->image_path, 'http://') || str_starts_with($this->image_path, 'https://')) {
+                return $this->image_path;
+            }
+            return '/storage/' . ltrim($this->image_path, '/');
+        }
+
+        // Fallback ke file gambar lokal bawaan sesuai jenis layanan
+        $slug = $this->clean_slug;
+        $defaultMap = [
+            'ojek' => '/images/ojek.png',
+            'mobil' => '/images/pickup.png',
+            'taxi' => '/images/pickup.png',
+            'bersih-bersih' => '/images/bersih-rumah.png',
+            'bersih' => '/images/bersih-rumah.png',
+            'pindahan' => '/images/jasa-angkut.jpg',
+            'jasa-kustom' => '/images/jasa-custom.jpg',
+            'custom' => '/images/jasa-custom.jpg',
+        ];
+
+        if (isset($defaultMap[$slug]) && file_exists(public_path(ltrim($defaultMap[$slug], '/')))) {
+            return $defaultMap[$slug];
+        }
+
+        return '/images/logo-tohelp-kecil.png';
+    }
+
+    /**
      * Get representative icon class (FontAwesome).
      */
     public function getIconClassAttribute(): string
     {
         if (!empty($this->icon_or_image)) {
-            if (str_starts_with($this->icon_or_image, 'fa')) {
-                return $this->icon_or_image;
+            $icon = trim($this->icon_or_image);
+            if (str_starts_with($icon, 'fa-')) {
+                return 'fas ' . $icon;
             }
+            if (str_starts_with($icon, 'fa')) {
+                return $icon;
+            }
+            return 'fas ' . $icon;
         }
 
         $slug = $this->clean_slug;
@@ -200,6 +245,10 @@ class Layanan extends Model
      */
     public function getColorHexAttribute(): string
     {
+        if (!empty($this->warna)) {
+            return $this->warna;
+        }
+
         $slug = $this->clean_slug;
         $colorMap = [
             'ojek' => '#FF5733',

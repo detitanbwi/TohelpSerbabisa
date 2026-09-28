@@ -240,10 +240,15 @@
                 @endphp
 
                 <x-filament::section 
-                    :heading="$layanan->nama" 
                     collapsible 
                     :collapsed="true"
                 >
+                    <x-slot name="heading">
+                        <div class="flex items-center gap-2.5">
+                            <img src="{{ $layanan->image_url }}" alt="{{ $layanan->nama }}" class="w-7 h-7 rounded object-cover shadow-sm bg-white p-0.5 border">
+                            <span class="font-semibold text-gray-900 dark:text-white">{{ $layanan->nama }}</span>
+                        </div>
+                    </x-slot>
                     <x-slot name="headerEnd">
                         <div class="flex items-center gap-2" onclick="event.stopPropagation()">
                             <x-filament::badge :color="$activeCount > 0 ? 'success' : 'danger'" size="sm">

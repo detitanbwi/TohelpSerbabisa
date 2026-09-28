@@ -1,6 +1,12 @@
 <section class="padding-small">
     <div class="container">
         <div class="text-center mb-5">
+            @if(isset($layanan))
+                <div class="d-inline-flex align-items-center justify-content-center mb-3 shadow-sm rounded-circle p-2"
+                     style="width: 76px; height: 76px; background-color: {{ $layanan->color_hex ?? '#16a085' }}; overflow: hidden;">
+                    <img src="{{ $layanan->image_url }}" alt="{{ $layanan->nama }}" style="width: 100%; height: 100%; object-fit: contain; border-radius: 50%;">
+                </div>
+            @endif
             <h2 class="display-4 fw-bold">{{ $layanan->nama ?? 'Layanan' }}</h2>
             <p class="lead">{{ $layanan->deskripsi ?? '' }}</p>
         </div>

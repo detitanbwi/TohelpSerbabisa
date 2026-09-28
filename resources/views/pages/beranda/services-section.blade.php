@@ -17,8 +17,8 @@
                             <div class="card-body p-4 d-flex flex-column">
                                 <div class="d-flex align-items-center mb-3">
                                     <div class="card-header-icon shadow-sm"
-                                        style="background-color: {{ $layanan->color_hex }}; color: white;">
-                                        <i class="{{ $layanan->icon_class }} fa-2x"></i>
+                                        style="background-color: {{ $layanan->color_hex }}; overflow: hidden; padding: 4px;">
+                                        <img src="{{ $layanan->image_url }}" alt="{{ $layanan->nama }}" style="width: 100%; height: 100%; object-fit: contain; border-radius: 10px;">
                                     </div>
                                     <div>
                                         <h4 class="card-title fw-bold mb-0 text-dark">{{ $layanan->nama }}</h4>

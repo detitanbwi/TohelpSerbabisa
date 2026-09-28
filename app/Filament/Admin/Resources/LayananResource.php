@@ -12,11 +12,15 @@ use Filament\Forms\Components\Textarea;
 use Filament\Forms\Components\Toggle;
 use Filament\Forms\Components\Repeater;
 use Filament\Forms\Components\Grid;
+use Filament\Forms\Components\FileUpload;
+use Filament\Forms\Components\ColorPicker;
 use Filament\Resources\Resource;
 use Filament\Tables;
 use Filament\Tables\Table;
 use Filament\Tables\Columns\TextColumn;
 use Filament\Tables\Columns\IconColumn;
+use Filament\Tables\Columns\ImageColumn;
+use Filament\Tables\Columns\ColorColumn;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Str;
 
@@ -106,6 +110,30 @@ class LayananResource extends Resource
                                     ->default(true)
                                     ->inline(false)
                                     ->helperText('Jika non-aktif, layanan ini disembunyikan dari website.'),
+                            ]),
+                    ]),
+
+                Section::make('Gambar & Warna Layanan')
+                    ->description('Upload file gambar atau logo layanan untuk ditampilkan pada kartu layanan di website.')
+                    ->icon('heroicon-o-photo')
+                    ->schema([
+                        Grid::make(3)
+                            ->schema([
+                                FileUpload::make('image_path')
+                                    ->label('File Gambar / Logo Layanan')
+                                    ->image()
+                                    ->disk('public')
+                                    ->directory('layanans')
+                                    ->imageCropAspectRatio('1:1')
+                                    ->maxSize(2048)
+                                    ->helperText('Format file: PNG, JPG, WebP, atau SVG. Maksimal 2 MB (Disarankan gambar persegi / rasio 1:1).')
+                                    ->columnSpan(2),
+
+                                ColorPicker::make('warna')
+                                    ->label('Warna Background / Aksen')
+                                    ->placeholder('#16A085')
+                                    ->helperText('Warna background bingkai gambar dan aksen layanan di website customer (kosongkan jika ingin warna bawaan).')
+                                    ->columnSpan(1),
                             ]),
                     ]),
 
@@ -271,6 +299,19 @@ class LayananResource extends Resource
                 TextColumn::make('urutan')
                     ->label('#')
                     ->sortable(),
+
+                ImageColumn::make('image_path')
+                    ->label('Gambar')
+                    ->disk('public')
+                    ->circular()
+                    ->defaultImageUrl(fn (Model $record) => $record->image_url)
+                    ->toggleable(),
+
+                ColorColumn::make('warna')
+                    ->label('Warna')
+                    ->getStateUsing(fn (Model $record) => $record->color_hex)
+                    ->copyable()
+                    ->toggleable(),
 
                 TextColumn::make('nama')
                     ->label('Nama Layanan')
