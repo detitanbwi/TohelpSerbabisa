@@ -35,16 +35,21 @@ class AppServiceProvider extends ServiceProvider
         // Register custom login Livewire component
         \Livewire\Livewire::component('app.filament.pages.auth.login', \App\Filament\Pages\Auth\Login::class);
 
-        // Share Cabang and Active Cabang across all Blade views
-        \Illuminate\Support\Facades\View::composer('*', function ($view) {
+        // Share Cabang and Active Cabang ONLY for frontend web views (not Filament internal components)
+        \Illuminate\Support\Facades\View::composer(['pages.*', 'layouts.*', 'components.*', 'welcome', 'errors.*'], function ($view) {
             try {
-                if (Schema::hasTable('cabangs')) {
-                    $cabangs = \App\Models\Cabang::all();
+                static $cachedCabangs = null;
+                if ($cachedCabangs === null) {
+                    $cachedCabangs = \App\Models\Cabang::all();
+                }
+
+                if ($cachedCabangs->isNotEmpty()) {
                     $selectedId = session('selected_cabang_id') ?? request('cabang_id');
-                    $activeCabang = $cabangs->firstWhere('id', $selectedId) ?? $cabangs->first();
+                    $activeCabang = $cachedCabangs->firstWhere('id', $selectedId) ?? $cachedCabangs->first();
                     $hasSelectedCabang = session()->has('selected_cabang_id') || request()->has('cabang_id');
+
                     $view->with([
-                        'globalCabangs' => $cabangs,
+                        'globalCabangs' => $cachedCabangs,
                         'globalActiveCabang' => $activeCabang,
                         'globalHasSelectedCabang' => $hasSelectedCabang,
                     ]);
