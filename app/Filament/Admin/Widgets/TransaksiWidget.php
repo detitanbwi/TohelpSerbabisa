@@ -22,6 +22,7 @@ class TransaksiWidget extends BaseWidget
 {
     protected int | string | array $columnSpan = 'full';
     protected static ?int $sort = 2;
+    protected static bool $isLazy = true;
 
     public function table(Table $table): Table
     {
@@ -93,7 +94,7 @@ class TransaksiWidget extends BaseWidget
             ->filters([
                 Tables\Filters\SelectFilter::make('cabang_id')
                     ->label('Cabang')
-                    ->options(Cabang::all()->pluck('nama', 'id')),
+                    ->options(fn () => Cabang::pluck('nama', 'id')),
                 Tables\Filters\SelectFilter::make('status_transaksi')
                     ->options([
                         'belum' => 'Belum Selesai',

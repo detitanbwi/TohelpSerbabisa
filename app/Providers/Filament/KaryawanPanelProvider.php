@@ -34,6 +34,8 @@ class KaryawanPanelProvider extends PanelProvider
         return $panel
             ->id('karyawan')
             ->path('karyawan')
+            ->spa()
+            ->unsavedChangesAlerts()
             ->favicon(asset('images/logo-tohelp-kecil.png'))
             ->colors([
                 'primary' => Color::Amber,
