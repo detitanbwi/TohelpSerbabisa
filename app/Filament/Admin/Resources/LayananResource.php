@@ -158,28 +158,24 @@ class LayananResource extends Resource
                                     ->helperText('Rekomendasi tarif pembuka perjalanan terendah bagi seluruh cabang.'),
 
                                 TextInput::make('tarif_per_km')
-                                    ->label(fn (Forms\Get $get, ?Model $record) => 
-                                        in_array(trim((string) ($get('slug') ?? $record?->slug), '/'), ['mobil', 'taxi'])
-                                            ? 'Rekomendasi Tarif Per KM (1 - 10 km)'
-                                            : 'Rekomendasi Tarif Per KM'
-                                    )
+                                    ->label('Rekomendasi Tarif Per KM (1 - 10 km / Standar)')
                                     ->numeric()
                                     ->prefix('Rp')
                                     ->placeholder('Contoh: 2000')
                                     ->required(fn (Forms\Get $get, ?Model $record) => 
                                         (bool) $get('is_transportasi') || in_array(trim((string) ($get('slug') ?? $record?->slug), '/'), ['ojek', 'mobil', 'taxi'])
                                     )
-                                    ->helperText('Rekomendasi biaya per kilometer perjalanan.'),
+                                    ->helperText('Biaya per KM untuk perjalanan awal (atau flat jika tanpa tarif lanjutan).'),
 
                                 TextInput::make('tarif_per_km_lanjutan')
                                     ->label('Rekomendasi Tarif Per KM Lanjutan (> 10 km)')
                                     ->numeric()
                                     ->prefix('Rp')
-                                    ->placeholder('Contoh: 4000')
+                                    ->placeholder('Contoh: 4000 (Kosongkan jika flat)')
                                     ->visible(fn (Forms\Get $get, ?Model $record) => 
-                                        in_array(trim((string) ($get('slug') ?? $record?->slug), '/'), ['mobil', 'taxi'])
+                                        (bool) $get('is_transportasi') || in_array(trim((string) ($get('slug') ?? $record?->slug), '/'), ['ojek', 'mobil', 'taxi'])
                                     )
-                                    ->helperText('Rekomendasi tarif per kilometer untuk perjalanan jarak jauh di atas 10 km.'),
+                                    ->helperText('Opsional: Biaya per KM untuk perjalanan jarak jauh di atas 10 km (seperti Taxi Mobil). Kosongkan jika tarif flat untuk semua jarak (seperti Ojek Motor).'),
 
                                 TextInput::make('surcharge_per_km')
                                     ->label('Rekomendasi Surcharge Jemput / KM')
