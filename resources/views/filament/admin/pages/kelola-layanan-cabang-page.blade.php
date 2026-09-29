@@ -52,7 +52,7 @@
                     </label>
 
                     @if($is_ojek_aktif)
-                        <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
+                        <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
                             <div>
                                 <label class="block text-xs font-semibold text-gray-700 dark:text-gray-300 mb-1">Tarif Minimum</label>
                                 <x-filament::input.wrapper prefix="Rp">
@@ -69,7 +69,22 @@
                             </div>
 
                             <div>
-                                <label class="block text-xs font-semibold text-gray-700 dark:text-gray-300 mb-1">Tarif Per KM</label>
+                                <label class="block text-xs font-semibold text-gray-700 dark:text-gray-300 mb-1">Surcharge Jemput</label>
+                                <x-filament::input.wrapper prefix="Rp" suffix="/KM">
+                                    <x-filament::input
+                                        type="number"
+                                        min="0"
+                                        wire:model.defer="ojek_surcharge_per_km"
+                                        placeholder="{{ $rekomendasi['ojek_surcharge_per_km'] ?? 1000 }}"
+                                    />
+                                </x-filament::input.wrapper>
+                                <span class="text-[11px] text-gray-500 mt-1 block">
+                                    Rekomendasi: <strong>Rp {{ number_format($rekomendasi['ojek_surcharge_per_km'] ?? 1000, 0, ',', '.') }}/KM</strong>
+                                </span>
+                            </div>
+
+                            <div>
+                                <label class="block text-xs font-semibold text-gray-700 dark:text-gray-300 mb-1">Tarif Per KM (1 - 10 KM / Standar)</label>
                                 <x-filament::input.wrapper prefix="Rp" suffix="/KM">
                                     <x-filament::input
                                         type="number"
@@ -84,17 +99,21 @@
                             </div>
 
                             <div>
-                                <label class="block text-xs font-semibold text-gray-700 dark:text-gray-300 mb-1">Surcharge Jemput</label>
+                                <label class="block text-xs font-semibold text-gray-700 dark:text-gray-300 mb-1">Tarif Jarak Jauh (> 10 KM)</label>
                                 <x-filament::input.wrapper prefix="Rp" suffix="/KM">
                                     <x-filament::input
                                         type="number"
                                         min="0"
-                                        wire:model.defer="ojek_surcharge_per_km"
-                                        placeholder="{{ $rekomendasi['ojek_surcharge_per_km'] ?? 1000 }}"
+                                        wire:model.defer="ojek_tarif_per_km_lanjutan"
+                                        placeholder="{{ $rekomendasi['ojek_tarif_per_km_lanjutan'] ?? 'Flat (Sama dgn standar)' }}"
                                     />
                                 </x-filament::input.wrapper>
                                 <span class="text-[11px] text-gray-500 mt-1 block">
-                                    Rekomendasi: <strong>Rp {{ number_format($rekomendasi['ojek_surcharge_per_km'] ?? 1000, 0, ',', '.') }}/KM</strong>
+                                    @if(!empty($rekomendasi['ojek_tarif_per_km_lanjutan']))
+                                        Rekomendasi: <strong>Rp {{ number_format($rekomendasi['ojek_tarif_per_km_lanjutan'], 0, ',', '.') }}/KM</strong>
+                                    @else
+                                        Opsional: <em>Kosongkan jika flat untuk semua jarak</em>
+                                    @endif
                                 </span>
                             </div>
                         </div>

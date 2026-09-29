@@ -11,8 +11,9 @@ function getPricing(string $tipe, $jarakBaseCampKeTitikJemput, $jarakTitikJemput
     $layananSlug = $isMotor ? 'ojek' : ($isMobil ? 'mobil' : trim($tipe, '/'));
 
     // Global default from Master Layanan
-    $masterLayanan = Layanan::where('slug', $layananSlug)
-        ->orWhere('clean_slug', $layananSlug)
+    $cleanSlug = trim($layananSlug, '/');
+    $masterLayanan = Layanan::where('slug', $cleanSlug)
+        ->orWhere('slug', '/' . $cleanSlug)
         ->first();
 
     // Dynamic branch configuration
@@ -43,7 +44,13 @@ function getPricing(string $tipe, $jarakBaseCampKeTitikJemput, $jarakTitikJemput
     if ($isMotor) {
         $minFare = (int) (($cabang?->ojek_tarif_minimum > 0 ? $cabang->ojek_tarif_minimum : null) ?? ($masterLayanan?->tarif_minimum ?? 7000));
         $perKmFare = (int) (($cabang?->ojek_tarif_per_km > 0 ? $cabang->ojek_tarif_per_km : null) ?? ($masterLayanan?->tarif_per_km ?? 2000));
-        $baseTrip = max($minFare, $avgTripDistance * $perKmFare);
+        $perKmLanjutanFare = (int) (($cabang?->ojek_tarif_per_km_lanjutan > 0 ? $cabang->ojek_tarif_per_km_lanjutan : null) ?? ($masterLayanan?->tarif_per_km_lanjutan ?? 0));
+
+        if ($perKmLanjutanFare > 0 && $avgTripDistance > 10) {
+            $baseTrip = max($minFare, 10 * $perKmFare) + (($avgTripDistance - 10) * $perKmLanjutanFare);
+        } else {
+            $baseTrip = max($minFare, $avgTripDistance * $perKmFare);
+        }
         $harga = $pickupSurcharge + $baseTrip;
     } elseif ($isMobil) {
         // Mobil / Taxi

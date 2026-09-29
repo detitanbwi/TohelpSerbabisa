@@ -83,6 +83,7 @@ class CabangResource extends Resource
         $masterOjek = Layanan::where('slug', 'ojek')->first();
         $rekOjekMin = (int) ($masterOjek?->tarif_minimum ?? 7000);
         $rekOjekPerKm = (int) ($masterOjek?->tarif_per_km ?? 2000);
+        $rekOjekLanjutan = $masterOjek?->tarif_per_km_lanjutan ? (int) $masterOjek->tarif_per_km_lanjutan : null;
         $rekOjekSurcharge = (int) ($masterOjek?->surcharge_per_km ?? 1000);
         $rekFreeDist = (float) ($masterOjek?->free_distance_km ?? 3.0);
 
@@ -213,7 +214,7 @@ class CabangResource extends Resource
                             ->default(true)
                             ->reactive(),
 
-                        Grid::make(3)
+                        Grid::make(2)
                             ->schema([
                                 TextInput::make('ojek_tarif_minimum')
                                     ->label('Tarif Minimum Ojek')
@@ -223,17 +224,6 @@ class CabangResource extends Resource
                                     ->default($rekOjekMin)
                                     ->placeholder((string) $rekOjekMin)
                                     ->helperText("Tarif pembuka perjalanan terendah. (Rekomendasi Super Admin: Rp " . number_format($rekOjekMin, 0, ',', '.') . ")")
-                                    ->required(),
-
-                                TextInput::make('ojek_tarif_per_km')
-                                    ->label('Tarif Ojek Per KM')
-                                    ->prefix('Rp')
-                                    ->suffix('/KM')
-                                    ->numeric()
-                                    ->minValue(0)
-                                    ->default($rekOjekPerKm)
-                                    ->placeholder((string) $rekOjekPerKm)
-                                    ->helperText("Biaya per KM perjalanan. (Rekomendasi Super Admin: Rp " . number_format($rekOjekPerKm, 0, ',', '.') . "/KM)")
                                     ->required(),
 
                                 TextInput::make('ojek_surcharge_per_km')
@@ -246,6 +236,30 @@ class CabangResource extends Resource
                                     ->placeholder((string) $rekOjekSurcharge)
                                     ->helperText("Biaya per KM jika penjemputan melebihi radius kuota free. (Rekomendasi Super Admin: Rp " . number_format($rekOjekSurcharge, 0, ',', '.') . "/KM)")
                                     ->required(),
+
+                                TextInput::make('ojek_tarif_per_km')
+                                    ->label('Tarif Ojek Per KM (Standar / 1 - 10 KM)')
+                                    ->prefix('Rp')
+                                    ->suffix('/KM')
+                                    ->numeric()
+                                    ->minValue(0)
+                                    ->default($rekOjekPerKm)
+                                    ->placeholder((string) $rekOjekPerKm)
+                                    ->helperText("Biaya per KM perjalanan standar. (Rekomendasi Super Admin: Rp " . number_format($rekOjekPerKm, 0, ',', '.') . "/KM)")
+                                    ->required(),
+
+                                TextInput::make('ojek_tarif_per_km_lanjutan')
+                                    ->label('Tarif Ojek Per KM (Jarak > 10 KM)')
+                                    ->prefix('Rp')
+                                    ->suffix('/KM')
+                                    ->numeric()
+                                    ->minValue(0)
+                                    ->default($rekOjekLanjutan)
+                                    ->placeholder($rekOjekLanjutan ? (string) $rekOjekLanjutan : 'Kosongkan jika tarif flat')
+                                    ->helperText($rekOjekLanjutan 
+                                        ? "Biaya per KM untuk perjalanan jarak jauh di atas 10 KM. (Rekomendasi Super Admin: Rp " . number_format($rekOjekLanjutan, 0, ',', '.') . "/KM)"
+                                        : "Opsional: Biaya per KM untuk perjalanan jarak jauh di atas 10 KM. Kosongkan jika tarif flat untuk semua jarak."
+                                    ),
                             ])
                             ->visible(fn ($get) => (bool) $get('is_ojek_aktif')),
                     ]),

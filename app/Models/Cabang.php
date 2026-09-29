@@ -17,6 +17,7 @@ class Cabang extends Model
         'is_ojek_aktif' => 'boolean',
         'ojek_tarif_minimum' => 'integer',
         'ojek_tarif_per_km' => 'integer',
+        'ojek_tarif_per_km_lanjutan' => 'integer',
         'ojek_surcharge_per_km' => 'integer',
         'is_taxi_aktif' => 'boolean',
         'taxi_tarif_minimum' => 'integer',

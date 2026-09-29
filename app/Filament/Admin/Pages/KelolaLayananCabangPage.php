@@ -27,6 +27,7 @@ class KelolaLayananCabangPage extends Page
     public bool $is_ojek_aktif = true;
     public ?int $ojek_tarif_minimum = null;
     public ?int $ojek_tarif_per_km = null;
+    public ?int $ojek_tarif_per_km_lanjutan = null;
     public ?int $ojek_surcharge_per_km = null;
 
     public bool $is_taxi_aktif = true;
@@ -100,6 +101,7 @@ class KelolaLayananCabangPage extends Page
         $this->rekomendasi = [
             'ojek_tarif_minimum' => (int) ($masterOjek?->tarif_minimum ?? 7000),
             'ojek_tarif_per_km' => (int) ($masterOjek?->tarif_per_km ?? 2000),
+            'ojek_tarif_per_km_lanjutan' => $masterOjek?->tarif_per_km_lanjutan ? (int) $masterOjek->tarif_per_km_lanjutan : null,
             'ojek_surcharge_per_km' => (int) ($masterOjek?->surcharge_per_km ?? 1000),
             'free_distance_km' => (float) ($masterOjek?->free_distance_km ?? 3.0),
             'taxi_tarif_minimum' => (int) ($masterTaxi?->tarif_minimum ?? 18000),
@@ -114,6 +116,7 @@ class KelolaLayananCabangPage extends Page
             $this->is_ojek_aktif = (bool) $cabang->is_ojek_aktif;
             $this->ojek_tarif_minimum = $cabang->ojek_tarif_minimum ?: $this->rekomendasi['ojek_tarif_minimum'];
             $this->ojek_tarif_per_km = $cabang->ojek_tarif_per_km ?: $this->rekomendasi['ojek_tarif_per_km'];
+            $this->ojek_tarif_per_km_lanjutan = $cabang->ojek_tarif_per_km_lanjutan ?: ($this->rekomendasi['ojek_tarif_per_km_lanjutan'] ?? null);
             $this->ojek_surcharge_per_km = $cabang->ojek_surcharge_per_km ?: $this->rekomendasi['ojek_surcharge_per_km'];
 
             $this->is_taxi_aktif = (bool) $cabang->is_taxi_aktif;
@@ -182,6 +185,7 @@ class KelolaLayananCabangPage extends Page
         if ($type === 'ojek') {
             $this->ojek_tarif_minimum = $this->rekomendasi['ojek_tarif_minimum'] ?? 7000;
             $this->ojek_tarif_per_km = $this->rekomendasi['ojek_tarif_per_km'] ?? 2000;
+            $this->ojek_tarif_per_km_lanjutan = $this->rekomendasi['ojek_tarif_per_km_lanjutan'] ?? null;
             $this->ojek_surcharge_per_km = $this->rekomendasi['ojek_surcharge_per_km'] ?? 1000;
 
             Notification::make()
@@ -274,6 +278,7 @@ class KelolaLayananCabangPage extends Page
                     'is_ojek_aktif' => (bool) $this->is_ojek_aktif,
                     'ojek_tarif_minimum' => (int) ($this->ojek_tarif_minimum ?: $this->rekomendasi['ojek_tarif_minimum']),
                     'ojek_tarif_per_km' => (int) ($this->ojek_tarif_per_km ?: $this->rekomendasi['ojek_tarif_per_km']),
+                    'ojek_tarif_per_km_lanjutan' => $this->ojek_tarif_per_km_lanjutan ? (int) $this->ojek_tarif_per_km_lanjutan : null,
                     'ojek_surcharge_per_km' => (int) ($this->ojek_surcharge_per_km ?: $this->rekomendasi['ojek_surcharge_per_km']),
 
                     'is_taxi_aktif' => (bool) $this->is_taxi_aktif,
