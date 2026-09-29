@@ -34,6 +34,30 @@ class SubLayanan extends Model
             ->withTimestamps();
     }
 
+    protected static array $cabangCache = [];
+    protected array $pivotCache = [];
+
+    public static function findCachedCabang(?int $cabangId): ?Cabang
+    {
+        if (!$cabangId) return null;
+        if (!array_key_exists($cabangId, static::$cabangCache)) {
+            static::$cabangCache[$cabangId] = Cabang::find($cabangId);
+        }
+        return static::$cabangCache[$cabangId];
+    }
+
+    public function getCabangPivot(?int $cabangId): ?CabangLayanan
+    {
+        if (!$cabangId) return null;
+        if ($this->relationLoaded('cabangLayanans')) {
+            return $this->cabangLayanans->firstWhere('cabang_id', $cabangId);
+        }
+        if (!array_key_exists($cabangId, $this->pivotCache)) {
+            $this->pivotCache[$cabangId] = $this->cabangLayanans()->where('cabang_id', $cabangId)->first();
+        }
+        return $this->pivotCache[$cabangId];
+    }
+
     /**
      * Check if available for a given cabang (default true if not configured in pivot).
      */
@@ -47,7 +71,7 @@ class SubLayanan extends Model
             return true;
         }
 
-        $cabang = Cabang::find($cabangId);
+        $cabang = static::findCachedCabang($cabangId);
         $layananSlug = $this->layanan?->clean_slug;
 
         if ($cabang) {
@@ -59,7 +83,7 @@ class SubLayanan extends Model
             }
         }
 
-        $pivot = $this->cabangLayanans()->where('cabang_id', $cabangId)->first();
+        $pivot = $this->getCabangPivot($cabangId);
         if ($pivot) {
             return (bool) $pivot->is_tersedia;
         }
@@ -73,7 +97,7 @@ class SubLayanan extends Model
     public function getHargaForCabang(?int $cabangId): float
     {
         if ($cabangId) {
-            $cabang = Cabang::find($cabangId);
+            $cabang = static::findCachedCabang($cabangId);
             $layananSlug = $this->layanan?->clean_slug;
 
             if ($cabang) {
@@ -85,7 +109,7 @@ class SubLayanan extends Model
                 }
             }
 
-            $pivot = $this->cabangLayanans()->where('cabang_id', $cabangId)->first();
+            $pivot = $this->getCabangPivot($cabangId);
             if ($pivot && $pivot->custom_harga !== null) {
                 return (float) $pivot->custom_harga;
             }
@@ -100,7 +124,7 @@ class SubLayanan extends Model
     public function getSatuanForCabang(?int $cabangId): ?string
     {
         if ($cabangId) {
-            $pivot = $this->cabangLayanans()->where('cabang_id', $cabangId)->first();
+            $pivot = $this->getCabangPivot($cabangId);
             if ($pivot && !empty($pivot->custom_satuan)) {
                 return $pivot->custom_satuan;
             }
@@ -115,7 +139,7 @@ class SubLayanan extends Model
     public function getLabelForCabang(?int $cabangId): ?string
     {
         if ($cabangId) {
-            $pivot = $this->cabangLayanans()->where('cabang_id', $cabangId)->first();
+            $pivot = $this->getCabangPivot($cabangId);
             if ($pivot && !empty($pivot->custom_label)) {
                 return $pivot->custom_label;
             }
@@ -130,7 +154,7 @@ class SubLayanan extends Model
     public function getCatatanNbForCabang(?int $cabangId): ?string
     {
         if ($cabangId) {
-            $pivot = $this->cabangLayanans()->where('cabang_id', $cabangId)->first();
+            $pivot = $this->getCabangPivot($cabangId);
             if ($pivot && !empty($pivot->custom_catatan_nb)) {
                 return $pivot->custom_catatan_nb;
             }

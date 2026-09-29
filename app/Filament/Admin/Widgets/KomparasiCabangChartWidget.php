@@ -45,17 +45,11 @@ class KomparasiCabangChartWidget extends ChartWidget
 
         $cabangs = Cabang::pluck('nama', 'id')->toArray();
 
-        $records = $query->select(['id', 'cabang_id', 'status_transaksi'])
-            ->get()
+        $records = $query->selectRaw("cabang_id, count(*) as total, sum(case when status_transaksi = 'sukses' then 1 else 0 end) as sukses")
             ->groupBy('cabang_id')
-            ->map(function ($items) {
-                return [
-                    'total' => $items->count(),
-                    'sukses' => $items->where('status_transaksi', 'sukses')->count(),
-                ];
-            })
-            ->sortByDesc('total')
-            ->take(6);
+            ->orderByDesc('total')
+            ->take(6)
+            ->get();
 
         if ($records->isEmpty()) {
             return [
@@ -74,11 +68,12 @@ class KomparasiCabangChartWidget extends ChartWidget
         $totalData = [];
         $suksesData = [];
 
-        foreach ($records as $cabangId => $stat) {
+        foreach ($records as $stat) {
+            $cabangId = $stat->cabang_id;
             $cabangName = $cabangs[$cabangId] ?? "Cabang #{$cabangId}";
             $labels[] = $cabangName;
-            $totalData[] = (int) $stat['total'];
-            $suksesData[] = (int) $stat['sukses'];
+            $totalData[] = (int) $stat->total;
+            $suksesData[] = (int) $stat->sukses;
         }
 
         return [

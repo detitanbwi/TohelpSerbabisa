@@ -51,11 +51,10 @@ class DistribusiLayananChartWidget extends ChartWidget
             $query->where('created_at', '>=', $startDate);
         }
 
-        $records = $query->select('jenis')
-            ->get()
+        $records = $query->selectRaw('jenis, count(*) as total')
             ->groupBy('jenis')
-            ->map(fn ($group) => $group->count())
-            ->sortDesc();
+            ->orderByDesc('total')
+            ->pluck('total', 'jenis');
 
         if ($records->isEmpty()) {
             return [

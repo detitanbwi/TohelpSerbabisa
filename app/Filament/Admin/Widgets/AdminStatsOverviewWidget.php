@@ -15,7 +15,7 @@ use Filament\Widgets\StatsOverviewWidget\Stat;
 class AdminStatsOverviewWidget extends BaseWidget
 {
     protected static ?int $sort = 1;
-    protected static ?string $pollingInterval = '30s';
+    protected static ?string $pollingInterval = '60s';
 
     public static function canView(): bool
     {
@@ -79,14 +79,12 @@ class AdminStatsOverviewWidget extends BaseWidget
         } else {
             $todayDate = Carbon::today('Asia/Jakarta')->toDateString();
 
-            $totalHelpmanCabang = User::whereHas('roles', fn ($q) => $q->where('name', 'karyawan'))
-                ->whereIn('cabang_id', $cabangIds)
-                ->count();
-
             $helpmanCabangIds = User::whereHas('roles', fn ($q) => $q->where('name', 'karyawan'))
                 ->whereIn('cabang_id', $cabangIds)
                 ->pluck('id')
                 ->toArray();
+
+            $totalHelpmanCabang = count($helpmanCabangIds);
 
             $helpmanSiagaHariIni = ! empty($helpmanCabangIds)
                 ? Absensi::whereDate('tanggal', $todayDate)
@@ -121,14 +119,21 @@ class AdminStatsOverviewWidget extends BaseWidget
             ->where('status_transaksi', '!=', 'batal')
             ->count();
 
-        // Sparkline 7 hari terakhir untuk volume pesanan
+        // Ambil data transaksi 7 hari terakhir dalam 1 query tunggal (menggantikan 14 query berulang)
+        $sevenDaysStart = $now->copy()->subDays(6)->startOfDay();
+        $transaksi7Hari = (clone $transaksiBaseQuery())
+            ->where('created_at', '>=', $sevenDaysStart)
+            ->select(['id', 'status_transaksi', 'created_at'])
+            ->get()
+            ->groupBy(fn ($item) => Carbon::parse($item->created_at)->timezone('Asia/Jakarta')->format('Y-m-d'));
+
         $sparklineOrders7Hari = [];
+        $sparklineSukses7Hari = [];
         for ($i = 6; $i >= 0; $i--) {
-            $dayStart = $now->copy()->subDays($i)->startOfDay();
-            $dayEnd = $now->copy()->subDays($i)->endOfDay();
-            $sparklineOrders7Hari[] = (clone $transaksiBaseQuery())
-                ->whereBetween('created_at', [$dayStart, $dayEnd])
-                ->count();
+            $dayKey = $now->copy()->subDays($i)->format('Y-m-d');
+            $dayItems = $transaksi7Hari->get($dayKey, collect());
+            $sparklineOrders7Hari[] = $dayItems->count();
+            $sparklineSukses7Hari[] = $dayItems->where('status_transaksi', 'sukses')->count();
         }
 
         $statCard3 = Stat::make('Pesanan Masuk Hari Ini', "{$ordersHariIni} Pesanan")
@@ -155,16 +160,6 @@ class AdminStatsOverviewWidget extends BaseWidget
         $completionRate = $totalOrderBulanIni > 0
             ? round(($orderSuksesBulanIni / $totalOrderBulanIni) * 100, 1)
             : 0;
-
-        $sparklineSukses7Hari = [];
-        for ($i = 6; $i >= 0; $i--) {
-            $dayStart = $now->copy()->subDays($i)->startOfDay();
-            $dayEnd = $now->copy()->subDays($i)->endOfDay();
-            $sparklineSukses7Hari[] = (clone $transaksiBaseQuery())
-                ->where('status_transaksi', 'sukses')
-                ->whereBetween('created_at', [$dayStart, $dayEnd])
-                ->count();
-        }
 
         $statCard4 = Stat::make('Order Sukses Bulan Ini', "{$orderSuksesBulanIni} Pesanan")
             ->description("Tingkat penyelesaian {$completionRate}% ({$orderBatalBulanIni} batal)")

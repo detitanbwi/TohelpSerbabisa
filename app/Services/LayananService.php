@@ -26,7 +26,13 @@ class LayananService
             return Layanan::with([
                 'subLayanans' => function ($q) {
                     $q->where('is_active', true)->orderBy('urutan');
-                }
+                },
+                'subLayanans.cabangLayanans' => function ($q) use ($cabangId) {
+                    if ($cabangId) {
+                        $q->where('cabang_id', $cabangId);
+                    }
+                },
+                'subLayanans.layanan',
             ])
                 ->where('is_active', true)
                 ->orderBy('urutan')
@@ -57,7 +63,13 @@ class LayananService
             $layanan = Layanan::with([
                 'subLayanans' => function ($q) {
                     $q->where('is_active', true)->orderBy('urutan');
-                }
+                },
+                'subLayanans.cabangLayanans' => function ($q) use ($cabangId) {
+                    if ($cabangId) {
+                        $q->where('cabang_id', $cabangId);
+                    }
+                },
+                'subLayanans.layanan',
             ])
                 ->where(function ($query) use ($cleanSlug, $slug) {
                     $query->where('slug', $cleanSlug)

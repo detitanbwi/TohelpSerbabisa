@@ -13,7 +13,7 @@ class TipeLayananHariIniChartWidget extends ChartWidget
     protected static ?int $sort = 3;
     protected int | string | array $columnSpan = ['md' => 1, 'xl' => 1];
     protected static ?string $maxHeight = '320px';
-    protected static ?string $pollingInterval = '30s';
+    protected static ?string $pollingInterval = '60s';
 
     public static function canView(): bool
     {
@@ -42,11 +42,10 @@ class TipeLayananHariIniChartWidget extends ChartWidget
             $query->whereIn('cabang_id', $cabangIds);
         }
 
-        $records = $query->select('jenis')
-            ->get()
+        $records = $query->selectRaw('jenis, count(*) as total')
             ->groupBy('jenis')
-            ->map(fn ($group) => $group->count())
-            ->sortDesc();
+            ->orderByDesc('total')
+            ->pluck('total', 'jenis');
 
         if ($records->isEmpty()) {
             return [
