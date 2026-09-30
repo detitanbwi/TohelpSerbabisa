@@ -10,6 +10,7 @@ use Filament\Notifications\Notification;
 use Filament\Pages\Page;
 use Illuminate\Contracts\Support\Htmlable;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Log;
 
 class KelolaLayananCabangPage extends Page
 {
@@ -181,20 +182,31 @@ class KelolaLayananCabangPage extends Page
 
     public function updateLayananOrder(array $orderedIds): void
     {
-        $allActiveLayanans = Layanan::where('is_active', true)->pluck('id')->toArray();
-        $cleaned = array_values(array_filter(array_map('intval', $orderedIds), fn ($id) => in_array($id, $allActiveLayanans)));
-        $missing = array_values(array_diff($allActiveLayanans, $cleaned));
-        $this->orderedLayananIds = array_merge($cleaned, $missing);
+        try {
+            $allActiveLayanans = Layanan::where('is_active', true)->pluck('id')->toArray();
+            $cleaned = array_values(array_filter(array_map('intval', $orderedIds), fn ($id) => in_array($id, $allActiveLayanans)));
+            $missing = array_values(array_diff($allActiveLayanans, $cleaned));
+            $this->orderedLayananIds = array_merge($cleaned, $missing);
 
-        if ($this->selectedCabangId) {
-            Cabang::where('id', $this->selectedCabangId)->update([
-                'urutan_layanan' => $this->orderedLayananIds,
-            ]);
+            if ($this->selectedCabangId) {
+                $cabang = Cabang::find($this->selectedCabangId);
+                if ($cabang) {
+                    $cabang->urutan_layanan = $this->orderedLayananIds;
+                    $cabang->save();
+                }
 
+                Notification::make()
+                    ->title('Urutan Berhasil Disimpan')
+                    ->body('Urutan tampilan layanan untuk ' . $this->selectedCabangNama . ' otomatis disimpan.')
+                    ->success()
+                    ->send();
+            }
+        } catch (\Throwable $e) {
+            Log::error('Gagal update urutan_layanan cabang: ' . $e->getMessage());
             Notification::make()
-                ->title('Urutan Berhasil Disimpan')
-                ->body('Urutan tampilan layanan untuk ' . $this->selectedCabangNama . ' otomatis disimpan.')
-                ->success()
+                ->title('Gagal Menyimpan Urutan')
+                ->body('Pastikan telah menjalankan php artisan migrate di server: ' . $e->getMessage())
+                ->danger()
                 ->send();
         }
     }
