@@ -46,7 +46,7 @@ class AdminPanelProvider extends PanelProvider
             ->path('admin')
             ->spa()
             ->unsavedChangesAlerts()
-            ->favicon(asset('images/logo-tohelp-kecil.png'))
+            ->favicon(asset('images/logo-tohelp-kecil.png?v=2'))
             ->login(\App\Filament\Pages\Auth\Login::class)
             ->colors([
                 'primary' => Color::Amber,
