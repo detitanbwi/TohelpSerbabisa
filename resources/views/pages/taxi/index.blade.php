@@ -722,8 +722,13 @@
             // Get user's current location
             function getUserLocation() {
                 if (navigator.geolocation) {
+                    const $btn = $('#useMyLocation');
+                    const originalHtml = $btn.html();
+                    $btn.prop('disabled', true).html('<i class="fas fa-spinner fa-spin"></i> Mendeteksi Lokasi...');
+
                     navigator.geolocation.getCurrentPosition(
                         function(position) {
+                            $btn.prop('disabled', false).html(originalHtml);
                             const lat = parseFloat(position.coords.latitude);
                             const lng = parseFloat(position.coords.longitude);
 
@@ -739,11 +744,25 @@
                             getAddressFromLatLng(lat, lng, 'lokasi_awal');
                         },
                         function(error) {
-                            alert("Error mendapatkan lokasi: " + error.message);
+                            $btn.prop('disabled', false).html(originalHtml);
+                            Swal.fire({
+                                title: 'Gagal Mendapatkan Lokasi',
+                                text: 'Gagal mendapatkan lokasi Anda: ' + (error.message || 'Izin lokasi tidak diberikan.'),
+                                icon: 'error'
+                            });
+                        },
+                        {
+                            enableHighAccuracy: true,
+                            timeout: 10000,
+                            maximumAge: 0
                         }
                     );
                 } else {
-                    alert("Geolocation tidak didukung oleh browser ini");
+                    Swal.fire({
+                        title: 'Tidak Didukung',
+                        text: 'Geolocation tidak didukung oleh browser ini',
+                        icon: 'warning'
+                    });
                 }
             }
 
@@ -777,6 +796,9 @@
             async function determineCabang(lat, lng) {
                 return CABANG_ID;
             }
+
+            // Event Handlers
+            $('#useMyLocation').click(getUserLocation);
 
             // Modify the order click handler
             $('#order').click(async function() {
