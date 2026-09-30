@@ -1,7 +1,7 @@
 <div class="min-h-screen w-full bg-[#091323] text-[#d9e3f9] antialiased flex flex-col justify-center relative font-['Hanken_Grotesk',sans-serif]">
 
   <!-- Favicon -->
-  <link rel="icon" type="image/png" href="{{ asset('images/logo-tohelp-kecil.png') }}">
+  <link rel="icon" type="image/png" href="{{ asset('images/logo-tohelp-kecil.png?v=2') }}">
 
   <!-- Fonts & Material Symbols -->
   <link rel="preconnect" href="https://fonts.googleapis.com">

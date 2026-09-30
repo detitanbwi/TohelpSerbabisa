@@ -24,6 +24,11 @@ class AppServiceProvider extends ServiceProvider
         // Set the default string length for the database schema
         Schema::defaultStringLength(191);
 
+        // Force HTTPS in production or behind SSL proxy
+        if (app()->environment('production') || str_contains(config('app.url'), 'https://') || request()->header('x-forwarded-proto') === 'https' || request()->isSecure()) {
+            \Illuminate\Support\Facades\URL::forceScheme('https');
+        }
+
         // Implicitly grant 'super_admin' and 'owner' role all permissions
         Gate::before(function ($user, $ability) {
             return $user->hasAnyRole(['super_admin', 'owner']) ? true : null;

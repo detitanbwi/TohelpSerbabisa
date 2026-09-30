@@ -37,7 +37,7 @@ class KaryawanPanelProvider extends PanelProvider
             ->path('karyawan')
             ->spa()
             ->unsavedChangesAlerts()
-            ->favicon(asset('images/logo-tohelp-kecil.png'))
+            ->favicon(asset('images/logo-tohelp-kecil.png?v=2'))
             ->colors([
                 'primary' => Color::Amber,
             ])
