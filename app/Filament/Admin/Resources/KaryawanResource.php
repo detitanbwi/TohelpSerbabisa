@@ -195,20 +195,7 @@ class KaryawanResource extends Resource
                             ->directory('avatars')
                             ->disk('public')
                             ->avatar()
-                            ->maxFiles(1)
-                            ->formatStateUsing(function ($state) {
-                                if (blank($state)) {
-                                    return null;
-                                }
-                                if (Storage::disk('public')->exists($state)) {
-                                    return $state;
-                                }
-                                $withDir = 'avatars/' . ltrim($state, '/');
-                                if (Storage::disk('public')->exists($withDir)) {
-                                    return $withDir;
-                                }
-                                return null;
-                            }),
+                            ->maxFiles(1),
                     ]),
             ]);
     }
@@ -499,7 +486,7 @@ class KaryawanResource extends Resource
                                 ->label('Tanggal Lahir')
                                 ->required(fn(string $operation): bool => $operation === 'create')
                                 ->locale('id')
-                                ->formatStateUsing(fn(User $user) => $user?->custom_fields['tanggal_lahir'] ?? null),
+                                ->formatStateUsing(fn(?User $record) => $record?->custom_fields['tanggal_lahir'] ?? null),
                             Select::make('cabang_id')
                                 ->label('Cabang Penempatan')
                                 ->options(Cabang::all()->pluck('nama', 'id'))
@@ -578,20 +565,7 @@ class KaryawanResource extends Resource
                                 ->directory('avatars')
                                 ->disk('public')
                                 ->avatar()
-                                ->maxFiles(1)
-                                ->formatStateUsing(function ($state) {
-                                    if (blank($state)) {
-                                        return null;
-                                    }
-                                    if (Storage::disk('public')->exists($state)) {
-                                        return $state;
-                                    }
-                                    $withDir = 'avatars/' . ltrim($state, '/');
-                                    if (Storage::disk('public')->exists($withDir)) {
-                                        return $withDir;
-                                    }
-                                    return null;
-                                }),
+                                ->maxFiles(1),
                         ]),
                     ])
                     ->using(function(User $user, array $data): User
