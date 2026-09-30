@@ -179,6 +179,14 @@ class KelolaLayananCabangPage extends Page
         $this->items = $loaded;
     }
 
+    public function updateLayananOrder(array $orderedIds): void
+    {
+        $allActiveLayanans = Layanan::where('is_active', true)->pluck('id')->toArray();
+        $cleaned = array_values(array_filter(array_map('intval', $orderedIds), fn ($id) => in_array($id, $allActiveLayanans)));
+        $missing = array_values(array_diff($allActiveLayanans, $cleaned));
+        $this->orderedLayananIds = array_merge($cleaned, $missing);
+    }
+
     public function moveLayanan(int $draggedId, int $targetId): void
     {
         if ($draggedId === $targetId) {
@@ -191,28 +199,6 @@ class KelolaLayananCabangPage extends Page
         if ($draggedIndex !== false && $targetIndex !== false) {
             $item = array_splice($this->orderedLayananIds, $draggedIndex, 1);
             array_splice($this->orderedLayananIds, $targetIndex, 0, $item);
-            $this->orderedLayananIds = array_values($this->orderedLayananIds);
-        }
-    }
-
-    public function moveLayananUp(int $layananId): void
-    {
-        $index = array_search($layananId, $this->orderedLayananIds);
-        if ($index !== false && $index > 0) {
-            $prev = $this->orderedLayananIds[$index - 1];
-            $this->orderedLayananIds[$index - 1] = $layananId;
-            $this->orderedLayananIds[$index] = $prev;
-            $this->orderedLayananIds = array_values($this->orderedLayananIds);
-        }
-    }
-
-    public function moveLayananDown(int $layananId): void
-    {
-        $index = array_search($layananId, $this->orderedLayananIds);
-        if ($index !== false && $index < count($this->orderedLayananIds) - 1) {
-            $next = $this->orderedLayananIds[$index + 1];
-            $this->orderedLayananIds[$index + 1] = $layananId;
-            $this->orderedLayananIds[$index] = $next;
             $this->orderedLayananIds = array_values($this->orderedLayananIds);
         }
     }

@@ -60,12 +60,57 @@
             </p>
         </div>
 
-        {{-- Draggable Accordion List per Layanan --}}
+        <style>
+            .sortable-ghost {
+                opacity: 0.35 !important;
+                border: 2px dashed #f59e0b !important;
+                border-radius: 0.75rem !important;
+            }
+            .sortable-chosen {
+                cursor: grabbing !important;
+            }
+            .sortable-drag {
+                opacity: 0.95 !important;
+                box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.15) !important;
+                transform: rotate(0.5deg);
+            }
+        </style>
+
+        {{-- Draggable Accordion List per Layanan with SortableJS --}}
         <div 
             x-data="{
-                draggedId: null,
-                dragOverId: null,
+                initSortable() {
+                    const setup = () => {
+                        if (typeof Sortable === 'undefined') return;
+                        if (this.sortableInstance) {
+                            this.sortableInstance.destroy();
+                        }
+                        this.sortableInstance = new Sortable(this.$refs.sortableList, {
+                            handle: '.drag-handle',
+                            animation: 200,
+                            ghostClass: 'sortable-ghost',
+                            chosenClass: 'sortable-chosen',
+                            dragClass: 'sortable-drag',
+                            onEnd: (evt) => {
+                                const elements = Array.from(this.$refs.sortableList.querySelectorAll('[data-layanan-id]'));
+                                const orderedIds = elements.map(el => parseInt(el.getAttribute('data-layanan-id')));
+                                $wire.updateLayananOrder(orderedIds);
+                            }
+                        });
+                    };
+
+                    if (typeof Sortable === 'undefined') {
+                        const script = document.createElement('script');
+                        script.src = 'https://cdn.jsdelivr.net/npm/sortablejs@1.15.2/Sortable.min.js';
+                        script.onload = setup;
+                        document.head.appendChild(script);
+                    } else {
+                        setup();
+                    }
+                }
             }"
+            x-init="initSortable()"
+            x-ref="sortableList"
             class="space-y-4"
         >
             @forelse($this->layanans as $layanan)
@@ -92,16 +137,8 @@
 
                 <div 
                     wire:key="cabang-layanan-card-{{ $layanan->id }}"
-                    draggable="true"
-                    x-on:dragstart="draggedId = {{ $layanan->id }}; $event.dataTransfer.effectAllowed = 'move';"
-                    x-on:dragover.prevent="dragOverId = {{ $layanan->id }}"
-                    x-on:dragleave="if (dragOverId === {{ $layanan->id }}) dragOverId = null"
-                    x-on:drop="if (draggedId && draggedId !== {{ $layanan->id }}) { $wire.moveLayanan(draggedId, {{ $layanan->id }}); } draggedId = null; dragOverId = null;"
-                    :class="{
-                        'opacity-40 border-2 border-dashed border-primary-500 rounded-xl': draggedId === {{ $layanan->id }},
-                        'ring-2 ring-primary-500 rounded-xl': dragOverId === {{ $layanan->id }} && draggedId !== {{ $layanan->id }}
-                    }"
-                    class="transition-all duration-150"
+                    data-layanan-id="{{ $layanan->id }}"
+                    class="transition-all duration-150 select-none"
                 >
                     <x-filament::section 
                         collapsible 
@@ -109,29 +146,13 @@
                     >
                         <x-slot name="heading">
                             <div class="flex items-center gap-2.5">
-                                {{-- Drag Handle & Up/Down Buttons --}}
-                                <div class="flex items-center gap-1 mr-1" onclick="event.stopPropagation()">
-                                    <div class="cursor-grab active:cursor-grabbing p-1 text-gray-400 hover:text-gray-600 dark:hover:text-gray-200" title="Tahan dan geser (drag & drop) untuk ubah urutan">
-                                        <x-filament::icon icon="heroicon-o-bars-3" class="w-5 h-5" />
-                                    </div>
-                                    <button 
-                                        type="button" 
-                                        wire:click="moveLayananUp({{ $layanan->id }})"
-                                        @disabled($loop->first)
-                                        class="p-1 rounded bg-gray-100 hover:bg-gray-200 dark:bg-gray-800 dark:hover:bg-gray-700 disabled:opacity-30 disabled:cursor-not-allowed transition"
-                                        title="Geser Naik (Urutan Lebih Awal)"
-                                    >
-                                        <x-filament::icon icon="heroicon-m-chevron-up" class="w-4 h-4 text-gray-700 dark:text-gray-300" />
-                                    </button>
-                                    <button 
-                                        type="button" 
-                                        wire:click="moveLayananDown({{ $layanan->id }})"
-                                        @disabled($loop->last)
-                                        class="p-1 rounded bg-gray-100 hover:bg-gray-200 dark:bg-gray-800 dark:hover:bg-gray-700 disabled:opacity-30 disabled:cursor-not-allowed transition"
-                                        title="Geser Turun (Urutan Lebih Akhir)"
-                                    >
-                                        <x-filament::icon icon="heroicon-m-chevron-down" class="w-4 h-4 text-gray-700 dark:text-gray-300" />
-                                    </button>
+                                {{-- Drag Handle Icon Only --}}
+                                <div 
+                                    class="drag-handle cursor-grab active:cursor-grabbing p-1.5 rounded-lg bg-gray-100 hover:bg-gray-200 dark:bg-gray-800 dark:hover:bg-gray-700 text-gray-500 hover:text-gray-800 dark:hover:text-gray-200 transition mr-1" 
+                                    onclick="event.stopPropagation()" 
+                                    title="Tahan dan geser (drag & drop) untuk memindahkan urutan"
+                                >
+                                    <x-filament::icon icon="heroicon-o-bars-3" class="w-5 h-5" />
                                 </div>
 
                                 <span class="inline-flex items-center justify-center w-6 h-6 rounded-full bg-primary-50 text-primary-700 dark:bg-primary-950 dark:text-primary-300 font-bold text-xs border border-primary-200 dark:border-primary-800">
