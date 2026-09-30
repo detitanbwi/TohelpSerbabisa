@@ -289,10 +289,6 @@ class LayananResource extends Resource
             ->paginated(false)
             ->defaultSort('urutan')
             ->columns([
-                TextColumn::make('urutan')
-                    ->label('#')
-                    ->sortable(),
-
                 ImageColumn::make('image_path')
                     ->label('Gambar')
                     ->disk('public')

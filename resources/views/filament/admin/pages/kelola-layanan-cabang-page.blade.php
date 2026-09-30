@@ -155,9 +155,6 @@
                                     <x-filament::icon icon="heroicon-o-bars-3" class="w-5 h-5" />
                                 </div>
 
-                                <span class="inline-flex items-center justify-center w-6 h-6 rounded-full bg-primary-50 text-primary-700 dark:bg-primary-950 dark:text-primary-300 font-bold text-xs border border-primary-200 dark:border-primary-800">
-                                    {{ $loop->iteration }}
-                                </span>
                                 <img src="{{ $layanan->image_url }}" alt="{{ $layanan->nama }}" class="w-7 h-7 rounded object-cover shadow-sm bg-white p-0.5 border">
                                 <span class="font-semibold text-gray-900 dark:text-white">{{ $layanan->nama }}</span>
                             </div>
