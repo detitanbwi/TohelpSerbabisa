@@ -129,30 +129,26 @@ class KelolaLayananCabangPage extends Page
 
             $this->free_distance_km = (float) ($cabang->free_distance_km ?: $this->rekomendasi['free_distance_km']);
 
-            // Inisialisasi urutan layanan cabang
-            $allRegularLayanans = Layanan::where('is_active', true)
-                ->where('is_transportasi', false)
-                ->whereNotIn('slug', ['ojek', 'mobil', 'taxi'])
+            // Inisialisasi urutan seluruh layanan cabang (termasuk Ojek & Taxi)
+            $allActiveLayanans = Layanan::where('is_active', true)
                 ->orderBy('urutan')
                 ->pluck('id')
                 ->toArray();
 
             $savedOrder = is_array($cabang->urutan_layanan) ? $cabang->urutan_layanan : [];
-            $validOrder = array_values(array_filter($savedOrder, fn ($id) => in_array($id, $allRegularLayanans)));
-            $missing = array_values(array_diff($allRegularLayanans, $validOrder));
+            $validOrder = array_values(array_filter($savedOrder, fn ($id) => in_array($id, $allActiveLayanans)));
+            $missing = array_values(array_diff($allActiveLayanans, $validOrder));
             $this->orderedLayananIds = array_merge($validOrder, $missing);
         }
 
-        // 3. Muat sub-layanan reguler (non-transportasi)
+        // 3. Muat seluruh sub-layanan
         $existingPivots = CabangLayanan::where('cabang_id', $this->selectedCabangId)
             ->get()
             ->keyBy('sub_layanan_id');
 
         $allSubLayanans = SubLayanan::with('layanan')
             ->whereHas('layanan', function ($q) {
-                $q->where('is_active', true)
-                  ->where('is_transportasi', false)
-                  ->whereNotIn('slug', ['ojek', 'mobil', 'taxi']);
+                $q->where('is_active', true);
             })
             ->where('is_active', true)
             ->orderBy('layanan_id')
@@ -183,6 +179,22 @@ class KelolaLayananCabangPage extends Page
         $this->items = $loaded;
     }
 
+    public function moveLayanan(int $draggedId, int $targetId): void
+    {
+        if ($draggedId === $targetId) {
+            return;
+        }
+
+        $draggedIndex = array_search($draggedId, $this->orderedLayananIds);
+        $targetIndex = array_search($targetId, $this->orderedLayananIds);
+
+        if ($draggedIndex !== false && $targetIndex !== false) {
+            $item = array_splice($this->orderedLayananIds, $draggedIndex, 1);
+            array_splice($this->orderedLayananIds, $targetIndex, 0, $item);
+            $this->orderedLayananIds = array_values($this->orderedLayananIds);
+        }
+    }
+
     public function moveLayananUp(int $layananId): void
     {
         $index = array_search($layananId, $this->orderedLayananIds);
@@ -211,8 +223,6 @@ class KelolaLayananCabangPage extends Page
             $q->where('is_active', true)->orderBy('urutan');
         }])
         ->where('is_active', true)
-        ->where('is_transportasi', false)
-        ->whereNotIn('slug', ['ojek', 'mobil', 'taxi'])
         ->get();
 
         if (empty($this->orderedLayananIds)) {
