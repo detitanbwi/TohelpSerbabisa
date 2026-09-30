@@ -24,9 +24,9 @@ class AppServiceProvider extends ServiceProvider
         // Set the default string length for the database schema
         Schema::defaultStringLength(191);
 
-        // Implicitly grant 'super_admin' role all permissions
+        // Implicitly grant 'super_admin' and 'owner' role all permissions
         Gate::before(function ($user, $ability) {
-            return $user->hasRole('super_admin') ? true : null;
+            return $user->hasAnyRole(['super_admin', 'owner']) ? true : null;
         });
 
         // Register custom edit profile form with username support

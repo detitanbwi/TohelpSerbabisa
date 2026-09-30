@@ -138,11 +138,11 @@ class User extends Authenticatable implements HasAvatar, FilamentUser, HasMedia,
     {
         if($panel->getId() == 'admin')
         {
-            return $this->hasAnyRole(['super_admin', 'manager_cabang']);
+            return $this->hasAnyRole(['super_admin', 'owner', 'manager_cabang']);
         }
         if($panel->getId() == 'karyawan')
         {
-            return $this->hasRole('karyawan');
+            return $this->hasAnyRole(['karyawan', 'super_admin', 'owner']);
         }
 
         return false;

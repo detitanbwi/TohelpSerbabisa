@@ -53,31 +53,31 @@ class UserLainResource extends Resource
 
     public static function canAccess(): bool
     {
-        return auth()->user()?->hasRole('super_admin') ?? false;
+        return auth()->user()?->hasAnyRole(['super_admin', 'owner']) ?? false;
     }
 
     public static function shouldRegisterNavigation(): bool
     {
-        return auth()->user()?->hasRole('super_admin') ?? false;
+        return auth()->user()?->hasAnyRole(['super_admin', 'owner']) ?? false;
     }
 
     public static function canCreate(): bool
     {
-        return auth()->user()?->hasRole('super_admin') ?? false;
+        return auth()->user()?->hasAnyRole(['super_admin', 'owner']) ?? false;
     }
 
     public static function canEdit(Model $record): bool
     {
-        return auth()->user()?->hasRole('super_admin') ?? false;
+        return auth()->user()?->hasAnyRole(['super_admin', 'owner']) ?? false;
     }
 
     public static function canDelete(Model $record): bool
     {
-        if (! auth()->user()?->hasRole('super_admin')) {
+        if (! auth()->user()?->hasAnyRole(['super_admin', 'owner'])) {
             return false;
         }
 
-        if ($record->id === auth()->id() || $record->email === 'admin@gmail.com') {
+        if ($record->id === auth()->id() || in_array($record->email, ['admin@gmail.com', 'admin@tohelp.com', 'owner@tohelp.com']) || $record->username === 'owner') {
             return false;
         }
 
@@ -86,14 +86,21 @@ class UserLainResource extends Resource
 
     public static function canView(Model $record): bool
     {
-        return auth()->user()?->hasRole('super_admin') ?? false;
+        return auth()->user()?->hasAnyRole(['super_admin', 'owner']) ?? false;
     }
 
     public static function getEloquentQuery(): Builder
     {
         return parent::getEloquentQuery()
             ->with(['media', 'roles', 'cabang'])
-            ->whereDoesntHave('roles', fn (Builder $q) => $q->where('name', 'karyawan'));
+            ->where(function (Builder $query) {
+                $query->whereHas('roles', fn (Builder $q) => $q->whereIn('name', ['super_admin', 'owner', 'manager_cabang']))
+                      ->orWhere('email', 'admin@gmail.com')
+                      ->orWhere('email', 'admin@tohelp.com')
+                      ->orWhere('username', 'owner')
+                      ->orWhere('email', 'owner@tohelp.com')
+                      ->orWhereDoesntHave('roles', fn (Builder $q) => $q->where('name', 'karyawan'));
+            });
     }
 
     public static function form(Form $form): Form
@@ -133,6 +140,7 @@ class UserLainResource extends Resource
                             ->label('Role / Hak Akses')
                             ->options([
                                 'super_admin' => '👑 Super Admin',
+                                'owner' => '👑 Owner',
                                 'manager_cabang' => '🏢 Manager Cabang',
                             ])
                             ->default('super_admin')
@@ -143,7 +151,7 @@ class UserLainResource extends Resource
                                     $set('cabang_id', null);
                                 }
                             })
-                            ->helperText('Pilih "Super Admin" untuk hak akses penuh sistem, atau "Manager Cabang" untuk pengelola cabang.'),
+                            ->helperText('Pilih "Super Admin" atau "Owner" untuk hak akses penuh sistem, atau "Manager Cabang" untuk pengelola cabang.'),
                         Select::make('cabang_id')
                             ->label('Cabang yang Dikelola')
                             ->options(Cabang::all()->pluck('nama', 'id'))
@@ -201,8 +209,7 @@ class UserLainResource extends Resource
     {
         return $table
             ->modifyQueryUsing(function (Builder $query) {
-                $query->with(['media', 'roles', 'cabang'])
-                      ->whereDoesntHave('roles', fn (Builder $q) => $q->where('name', 'karyawan'));
+                $query->with(['media', 'roles', 'cabang']);
             })
             ->columns([
                 Tables\Columns\ImageColumn::make('avatar_url')
@@ -230,12 +237,13 @@ class UserLainResource extends Resource
                     ->label('Role / Hak Akses')
                     ->badge()
                     ->color(fn (?string $state): string => match ($state) {
-                        'super_admin' => 'danger',
+                        'super_admin', 'owner' => 'danger',
                         'manager_cabang' => 'warning',
                         default => 'gray',
                     })
                     ->formatStateUsing(fn (?string $state): string => match ($state) {
                         'super_admin' => '👑 Super Admin',
+                        'owner' => '👑 Owner',
                         'manager_cabang' => '🏢 Manager Cabang',
                         default => $state ? ucfirst(str_replace('_', ' ', $state)) : 'Customer / Lainnya',
                     })
@@ -283,6 +291,7 @@ class UserLainResource extends Resource
                     ->relationship('roles', 'name')
                     ->options([
                         'super_admin' => '👑 Super Admin',
+                        'owner' => '👑 Owner',
                         'manager_cabang' => '🏢 Manager Cabang',
                     ]),
                 SelectFilter::make('cabang_id')
@@ -319,12 +328,13 @@ class UserLainResource extends Resource
                                                     ->label('Role / Hak Akses')
                                                     ->badge()
                                                     ->color(fn (?string $state): string => match ($state) {
-                                                        'super_admin' => 'danger',
+                                                        'super_admin', 'owner' => 'danger',
                                                         'manager_cabang' => 'warning',
                                                         default => 'gray',
                                                     })
                                                     ->formatStateUsing(fn (?string $state): string => match ($state) {
                                                         'super_admin' => '👑 Super Admin',
+                                                        'owner' => '👑 Owner',
                                                         'manager_cabang' => '🏢 Manager Cabang',
                                                         default => $state ? ucfirst(str_replace('_', ' ', $state)) : 'Customer / Lainnya',
                                                     }),
@@ -359,7 +369,7 @@ class UserLainResource extends Resource
                     ->icon('heroicon-o-pencil-square')
                     ->modalHeading(fn (User $record) => 'Edit Data User - ' . $record->name)
                     ->mutateRecordDataUsing(function (array $data, User $record): array {
-                        $data['role'] = $record->roles->first()?->name ?? 'super_admin';
+                        $data['role'] = $record->hasRole('owner') ? 'owner' : ($record->roles->first()?->name ?? 'super_admin');
                         $data['tanggal_lahir'] = $record->custom_fields['tanggal_lahir'] ?? null;
                         return $data;
                     })
@@ -394,10 +404,11 @@ class UserLainResource extends Resource
                                     ->label('Role / Hak Akses')
                                     ->options([
                                         'super_admin' => '👑 Super Admin',
+                                        'owner' => '👑 Owner',
                                         'manager_cabang' => '🏢 Manager Cabang',
                                         'karyawan' => '👤 Karyawan (Pindahkan ke Menu Karyawan)',
                                     ])
-                                    ->default(fn (User $record) => $record->roles->first()?->name ?? 'super_admin')
+                                    ->default(fn (User $record) => $record->hasRole('owner') ? 'owner' : ($record->roles->first()?->name ?? 'super_admin'))
                                     ->required()
                                     ->live()
                                     ->afterStateUpdated(function ($state, Forms\Set $set) {
@@ -455,7 +466,7 @@ class UserLainResource extends Resource
                     ->using(function (User $record, array $data): User {
                         DB::beginTransaction();
                         try {
-                            $selectedRole = $data['role'] ?? ($record->roles->first()?->name ?? 'super_admin');
+                            $selectedRole = $data['role'] ?? ($record->hasRole('owner') ? 'owner' : ($record->roles->first()?->name ?? 'super_admin'));
                             $cabangId = ($selectedRole === 'manager_cabang') ? ($data['cabang_id'] ?? null) : null;
                             $tipeKaryawan = ($selectedRole === 'karyawan') ? 'helpman' : null;
 
@@ -498,6 +509,9 @@ class UserLainResource extends Resource
                                     Cabang::where('manager_id', $record->id)->where('id', '!=', $cabangId)->update(['manager_id' => null]);
                                     Cabang::where('id', $cabangId)->update(['manager_id' => $record->id]);
                                 }
+                            } elseif ($selectedRole === 'owner') {
+                                $record->syncRoles(['owner', 'super_admin']);
+                                Cabang::where('manager_id', $record->id)->update(['manager_id' => null]);
                             } elseif ($selectedRole === 'super_admin') {
                                 $record->syncRoles(['super_admin']);
                                 Cabang::where('manager_id', $record->id)->update(['manager_id' => null]);
@@ -528,10 +542,10 @@ class UserLainResource extends Resource
                         }
                     }),
                 Tables\Actions\DeleteAction::make()
-                    ->disabled(fn (User $record) => $record->id === auth()->id() || $record->email === 'admin@gmail.com')
-                    ->tooltip(fn (User $record) => ($record->id === auth()->id() || $record->email === 'admin@gmail.com') ? 'Akun utama atau akun login saat ini tidak dapat dihapus.' : null)
+                    ->disabled(fn (User $record) => $record->id === auth()->id() || in_array($record->email, ['admin@gmail.com', 'admin@tohelp.com', 'owner@tohelp.com']) || $record->username === 'owner')
+                    ->tooltip(fn (User $record) => ($record->id === auth()->id() || in_array($record->email, ['admin@gmail.com', 'admin@tohelp.com', 'owner@tohelp.com']) || $record->username === 'owner') ? 'Akun utama atau akun login saat ini tidak dapat dihapus.' : null)
                     ->before(function (User $record, Tables\Actions\DeleteAction $action) {
-                        if ($record->id === auth()->id() || $record->email === 'admin@gmail.com') {
+                        if ($record->id === auth()->id() || in_array($record->email, ['admin@gmail.com', 'admin@tohelp.com', 'owner@tohelp.com']) || $record->username === 'owner') {
                             Notification::make()
                                 ->title('Aksi Ditolak')
                                 ->body('Akun utama atau akun login saat ini tidak dapat dihapus.')
@@ -549,7 +563,7 @@ class UserLainResource extends Resource
                 Tables\Actions\BulkActionGroup::make([
                     Tables\Actions\DeleteBulkAction::make()
                         ->action(function ($records) {
-                            $filteredRecords = $records->reject(fn (User $user) => $user->id === auth()->id() || $user->email === 'admin@gmail.com');
+                            $filteredRecords = $records->reject(fn (User $user) => $user->id === auth()->id() || in_array($user->email, ['admin@gmail.com', 'admin@tohelp.com', 'owner@tohelp.com']) || $user->username === 'owner');
                             $filteredRecords->each->delete();
                         }),
                 ]),

@@ -54,7 +54,12 @@ class KaryawanResource extends Resource
     {
         $query = parent::getEloquentQuery()
             ->with(['media', 'roles', 'cabang'])
-            ->whereHas('roles', fn (Builder $q) => $q->where('name', 'karyawan'));
+            ->whereHas('roles', fn (Builder $q) => $q->where('name', 'karyawan'))
+            ->whereDoesntHave('roles', fn (Builder $q) => $q->whereIn('name', ['super_admin', 'owner']))
+            ->where('email', '!=', 'admin@gmail.com')
+            ->where('email', '!=', 'admin@tohelp.com')
+            ->where('username', '!=', 'owner')
+            ->where('email', '!=', 'owner@tohelp.com');
 
         if (auth()->user()?->hasRole('manager_cabang') && ! auth()->user()?->hasRole('super_admin')) {
             $query->where('cabang_id', auth()->user()->cabang_id);
@@ -213,7 +218,12 @@ class KaryawanResource extends Resource
         return $table
             ->modifyQueryUsing(function (Builder $query) {
                 $query->with(['media', 'roles', 'cabang'])
-                      ->whereHas('roles', fn (Builder $q) => $q->where('name', 'karyawan'));
+                      ->whereHas('roles', fn (Builder $q) => $q->where('name', 'karyawan'))
+                      ->whereDoesntHave('roles', fn (Builder $q) => $q->whereIn('name', ['super_admin', 'owner']))
+                      ->where('email', '!=', 'admin@gmail.com')
+                      ->where('email', '!=', 'admin@tohelp.com')
+                      ->where('username', '!=', 'owner')
+                      ->where('email', '!=', 'owner@tohelp.com');
 
                 if (auth()->user()?->hasRole('manager_cabang') && ! auth()->user()?->hasRole('super_admin')) {
                     $query->where('cabang_id', auth()->user()->cabang_id);

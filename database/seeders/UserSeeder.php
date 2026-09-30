@@ -17,6 +17,7 @@ class UserSeeder extends Seeder
     {
         // Ensure roles exist
         Role::firstOrCreate(['name' => 'super_admin']);
+        Role::firstOrCreate(['name' => 'owner']);
         Role::firstOrCreate(['name' => 'manager_cabang']);
         Role::firstOrCreate(['name' => 'karyawan']);
 
@@ -83,7 +84,7 @@ class UserSeeder extends Seeder
                 'cabang_id' => null,
             ]);
         }
-        $owner->syncRoles(['super_admin']);
+        $owner->syncRoles(['owner', 'super_admin']);
 
         // 4. Manager Cabang (manager.bwi@tohelp.com)
         $manager = User::where('email', 'manager.bwi@tohelp.com')->first();

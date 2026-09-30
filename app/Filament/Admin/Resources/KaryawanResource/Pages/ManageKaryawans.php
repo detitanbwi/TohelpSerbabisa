@@ -113,29 +113,38 @@ class ManageKaryawans extends ManageRecords
     public function getTabs(): array
     {
         $user = auth()->user();
-        if (! $user || ! $user->hasRole('super_admin')) {
+        if (! $user || ! $user->hasAnyRole(['super_admin', 'owner'])) {
             return [];
         }
 
-        $allKaryawanCount = User::whereHas('roles', fn ($q) => $q->where('name', 'karyawan'))->count();
-        $helpmanCount = User::whereHas('roles', fn ($q) => $q->where('name', 'karyawan'))->where('tipe_karyawan', 'helpman')->count();
-        $jokiCount = User::whereHas('roles', fn ($q) => $q->where('name', 'karyawan'))->where('tipe_karyawan', 'joki')->count();
+        $baseFilter = function (Builder $query) {
+            $query->whereHas('roles', fn ($q) => $q->where('name', 'karyawan'))
+                  ->whereDoesntHave('roles', fn ($q) => $q->whereIn('name', ['super_admin', 'owner']))
+                  ->where('email', '!=', 'admin@gmail.com')
+                  ->where('email', '!=', 'admin@tohelp.com')
+                  ->where('username', '!=', 'owner')
+                  ->where('email', '!=', 'owner@tohelp.com');
+        };
+
+        $allKaryawanCount = User::where($baseFilter)->count();
+        $helpmanCount = User::where($baseFilter)->where('tipe_karyawan', 'helpman')->count();
+        $jokiCount = User::where($baseFilter)->where('tipe_karyawan', 'joki')->count();
 
         return [
             'semua' => Tab::make('Semua Karyawan')
                 ->icon('heroicon-o-users')
                 ->badge($allKaryawanCount)
-                ->modifyQueryUsing(fn (Builder $query) => $query->whereHas('roles', fn ($q) => $q->where('name', 'karyawan'))),
+                ->modifyQueryUsing($baseFilter),
 
             'helpman' => Tab::make('Helpman (Lapangan)')
                 ->icon('heroicon-o-wrench-screwdriver')
                 ->badge($helpmanCount)
-                ->modifyQueryUsing(fn (Builder $query) => $query->whereHas('roles', fn ($q) => $q->where('name', 'karyawan'))->where('tipe_karyawan', 'helpman')),
+                ->modifyQueryUsing(fn (Builder $query) => $query->tap($baseFilter)->where('tipe_karyawan', 'helpman')),
 
             'joki' => Tab::make('Joki (Tugas / Digital)')
                 ->icon('heroicon-o-academic-cap')
                 ->badge($jokiCount)
-                ->modifyQueryUsing(fn (Builder $query) => $query->whereHas('roles', fn ($q) => $q->where('name', 'karyawan'))->where('tipe_karyawan', 'joki')),
+                ->modifyQueryUsing(fn (Builder $query) => $query->tap($baseFilter)->where('tipe_karyawan', 'joki')),
         ];
     }
 
