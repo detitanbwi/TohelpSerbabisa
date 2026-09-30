@@ -34,6 +34,7 @@ use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\SoftDeletingScope;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Hash;
+use Illuminate\Support\Facades\Storage;
 
 class KaryawanResource extends Resource
 {
@@ -135,6 +136,7 @@ class KaryawanResource extends Resource
                                 'helpman' => 'Helpman (Lapangan)',
                                 'joki' => 'Joki (Tugas / Digital)',
                             ])
+                            ->default(fn (?User $record) => $record?->tipe_karyawan ?? 'helpman')
                             ->placeholder('Pilih Tipe Personil (Helpman / Joki)')
                             ->selectablePlaceholder(false)
                             ->visible(function (Forms\Get $get, ?User $record) {
@@ -148,15 +150,19 @@ class KaryawanResource extends Resource
                                 if (! auth()->user()?->hasRole('super_admin')) {
                                     return true;
                                 }
-                                return $get('role') === 'karyawan';
+                                $role = $get('role');
+                                return $role === 'karyawan' || empty($role);
                             })
+                            ->validationMessages([
+                                'required' => 'Tipe personil wajib dipilih.',
+                            ])
                             ->dehydrated()
                             ->dehydrateStateUsing(function ($state, Forms\Get $get) {
                                 $role = $get('role');
                                 if (auth()->user()?->hasRole('super_admin') && $role && $role !== 'karyawan') {
                                     return null;
                                 }
-                                return $state;
+                                return $state ?? 'helpman';
                             }),
                         TextInput::make('password')
                             ->label('Password')
@@ -184,7 +190,20 @@ class KaryawanResource extends Resource
                             ->directory('avatars')
                             ->disk('public')
                             ->avatar()
-                            ->maxFiles(1),
+                            ->maxFiles(1)
+                            ->formatStateUsing(function ($state) {
+                                if (blank($state)) {
+                                    return null;
+                                }
+                                if (Storage::disk('public')->exists($state)) {
+                                    return $state;
+                                }
+                                $withDir = 'avatars/' . ltrim($state, '/');
+                                if (Storage::disk('public')->exists($withDir)) {
+                                    return $withDir;
+                                }
+                                return null;
+                            }),
                     ]),
             ]);
     }
@@ -204,8 +223,7 @@ class KaryawanResource extends Resource
                 Tables\Columns\ImageColumn::make('avatar_url')
                     ->label('Foto')
                     ->circular()
-                    ->disk('public')
-                    ->defaultImageUrl(fn (User $record): string => 'https://ui-avatars.com/api/?name=' . urlencode($record->name) . '&color=FFFFFF&background=0284c7'),
+                    ->getStateUsing(fn (User $record): string => $record->avatar_photo_url),
                 Tables\Columns\TextColumn::make('name')
                     ->label('Nama Karyawan')
                     ->searchable()
@@ -353,8 +371,7 @@ class KaryawanResource extends Resource
                                         ImageEntry::make('avatar_url')
                                             ->label('Foto Profil')
                                             ->circular()
-                                            ->disk('public')
-                                            ->defaultImageUrl(fn (User $record): string => 'https://ui-avatars.com/api/?name=' . urlencode($record->name) . '&color=FFFFFF&background=0284c7')
+                                            ->getStateUsing(fn (User $record): string => $record->avatar_photo_url)
                                             ->columnSpan(1),
                                         InfolistGrid::make(2)
                                             ->schema([
@@ -514,6 +531,7 @@ class KaryawanResource extends Resource
                                     'helpman' => 'Helpman (Lapangan)',
                                     'joki' => 'Joki (Tugas / Digital)',
                                 ])
+                                ->default(fn (?User $record) => $record?->tipe_karyawan ?? 'helpman')
                                 ->placeholder('Pilih Tipe Personil (Helpman / Joki)')
                                 ->selectablePlaceholder(false)
                                 ->visible(function (Forms\Get $get, ?User $record) {
@@ -527,15 +545,19 @@ class KaryawanResource extends Resource
                                     if (! auth()->user()?->hasRole('super_admin')) {
                                         return true;
                                     }
-                                    return $get('role') === 'karyawan';
+                                    $role = $get('role');
+                                    return $role === 'karyawan' || empty($role);
                                 })
+                                ->validationMessages([
+                                    'required' => 'Tipe personil wajib dipilih.',
+                                ])
                                 ->dehydrated()
                                 ->dehydrateStateUsing(function ($state, Forms\Get $get) {
                                     $role = $get('role');
                                     if (auth()->user()?->hasRole('super_admin') && $role && $role !== 'karyawan') {
                                         return null;
                                     }
-                                    return $state;
+                                    return $state ?? 'helpman';
                                 }),
                             Toggle::make('is_visible')
                                 ->label('Status Siaga / Aktif')
@@ -546,7 +568,20 @@ class KaryawanResource extends Resource
                                 ->directory('avatars')
                                 ->disk('public')
                                 ->avatar()
-                                ->maxFiles(1),
+                                ->maxFiles(1)
+                                ->formatStateUsing(function ($state) {
+                                    if (blank($state)) {
+                                        return null;
+                                    }
+                                    if (Storage::disk('public')->exists($state)) {
+                                        return $state;
+                                    }
+                                    $withDir = 'avatars/' . ltrim($state, '/');
+                                    if (Storage::disk('public')->exists($withDir)) {
+                                        return $withDir;
+                                    }
+                                    return null;
+                                }),
                         ]),
                     ])
                     ->using(function(User $user, array $data): User

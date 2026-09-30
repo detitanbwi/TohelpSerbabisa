@@ -38,7 +38,7 @@ class HelpmanApiController extends Controller
                     'id' => $h->cabang->id,
                     'nama' => $h->cabang->nama,
                 ] : null,
-                'avatar_url' => $h->avatar_url,
+                'avatar_url' => $h->avatar_photo_url,
             ];
         });
 

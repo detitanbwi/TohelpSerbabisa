@@ -16,13 +16,7 @@
             <div class="row align-items-center">
                 @forelse($karyawan as $employee)
                     <div class="col-md-6 col-lg-4 mb-5">
-                        @if ($employee['avatar_url'])
-                            <img src="{{ asset('storage/' . $employee['avatar_url']) }}" alt="Avatar {{ $employee['name'] }}"
-                                class="img-fluid">
-                        @else
-                            <img src="https://ui-avatars.com/api/?name={{ urlencode($employee['name']) }}&background=4F46E5&color=fff&size=900"
-                                alt="Avatar {{ $employee['name'] }}" class="img-fluid">
-                        @endif
+                        <img src="{{ $employee['avatar_url'] }}" alt="Avatar {{ $employee['name'] }}" class="img-fluid rounded-circle" style="width: 120px; height: 120px; object-fit: cover;">
                         <h4 class="element-title mt-3 mb-1">{{ $employee['name'] }}</h4>
                         <div class="d-flex align-items-center gap-2 mb-2">
                             @if (($employee['tipe_karyawan'] ?? 'helpman') === 'joki')

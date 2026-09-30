@@ -31,6 +31,7 @@ use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Hash;
+use Illuminate\Support\Facades\Storage;
 
 class UserLainResource extends Resource
 {
@@ -178,7 +179,20 @@ class UserLainResource extends Resource
                             ->directory('avatars')
                             ->disk('public')
                             ->avatar()
-                            ->maxFiles(1),
+                            ->maxFiles(1)
+                            ->formatStateUsing(function ($state) {
+                                if (blank($state)) {
+                                    return null;
+                                }
+                                if (Storage::disk('public')->exists($state)) {
+                                    return $state;
+                                }
+                                $withDir = 'avatars/' . ltrim($state, '/');
+                                if (Storage::disk('public')->exists($withDir)) {
+                                    return $withDir;
+                                }
+                                return null;
+                            }),
                     ]),
             ]);
     }
@@ -194,8 +208,7 @@ class UserLainResource extends Resource
                 Tables\Columns\ImageColumn::make('avatar_url')
                     ->label('Foto')
                     ->circular()
-                    ->disk('public')
-                    ->defaultImageUrl(fn (User $record): string => 'https://ui-avatars.com/api/?name=' . urlencode($record->name) . '&color=FFFFFF&background=0284c7'),
+                    ->getStateUsing(fn (User $record): string => $record->avatar_photo_url),
                 Tables\Columns\TextColumn::make('name')
                     ->label('Nama User')
                     ->weight('font-semibold')
@@ -295,8 +308,7 @@ class UserLainResource extends Resource
                                         ImageEntry::make('avatar_url')
                                             ->label('Foto Profil')
                                             ->circular()
-                                            ->disk('public')
-                                            ->defaultImageUrl(fn (User $record): string => 'https://ui-avatars.com/api/?name=' . urlencode($record->name) . '&color=FFFFFF&background=0284c7')
+                                            ->getStateUsing(fn (User $record): string => $record->avatar_photo_url)
                                             ->columnSpan(1),
                                         InfolistGrid::make(2)
                                             ->schema([
@@ -424,7 +436,20 @@ class UserLainResource extends Resource
                                     ->directory('avatars')
                                     ->disk('public')
                                     ->avatar()
-                                    ->maxFiles(1),
+                                    ->maxFiles(1)
+                                    ->formatStateUsing(function ($state) {
+                                        if (blank($state)) {
+                                            return null;
+                                        }
+                                        if (Storage::disk('public')->exists($state)) {
+                                            return $state;
+                                        }
+                                        $withDir = 'avatars/' . ltrim($state, '/');
+                                        if (Storage::disk('public')->exists($withDir)) {
+                                            return $withDir;
+                                        }
+                                        return null;
+                                    }),
                             ]),
                     ])
                     ->using(function (User $record, array $data): User {

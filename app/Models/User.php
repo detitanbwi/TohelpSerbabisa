@@ -66,9 +66,30 @@ class User extends Authenticatable implements HasAvatar, FilamentUser, HasMedia,
         return $this->hasOne(Cabang::class, 'manager_id');
     }
 
+    public function getAvatarPhotoUrlAttribute(): string
+    {
+        if (!empty($this->avatar_url)) {
+            if (filter_var($this->avatar_url, FILTER_VALIDATE_URL)) {
+                return $this->avatar_url;
+            }
+
+            $cleanPath = ltrim($this->avatar_url, '/');
+            if (Storage::disk('public')->exists($cleanPath)) {
+                return asset('storage/' . $cleanPath);
+            }
+
+            $avatarPath = 'avatars/' . $cleanPath;
+            if (Storage::disk('public')->exists($avatarPath)) {
+                return asset('storage/' . $avatarPath);
+            }
+        }
+
+        return 'https://ui-avatars.com/api/?name=' . urlencode($this->name ?: 'User') . '&color=FFFFFF&background=0284c7&bold=true';
+    }
+
     public function getFilamentAvatarUrl(): ?string
     {
-        return $this->avatar_url ? Storage::url("$this->avatar_url") : null;
+        return $this->avatar_photo_url;
     }
 
     /**
