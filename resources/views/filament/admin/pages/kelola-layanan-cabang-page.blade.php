@@ -56,7 +56,7 @@
                 <span class="h-px bg-gray-200 dark:bg-gray-700 flex-1"></span>
             </div>
             <p class="text-xs text-gray-500 mt-1">
-                Atur urutan tampilan layanan di website cabang ini dengan <strong>menyeret (drag & drop)</strong> kartu layanan atau menggunakan tombol <strong>⬆️ / ⬇️</strong>. Anda juga dapat menyesuaikan tarif khusus atau ketersediaan masing-masing layanan.
+                Atur urutan tampilan layanan di website cabang ini dengan <strong>menyeret (drag & drop)</strong> icon ☰ pada kartu layanan. Urutan akan langsung tersimpan secara otomatis.
             </p>
         </div>
 

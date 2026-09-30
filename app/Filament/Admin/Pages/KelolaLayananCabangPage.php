@@ -185,6 +185,18 @@ class KelolaLayananCabangPage extends Page
         $cleaned = array_values(array_filter(array_map('intval', $orderedIds), fn ($id) => in_array($id, $allActiveLayanans)));
         $missing = array_values(array_diff($allActiveLayanans, $cleaned));
         $this->orderedLayananIds = array_merge($cleaned, $missing);
+
+        if ($this->selectedCabangId) {
+            Cabang::where('id', $this->selectedCabangId)->update([
+                'urutan_layanan' => $this->orderedLayananIds,
+            ]);
+
+            Notification::make()
+                ->title('Urutan Berhasil Disimpan')
+                ->body('Urutan tampilan layanan untuk ' . $this->selectedCabangNama . ' otomatis disimpan.')
+                ->success()
+                ->send();
+        }
     }
 
     public function moveLayanan(int $draggedId, int $targetId): void
