@@ -23,7 +23,10 @@ class LayananService
                 $cabangId = session('selected_cabang_id') ?? request('cabang_id') ?? Cabang::first()?->id;
             }
 
-            return Layanan::with([
+            $cabang = $cabangId ? Cabang::find($cabangId) : null;
+            $customOrder = ($cabang && is_array($cabang->urutan_layanan)) ? array_flip($cabang->urutan_layanan) : [];
+
+            $collection = Layanan::with([
                 'subLayanans' => function ($q) {
                     $q->where('is_active', true)->orderBy('urutan');
                 },
@@ -45,8 +48,15 @@ class LayananService
                     $layanan->setRelation('subLayanans', $availableSubs);
 
                     return $availableSubs->isNotEmpty();
-                })
-                ->values();
+                });
+
+            if (!empty($customOrder)) {
+                $collection = $collection->sortBy(function (Layanan $layanan) use ($customOrder) {
+                    return $customOrder[$layanan->id] ?? (999 + $layanan->urutan);
+                });
+            }
+
+            return $collection->values();
         } catch (\Throwable $e) {
             Log::error("Error loading available layanans for cabang {$cabangId}: " . $e->getMessage());
             return collect();

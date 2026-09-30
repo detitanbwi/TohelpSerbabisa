@@ -241,7 +241,7 @@
                 <span class="h-px bg-gray-200 dark:bg-gray-700 flex-1"></span>
             </div>
             <p class="text-xs text-gray-500 mt-1">
-                Atur ketersediaan dan harga varian paket jasa reguler (Bersih-bersih, Pindahan, Nemenin, Jastip, Service, dll.) untuk Cabang {{ $this->selectedCabangNama }}.
+                Atur urutan tampilan layanan di website cabang ini menggunakan tombol naik/turun (⬆️/⬇️), serta ketersediaan dan harga varian paket jasa reguler untuk <strong>Cabang {{ $this->selectedCabangNama }}</strong>.
             </p>
         </div>
 
@@ -261,9 +261,33 @@
                 <x-filament::section 
                     collapsible 
                     :collapsed="true"
+                    wire:key="cabang-layanan-card-{{ $layanan->id }}"
                 >
                     <x-slot name="heading">
                         <div class="flex items-center gap-2.5">
+                            <div class="flex items-center gap-1 mr-1" onclick="event.stopPropagation()">
+                                <button 
+                                    type="button" 
+                                    wire:click="moveLayananUp({{ $layanan->id }})"
+                                    @disabled($loop->first)
+                                    class="p-1 rounded bg-gray-100 hover:bg-gray-200 dark:bg-gray-800 dark:hover:bg-gray-700 disabled:opacity-30 disabled:cursor-not-allowed transition"
+                                    title="Geser Naik (Urutan Lebih Awal)"
+                                >
+                                    <x-filament::icon icon="heroicon-m-chevron-up" class="w-4 h-4 text-gray-700 dark:text-gray-300" />
+                                </button>
+                                <button 
+                                    type="button" 
+                                    wire:click="moveLayananDown({{ $layanan->id }})"
+                                    @disabled($loop->last)
+                                    class="p-1 rounded bg-gray-100 hover:bg-gray-200 dark:bg-gray-800 dark:hover:bg-gray-700 disabled:opacity-30 disabled:cursor-not-allowed transition"
+                                    title="Geser Turun (Urutan Lebih Akhir)"
+                                >
+                                    <x-filament::icon icon="heroicon-m-chevron-down" class="w-4 h-4 text-gray-700 dark:text-gray-300" />
+                                </button>
+                            </div>
+                            <span class="inline-flex items-center justify-center w-6 h-6 rounded-full bg-primary-50 text-primary-700 dark:bg-primary-950 dark:text-primary-300 font-bold text-xs border border-primary-200 dark:border-primary-800">
+                                {{ $loop->iteration }}
+                            </span>
                             <img src="{{ $layanan->image_url }}" alt="{{ $layanan->nama }}" class="w-7 h-7 rounded object-cover shadow-sm bg-white p-0.5 border">
                             <span class="font-semibold text-gray-900 dark:text-white">{{ $layanan->nama }}</span>
                         </div>

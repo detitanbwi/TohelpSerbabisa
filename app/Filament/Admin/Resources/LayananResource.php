@@ -93,12 +93,6 @@ class LayananResource extends Resource
                                     ->required()
                                     ->helperText('Awalan ID Transaksi unik saat pemesanan (misal: EDT-260917001).'),
 
-                                TextInput::make('urutan')
-                                    ->label('Urutan Tampilan')
-                                    ->numeric()
-                                    ->default(0)
-                                    ->helperText('Semakin kecil angka, semakin awal ditampilkan.'),
-
                                 Toggle::make('is_transportasi')
                                     ->label('Layanan Transportasi (Jarak / KM)')
                                     ->helperText('Aktifkan jika layanan ini berbasis rute perjalanan Google Maps (seperti Ojek atau Taxi).')
@@ -291,6 +285,9 @@ class LayananResource extends Resource
     public static function table(Table $table): Table
     {
         return $table
+            ->reorderable('urutan')
+            ->paginated(false)
+            ->defaultSort('urutan')
             ->columns([
                 TextColumn::make('urutan')
                     ->label('#')
@@ -351,7 +348,6 @@ class LayananResource extends Resource
                     ->dateTime('d M Y H:i')
                     ->toggleable(isToggledHiddenByDefault: true),
             ])
-            ->defaultSort('urutan')
             ->actions([
                 Tables\Actions\EditAction::make(),
                 Tables\Actions\DeleteAction::make(),

@@ -24,6 +24,7 @@ class Cabang extends Model
         'taxi_tarif_per_km' => 'integer',
         'taxi_tarif_per_km_lanjutan' => 'integer',
         'taxi_surcharge_per_km' => 'integer',
+        'urutan_layanan' => 'array',
     ];
 
     protected static function booted(): void

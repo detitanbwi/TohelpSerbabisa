@@ -22,6 +22,7 @@ class KelolaLayananCabangPage extends Page
 
     public ?int $selectedCabangId = null;
     public array $items = [];
+    public array $orderedLayananIds = [];
 
     // Konfigurasi Tarif Transportasi Cabang (Ojek & Taxi)
     public bool $is_ojek_aktif = true;
@@ -91,6 +92,7 @@ class KelolaLayananCabangPage extends Page
     {
         if (!$this->selectedCabangId) {
             $this->items = [];
+            $this->orderedLayananIds = [];
             return;
         }
 
@@ -110,7 +112,7 @@ class KelolaLayananCabangPage extends Page
             'taxi_surcharge_per_km' => (int) ($masterTaxi?->surcharge_per_km ?? 2000),
         ];
 
-        // 2. Muat data tarif transportasi aktual dari tabel Cabang
+        // 2. Muat data tarif transportasi aktual & urutan layanan dari tabel Cabang
         $cabang = Cabang::find($this->selectedCabangId);
         if ($cabang) {
             $this->is_ojek_aktif = (bool) $cabang->is_ojek_aktif;
@@ -126,6 +128,19 @@ class KelolaLayananCabangPage extends Page
             $this->taxi_surcharge_per_km = $cabang->taxi_surcharge_per_km ?: $this->rekomendasi['taxi_surcharge_per_km'];
 
             $this->free_distance_km = (float) ($cabang->free_distance_km ?: $this->rekomendasi['free_distance_km']);
+
+            // Inisialisasi urutan layanan cabang
+            $allRegularLayanans = Layanan::where('is_active', true)
+                ->where('is_transportasi', false)
+                ->whereNotIn('slug', ['ojek', 'mobil', 'taxi'])
+                ->orderBy('urutan')
+                ->pluck('id')
+                ->toArray();
+
+            $savedOrder = is_array($cabang->urutan_layanan) ? $cabang->urutan_layanan : [];
+            $validOrder = array_values(array_filter($savedOrder, fn ($id) => in_array($id, $allRegularLayanans)));
+            $missing = array_values(array_diff($allRegularLayanans, $validOrder));
+            $this->orderedLayananIds = array_merge($validOrder, $missing);
         }
 
         // 3. Muat sub-layanan reguler (non-transportasi)
@@ -168,16 +183,46 @@ class KelolaLayananCabangPage extends Page
         $this->items = $loaded;
     }
 
+    public function moveLayananUp(int $layananId): void
+    {
+        $index = array_search($layananId, $this->orderedLayananIds);
+        if ($index !== false && $index > 0) {
+            $prev = $this->orderedLayananIds[$index - 1];
+            $this->orderedLayananIds[$index - 1] = $layananId;
+            $this->orderedLayananIds[$index] = $prev;
+            $this->orderedLayananIds = array_values($this->orderedLayananIds);
+        }
+    }
+
+    public function moveLayananDown(int $layananId): void
+    {
+        $index = array_search($layananId, $this->orderedLayananIds);
+        if ($index !== false && $index < count($this->orderedLayananIds) - 1) {
+            $next = $this->orderedLayananIds[$index + 1];
+            $this->orderedLayananIds[$index + 1] = $layananId;
+            $this->orderedLayananIds[$index] = $next;
+            $this->orderedLayananIds = array_values($this->orderedLayananIds);
+        }
+    }
+
     public function getLayanansProperty()
     {
-        return Layanan::with(['subLayanans' => function ($q) {
+        $allLayanans = Layanan::with(['subLayanans' => function ($q) {
             $q->where('is_active', true)->orderBy('urutan');
         }])
         ->where('is_active', true)
         ->where('is_transportasi', false)
         ->whereNotIn('slug', ['ojek', 'mobil', 'taxi'])
-        ->orderBy('urutan')
         ->get();
+
+        if (empty($this->orderedLayananIds)) {
+            return $allLayanans->sortBy('urutan')->values();
+        }
+
+        $orderMap = array_flip($this->orderedLayananIds);
+        return $allLayanans->sortBy(function ($layanan) use ($orderMap) {
+            return $orderMap[$layanan->id] ?? (999 + $layanan->urutan);
+        })->values();
     }
 
     public function resetTransportRates(string $type): void
@@ -288,6 +333,7 @@ class KelolaLayananCabangPage extends Page
                     'taxi_surcharge_per_km' => (int) ($this->taxi_surcharge_per_km ?: $this->rekomendasi['taxi_surcharge_per_km']),
 
                     'free_distance_km' => (float) ($this->free_distance_km ?: $this->rekomendasi['free_distance_km']),
+                    'urutan_layanan' => $this->orderedLayananIds,
                 ]);
             }
 
