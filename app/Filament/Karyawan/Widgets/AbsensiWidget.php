@@ -101,7 +101,7 @@ class AbsensiWidget extends BaseWidget
                             ->image()
                             ->maxFiles(1)
                             ->disk('public')
-                            ->directory('bukti-absensi')
+                            ->directory('presensi/temp')
                             ->required(),
                     ])
                     ->action(function (array $data, User $record) {
@@ -140,8 +140,11 @@ class AbsensiWidget extends BaseWidget
                             $filePath = Storage::disk('public')->path($data['bukti_absen']);
                             if (file_exists($filePath)) {
                                 $absensi->addMedia($filePath)->toMediaCollection('bukti-absensi');
+                                @unlink($filePath);
                             } elseif (file_exists(storage_path('app/public/' . $data['bukti_absen']))) {
-                                $absensi->addMedia(storage_path('app/public/' . $data['bukti_absen']))->toMediaCollection('bukti-absensi');
+                                $fallbackPath = storage_path('app/public/' . $data['bukti_absen']);
+                                $absensi->addMedia($fallbackPath)->toMediaCollection('bukti-absensi');
+                                @unlink($fallbackPath);
                             }
 
                             // Langsung aktifkan status siaga personil di database
