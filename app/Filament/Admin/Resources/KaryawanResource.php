@@ -34,6 +34,7 @@ use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\SoftDeletingScope;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Hash;
+use Illuminate\Support\Facades\Storage;
 
 class KaryawanResource extends Resource
 {
@@ -53,7 +54,12 @@ class KaryawanResource extends Resource
     {
         $query = parent::getEloquentQuery()
             ->with(['media', 'roles', 'cabang'])
-            ->whereHas('roles', fn (Builder $q) => $q->where('name', 'karyawan'));
+            ->whereHas('roles', fn (Builder $q) => $q->where('name', 'karyawan'))
+            ->whereDoesntHave('roles', fn (Builder $q) => $q->whereIn('name', ['super_admin', 'owner']))
+            ->where('email', '!=', 'admin@gmail.com')
+            ->where('email', '!=', 'admin@tohelp.com')
+            ->where('username', '!=', 'owner')
+            ->where('email', '!=', 'owner@tohelp.com');
 
         if (auth()->user()?->hasRole('manager_cabang') && ! auth()->user()?->hasRole('super_admin')) {
             $query->where('cabang_id', auth()->user()->cabang_id);
@@ -135,6 +141,7 @@ class KaryawanResource extends Resource
                                 'helpman' => 'Helpman (Lapangan)',
                                 'joki' => 'Joki (Tugas / Digital)',
                             ])
+                            ->default(fn (?User $record) => $record?->tipe_karyawan ?? 'helpman')
                             ->placeholder('Pilih Tipe Personil (Helpman / Joki)')
                             ->selectablePlaceholder(false)
                             ->visible(function (Forms\Get $get, ?User $record) {
@@ -148,15 +155,19 @@ class KaryawanResource extends Resource
                                 if (! auth()->user()?->hasRole('super_admin')) {
                                     return true;
                                 }
-                                return $get('role') === 'karyawan';
+                                $role = $get('role');
+                                return $role === 'karyawan' || empty($role);
                             })
+                            ->validationMessages([
+                                'required' => 'Tipe personil wajib dipilih.',
+                            ])
                             ->dehydrated()
                             ->dehydrateStateUsing(function ($state, Forms\Get $get) {
                                 $role = $get('role');
                                 if (auth()->user()?->hasRole('super_admin') && $role && $role !== 'karyawan') {
                                     return null;
                                 }
-                                return $state;
+                                return $state ?? 'helpman';
                             }),
                         TextInput::make('password')
                             ->label('Password')
@@ -194,7 +205,12 @@ class KaryawanResource extends Resource
         return $table
             ->modifyQueryUsing(function (Builder $query) {
                 $query->with(['media', 'roles', 'cabang'])
-                      ->whereHas('roles', fn (Builder $q) => $q->where('name', 'karyawan'));
+                      ->whereHas('roles', fn (Builder $q) => $q->where('name', 'karyawan'))
+                      ->whereDoesntHave('roles', fn (Builder $q) => $q->whereIn('name', ['super_admin', 'owner']))
+                      ->where('email', '!=', 'admin@gmail.com')
+                      ->where('email', '!=', 'admin@tohelp.com')
+                      ->where('username', '!=', 'owner')
+                      ->where('email', '!=', 'owner@tohelp.com');
 
                 if (auth()->user()?->hasRole('manager_cabang') && ! auth()->user()?->hasRole('super_admin')) {
                     $query->where('cabang_id', auth()->user()->cabang_id);
@@ -204,8 +220,7 @@ class KaryawanResource extends Resource
                 Tables\Columns\ImageColumn::make('avatar_url')
                     ->label('Foto')
                     ->circular()
-                    ->disk('public')
-                    ->defaultImageUrl(fn (User $record): string => 'https://ui-avatars.com/api/?name=' . urlencode($record->name) . '&color=FFFFFF&background=0284c7'),
+                    ->getStateUsing(fn (User $record): string => $record->avatar_photo_url),
                 Tables\Columns\TextColumn::make('name')
                     ->label('Nama Karyawan')
                     ->searchable()
@@ -353,8 +368,7 @@ class KaryawanResource extends Resource
                                         ImageEntry::make('avatar_url')
                                             ->label('Foto Profil')
                                             ->circular()
-                                            ->disk('public')
-                                            ->defaultImageUrl(fn (User $record): string => 'https://ui-avatars.com/api/?name=' . urlencode($record->name) . '&color=FFFFFF&background=0284c7')
+                                            ->getStateUsing(fn (User $record): string => $record->avatar_photo_url)
                                             ->columnSpan(1),
                                         InfolistGrid::make(2)
                                             ->schema([
@@ -472,7 +486,7 @@ class KaryawanResource extends Resource
                                 ->label('Tanggal Lahir')
                                 ->required(fn(string $operation): bool => $operation === 'create')
                                 ->locale('id')
-                                ->formatStateUsing(fn(User $user) => $user?->custom_fields['tanggal_lahir'] ?? null),
+                                ->formatStateUsing(fn(?User $record) => $record?->custom_fields['tanggal_lahir'] ?? null),
                             Select::make('cabang_id')
                                 ->label('Cabang Penempatan')
                                 ->options(Cabang::all()->pluck('nama', 'id'))
@@ -514,6 +528,7 @@ class KaryawanResource extends Resource
                                     'helpman' => 'Helpman (Lapangan)',
                                     'joki' => 'Joki (Tugas / Digital)',
                                 ])
+                                ->default(fn (?User $record) => $record?->tipe_karyawan ?? 'helpman')
                                 ->placeholder('Pilih Tipe Personil (Helpman / Joki)')
                                 ->selectablePlaceholder(false)
                                 ->visible(function (Forms\Get $get, ?User $record) {
@@ -527,15 +542,19 @@ class KaryawanResource extends Resource
                                     if (! auth()->user()?->hasRole('super_admin')) {
                                         return true;
                                     }
-                                    return $get('role') === 'karyawan';
+                                    $role = $get('role');
+                                    return $role === 'karyawan' || empty($role);
                                 })
+                                ->validationMessages([
+                                    'required' => 'Tipe personil wajib dipilih.',
+                                ])
                                 ->dehydrated()
                                 ->dehydrateStateUsing(function ($state, Forms\Get $get) {
                                     $role = $get('role');
                                     if (auth()->user()?->hasRole('super_admin') && $role && $role !== 'karyawan') {
                                         return null;
                                     }
-                                    return $state;
+                                    return $state ?? 'helpman';
                                 }),
                             Toggle::make('is_visible')
                                 ->label('Status Siaga / Aktif')

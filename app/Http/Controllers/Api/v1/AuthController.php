@@ -184,7 +184,7 @@ class AuthController extends Controller
                 'lng' => (float) ($user->cabang->lng ?? $user->cabang->long),
             ] : null,
             'roles' => $user->getRoleNames(),
-            'avatar_url' => $user->avatar_url,
+            'avatar_url' => $user->avatar_photo_url,
         ];
     }
 }

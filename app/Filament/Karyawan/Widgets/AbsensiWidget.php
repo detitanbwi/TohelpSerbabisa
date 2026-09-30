@@ -40,8 +40,7 @@ class AbsensiWidget extends BaseWidget
                 Tables\Columns\ImageColumn::make('avatar_url')
                     ->label('Foto')
                     ->circular()
-                    ->disk('public')
-                    ->defaultImageUrl(fn (User $record): string => 'https://ui-avatars.com/api/?name=' . urlencode($record->name) . '&color=FFFFFF&background=0284c7'),
+                    ->getStateUsing(fn (User $record): string => $record->avatar_photo_url),
 
                 TextColumn::make('name')
                     ->label('Nama Karyawan')

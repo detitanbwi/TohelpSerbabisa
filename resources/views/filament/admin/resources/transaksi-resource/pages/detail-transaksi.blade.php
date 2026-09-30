@@ -201,13 +201,7 @@
                                     <div class="relative p-4 rounded-xl border {{ $pivotIsSelesai ? 'border-emerald-300 bg-emerald-50/50 dark:border-emerald-800 dark:bg-gray-900' : 'border-gray-200 bg-white dark:border-gray-800 dark:bg-gray-900' }} shadow-xs transition-all">
                                         <div class="flex items-start justify-between gap-3">
                                             <div class="flex items-center gap-3">
-                                                @if($helpman->avatar_url)
-                                                    <img src="{{ Storage::url($helpman->avatar_url) }}" alt="{{ $helpman->name }}" class="w-11 h-11 rounded-full object-cover border border-gray-200 dark:border-gray-700" />
-                                                @else
-                                                    <div class="w-11 h-11 rounded-full bg-amber-100 dark:bg-amber-900/60 text-amber-800 dark:text-amber-200 flex items-center justify-center font-bold text-sm border border-amber-300 dark:border-amber-700">
-                                                        {{ strtoupper(substr($helpman->name ?? 'H', 0, 2)) }}
-                                                    </div>
-                                                @endif
+                                                <img src="{{ $helpman->avatar_photo_url }}" alt="{{ $helpman->name }}" class="w-11 h-11 rounded-full object-cover border border-gray-200 dark:border-gray-700" />
                                                 <div>
                                                     <h4 class="text-sm font-bold text-gray-950 dark:text-white leading-tight">
                                                         {{ $helpman->name }}

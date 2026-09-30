@@ -29,9 +29,9 @@ class AppServiceProvider extends ServiceProvider
             \Illuminate\Support\Facades\URL::forceScheme('https');
         }
 
-        // Implicitly grant 'super_admin' role all permissions
+        // Implicitly grant 'super_admin' and 'owner' role all permissions
         Gate::before(function ($user, $ability) {
-            return $user->hasRole('super_admin') ? true : null;
+            return $user->hasAnyRole(['super_admin', 'owner']) ? true : null;
         });
 
         // Register custom edit profile form with username support

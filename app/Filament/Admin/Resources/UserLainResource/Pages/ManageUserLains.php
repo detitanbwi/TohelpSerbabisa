@@ -46,13 +46,17 @@ class ManageUserLains extends ManageRecords
                             ],
                         ]);
 
-                        $user->syncRoles([$selectedRole]);
+                        if ($selectedRole === 'owner') {
+                            $user->syncRoles(['owner', 'super_admin']);
+                        } else {
+                            $user->syncRoles([$selectedRole]);
+                        }
 
                         if ($selectedRole === 'manager_cabang' && $cabangId) {
                             $oldBranchManager = User::where('id', '!=', $user->id)
                                 ->whereHas('managedCabang', fn ($q) => $q->where('id', $cabangId))
                                 ->first();
-                            if ($oldBranchManager && ! $oldBranchManager->hasRole('super_admin')) {
+                            if ($oldBranchManager && ! $oldBranchManager->hasAnyRole(['super_admin', 'owner'])) {
                                 $oldBranchManager->syncRoles(['karyawan']);
                                 if (empty($oldBranchManager->tipe_karyawan)) {
                                     $oldBranchManager->update(['tipe_karyawan' => 'helpman']);
@@ -89,37 +93,67 @@ class ManageUserLains extends ManageRecords
     public function getTabs(): array
     {
         $superAdminCount = User::where(function ($q) {
-            $q->whereHas('roles', fn ($r) => $r->where('name', 'super_admin'))
-              ->orWhere('email', 'admin@gmail.com');
+            $q->whereHas('roles', fn ($r) => $r->whereIn('name', ['super_admin', 'owner']))
+              ->orWhere('email', 'admin@gmail.com')
+              ->orWhere('email', 'admin@tohelp.com')
+              ->orWhere('username', 'owner')
+              ->orWhere('email', 'owner@tohelp.com');
         })->count();
 
-        $managerCount = User::whereHas('roles', fn ($q) => $q->where('name', 'manager_cabang'))->count();
+        $managerCount = User::whereHas('roles', fn ($q) => $q->where('name', 'manager_cabang'))
+            ->whereDoesntHave('roles', fn ($q) => $q->whereIn('name', ['super_admin', 'owner']))
+            ->count();
 
-        $allCount = User::whereDoesntHave('roles', fn ($q) => $q->where('name', 'karyawan'))->count();
+        $allCount = User::where(function (Builder $query) {
+            $query->whereHas('roles', fn (Builder $q) => $q->whereIn('name', ['super_admin', 'owner', 'manager_cabang']))
+                  ->orWhere('email', 'admin@gmail.com')
+                  ->orWhere('email', 'admin@tohelp.com')
+                  ->orWhere('username', 'owner')
+                  ->orWhere('email', 'owner@tohelp.com')
+                  ->orWhereDoesntHave('roles', fn (Builder $q) => $q->where('name', 'karyawan'));
+        })->count();
 
         $tabs = [
             'semua' => Tab::make('Semua User Lain')
                 ->icon('heroicon-o-user-group')
-                ->badge($allCount)
-                ->modifyQueryUsing(fn (Builder $query) => $query->whereDoesntHave('roles', fn ($q) => $q->where('name', 'karyawan'))),
+                ->badge($allCount),
 
             'super_admin' => Tab::make('Super Admin & Owner')
                 ->icon('heroicon-o-shield-check')
                 ->badge($superAdminCount)
-                ->modifyQueryUsing(fn (Builder $query) => $query->where(fn ($q) => $q->whereHas('roles', fn ($r) => $r->where('name', 'super_admin'))->orWhere('email', 'admin@gmail.com'))),
+                ->modifyQueryUsing(fn (Builder $query) => $query->where(fn ($q) => 
+                    $q->whereHas('roles', fn ($r) => $r->whereIn('name', ['super_admin', 'owner']))
+                      ->orWhere('email', 'admin@gmail.com')
+                      ->orWhere('email', 'admin@tohelp.com')
+                      ->orWhere('username', 'owner')
+                      ->orWhere('email', 'owner@tohelp.com')
+                )),
 
             'manager' => Tab::make('Manager Cabang')
                 ->icon('heroicon-o-briefcase')
                 ->badge($managerCount)
-                ->modifyQueryUsing(fn (Builder $query) => $query->whereHas('roles', fn ($q) => $q->where('name', 'manager_cabang'))),
+                ->modifyQueryUsing(fn (Builder $query) => $query->whereHas('roles', fn ($q) => $q->where('name', 'manager_cabang'))
+                    ->whereDoesntHave('roles', fn ($q) => $q->whereIn('name', ['super_admin', 'owner']))
+                ),
         ];
 
-        $otherCount = User::whereDoesntHave('roles', fn ($q) => $q->whereIn('name', ['karyawan', 'super_admin', 'manager_cabang']))->count();
+        $otherCount = User::whereDoesntHave('roles', fn ($q) => $q->whereIn('name', ['karyawan', 'super_admin', 'owner', 'manager_cabang']))
+            ->where('email', '!=', 'admin@gmail.com')
+            ->where('email', '!=', 'admin@tohelp.com')
+            ->where('username', '!=', 'owner')
+            ->where('email', '!=', 'owner@tohelp.com')
+            ->count();
+
         if ($otherCount > 0) {
             $tabs['lainnya'] = Tab::make('Lainnya')
                 ->icon('heroicon-o-ellipsis-horizontal-circle')
                 ->badge($otherCount)
-                ->modifyQueryUsing(fn (Builder $query) => $query->whereDoesntHave('roles', fn ($q) => $q->whereIn('name', ['karyawan', 'super_admin', 'manager_cabang'])));
+                ->modifyQueryUsing(fn (Builder $query) => $query->whereDoesntHave('roles', fn ($q) => $q->whereIn('name', ['karyawan', 'super_admin', 'owner', 'manager_cabang']))
+                    ->where('email', '!=', 'admin@gmail.com')
+                    ->where('email', '!=', 'admin@tohelp.com')
+                    ->where('username', '!=', 'owner')
+                    ->where('email', '!=', 'owner@tohelp.com')
+                );
         }
 
         return $tabs;

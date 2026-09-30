@@ -68,8 +68,13 @@ class LihatAbsensiPage extends Page implements HasTable
                                 ImageEntry::make('bukti_foto')
                                     ->label('Foto Bukti Kehadiran')
                                     ->state(function (Absensi $record) {
-                                        return $record->getFirstMediaUrl('bukti-absensi') ?: null;
+                                        $media = $record->getFirstMedia('bukti-absensi');
+                                        if ($media && (file_exists($media->getPath()) || Storage::disk($media->disk ?? 'public')->exists($media->getPathRelativeToRoot()))) {
+                                            return $media->getUrl();
+                                        }
+                                        return null;
                                     })
+                                    ->defaultImageUrl('https://placehold.co/600x400/e2e8f0/475569?text=Bukti+Foto+Tidak+Tersedia')
                                     ->extraImgAttributes([
                                         'style' => 'max-height: 480px; width: auto; object-fit: contain; border-radius: 8px; margin: 0 auto; display: block;',
                                     ])
