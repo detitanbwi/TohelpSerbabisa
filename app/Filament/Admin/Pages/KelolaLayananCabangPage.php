@@ -450,7 +450,9 @@ class KelolaLayananCabangPage extends Page
                 ]);
             }
 
-            // 2. Simpan tarif paket sub-layanan reguler
+            // 2. Simpan tarif paket sub-layanan reguler via batch upsert
+            $now = now();
+            $upsertRows = [];
             foreach ($this->items as $subId => $data) {
                 $rawHarga = $data['custom_harga'] ?? null;
                 $parsedHarga = null;
@@ -463,18 +465,24 @@ class KelolaLayananCabangPage extends Page
                     }
                 }
 
-                CabangLayanan::updateOrCreate(
-                    [
-                        'cabang_id' => $this->selectedCabangId,
-                        'sub_layanan_id' => $subId,
-                    ],
-                    [
-                        'is_tersedia' => (bool) ($data['is_tersedia'] ?? true),
-                        'custom_harga' => $parsedHarga,
-                        'custom_satuan' => !empty($data['custom_satuan']) ? trim($data['custom_satuan']) : null,
-                        'custom_label' => !empty($data['custom_label']) ? trim($data['custom_label']) : null,
-                        'custom_catatan_nb' => !empty($data['custom_catatan_nb']) ? trim($data['custom_catatan_nb']) : null,
-                    ]
+                $upsertRows[] = [
+                    'cabang_id' => $this->selectedCabangId,
+                    'sub_layanan_id' => (int) $subId,
+                    'is_tersedia' => (bool) ($data['is_tersedia'] ?? true),
+                    'custom_harga' => $parsedHarga,
+                    'custom_satuan' => !empty($data['custom_satuan']) ? trim($data['custom_satuan']) : null,
+                    'custom_label' => !empty($data['custom_label']) ? trim($data['custom_label']) : null,
+                    'custom_catatan_nb' => !empty($data['custom_catatan_nb']) ? trim($data['custom_catatan_nb']) : null,
+                    'created_at' => $now,
+                    'updated_at' => $now,
+                ];
+            }
+
+            if (!empty($upsertRows)) {
+                CabangLayanan::upsert(
+                    $upsertRows,
+                    ['cabang_id', 'sub_layanan_id'],
+                    ['is_tersedia', 'custom_harga', 'custom_satuan', 'custom_label', 'custom_catatan_nb', 'updated_at']
                 );
             }
 

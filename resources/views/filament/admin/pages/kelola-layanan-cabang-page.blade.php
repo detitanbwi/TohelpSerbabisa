@@ -15,12 +15,18 @@
                 </div>
 
                 <div class="flex flex-wrap items-center gap-2">
-                    <x-filament::button color="gray" size="sm" icon="heroicon-o-check-circle" wire:click="toggleAll(true)">
-                        Aktifkan Semua
+                    <x-filament::button color="gray" size="sm" icon="heroicon-o-check-circle" wire:click="toggleAll(true)" wire:loading.attr="disabled" wire:target="toggleAll">
+                        <span wire:loading.remove wire:target="toggleAll(true)">Aktifkan Semua</span>
+                        <span wire:loading wire:target="toggleAll(true)" class="inline-flex items-center gap-1.5">
+                            <x-filament::loading-indicator class="h-3.5 w-3.5" /> Memproses...
+                        </span>
                     </x-filament::button>
 
-                    <x-filament::button color="gray" size="sm" icon="heroicon-o-x-circle" wire:click="toggleAll(false)">
-                        Nonaktifkan Semua
+                    <x-filament::button color="gray" size="sm" icon="heroicon-o-x-circle" wire:click="toggleAll(false)" wire:loading.attr="disabled" wire:target="toggleAll">
+                        <span wire:loading.remove wire:target="toggleAll(false)">Nonaktifkan Semua</span>
+                        <span wire:loading wire:target="toggleAll(false)" class="inline-flex items-center gap-1.5">
+                            <x-filament::loading-indicator class="h-3.5 w-3.5" /> Memproses...
+                        </span>
                     </x-filament::button>
                 </div>
             </div>
@@ -168,15 +174,17 @@
                                     <x-filament::badge :color="$is_ojek_aktif ? 'success' : 'danger'" size="sm">
                                         {{ $is_ojek_aktif ? 'Layanan Aktif' : 'Nonaktif' }}
                                     </x-filament::badge>
-                                    <x-filament::button color="gray" size="xs" wire:click="resetTransportRates('ojek')" icon="heroicon-o-arrow-path">
-                                        Reset Rekomendasi
+                                    <x-filament::button color="gray" size="xs" wire:click="resetTransportRates('ojek')" wire:loading.attr="disabled" wire:target="resetTransportRates('ojek')" icon="heroicon-o-arrow-path">
+                                        <span wire:loading.remove wire:target="resetTransportRates('ojek')">Reset Rekomendasi</span>
+                                        <span wire:loading wire:target="resetTransportRates('ojek')">Mereset...</span>
                                     </x-filament::button>
                                 @elseif($isTaxi)
                                     <x-filament::badge :color="$is_taxi_aktif ? 'success' : 'danger'" size="sm">
                                         {{ $is_taxi_aktif ? 'Layanan Aktif' : 'Nonaktif' }}
                                     </x-filament::badge>
-                                    <x-filament::button color="gray" size="xs" wire:click="resetTransportRates('taxi')" icon="heroicon-o-arrow-path">
-                                        Reset Rekomendasi
+                                    <x-filament::button color="gray" size="xs" wire:click="resetTransportRates('taxi')" wire:loading.attr="disabled" wire:target="resetTransportRates('taxi')" icon="heroicon-o-arrow-path">
+                                        <span wire:loading.remove wire:target="resetTransportRates('taxi')">Reset Rekomendasi</span>
+                                        <span wire:loading wire:target="resetTransportRates('taxi')">Mereset...</span>
                                     </x-filament::button>
                                 @else
                                     <x-filament::badge :color="$activeCount > 0 ? 'success' : 'danger'" size="sm">
@@ -187,16 +195,22 @@
                                         color="gray" 
                                         size="xs" 
                                         wire:click="toggleLayananGroup({{ $layanan->id }}, true)"
+                                        wire:loading.attr="disabled"
+                                        wire:target="toggleLayananGroup({{ $layanan->id }}, true)"
                                     >
-                                        Aktifkan Semua
+                                        <span wire:loading.remove wire:target="toggleLayananGroup({{ $layanan->id }}, true)">Aktifkan Semua</span>
+                                        <span wire:loading wire:target="toggleLayananGroup({{ $layanan->id }}, true)">Memproses...</span>
                                     </x-filament::button>
 
                                     <x-filament::button 
                                         color="gray" 
                                         size="xs" 
                                         wire:click="toggleLayananGroup({{ $layanan->id }}, false)"
+                                        wire:loading.attr="disabled"
+                                        wire:target="toggleLayananGroup({{ $layanan->id }}, false)"
                                     >
-                                        Nonaktifkan Semua
+                                        <span wire:loading.remove wire:target="toggleLayananGroup({{ $layanan->id }}, false)">Nonaktifkan Semua</span>
+                                        <span wire:loading wire:target="toggleLayananGroup({{ $layanan->id }}, false)">Memproses...</span>
                                     </x-filament::button>
                                 @endif
                             </div>
@@ -485,10 +499,19 @@
                 <span class="text-xs text-gray-500">
                     Setelah mengubah checklist atau mengisi tarif khusus, tekan tombol <strong>Simpan Pengaturan</strong> untuk menerapkan ke cabang terpilih.
                 </span>
-                <x-filament::button color="primary" icon="heroicon-o-check" wire:click="save">
-                    Simpan Pengaturan Layanan Cabang
+                <x-filament::button color="primary" icon="heroicon-o-check" wire:click="save" wire:loading.attr="disabled" wire:target="save">
+                    <span wire:loading.remove wire:target="save">Simpan Pengaturan Layanan Cabang</span>
+                    <span wire:loading wire:target="save" class="inline-flex items-center gap-1.5">
+                        <x-filament::loading-indicator class="h-4 w-4" /> Menyimpan Pengaturan...
+                    </span>
                 </x-filament::button>
             </div>
         </x-filament::section>
+
+        {{-- Floating Indicator for Drag-and-Drop Sorting --}}
+        <div wire:loading wire:target="updateLayananOrder" class="fixed bottom-6 right-6 z-50 bg-amber-600 dark:bg-amber-500 text-white text-xs font-semibold px-4 py-2.5 rounded-xl shadow-2xl flex items-center gap-2 transition-all">
+            <x-filament::loading-indicator class="h-4 w-4 text-white" />
+            <span>Menyimpan urutan layanan...</span>
+        </div>
     </div>
 </x-filament-panels::page>

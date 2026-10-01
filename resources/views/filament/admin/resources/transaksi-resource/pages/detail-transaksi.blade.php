@@ -169,9 +169,11 @@
                             <p class="text-xs text-gray-500 dark:text-gray-400">
                                 Perubahan harga akan langsung memperbarui nominal tagihan transaksi ini.
                             </p>
-                            <x-filament::button type="submit" color="primary" icon="heroicon-o-check">
+                            <x-filament::button type="submit" color="primary" icon="heroicon-o-check" wire:loading.attr="disabled" wire:target="updateHarga">
                                 <span wire:loading.remove wire:target="updateHarga">Simpan Perubahan Harga</span>
-                                <span wire:loading wire:target="updateHarga">Menyimpan...</span>
+                                <span wire:loading wire:target="updateHarga" class="inline-flex items-center gap-1.5">
+                                    <x-filament::loading-indicator class="h-4 w-4" /> Menyimpan...
+                                </span>
                             </x-filament::button>
                         </div>
                     </form>
@@ -254,8 +256,15 @@
                                                     size="xs" 
                                                     :color="$pivotIsSelesai ? 'gray' : 'success'"
                                                     :outlined="$pivotIsSelesai"
-                                                    wire:click="toggleHelpmanStatus({{ $helpman->id }})">
-                                                    {{ $pivotIsSelesai ? 'Batal Selesai' : 'Tandai Selesai' }}
+                                                    wire:click="toggleHelpmanStatus({{ $helpman->id }})"
+                                                    wire:loading.attr="disabled"
+                                                    wire:target="toggleHelpmanStatus({{ $helpman->id }})">
+                                                    <span wire:loading.remove wire:target="toggleHelpmanStatus({{ $helpman->id }})">
+                                                        {{ $pivotIsSelesai ? 'Batal Selesai' : 'Tandai Selesai' }}
+                                                    </span>
+                                                    <span wire:loading wire:target="toggleHelpmanStatus({{ $helpman->id }})" class="inline-flex items-center gap-1">
+                                                        <x-filament::loading-indicator class="h-3 w-3" /> Memproses...
+                                                    </span>
                                                 </x-filament::button>
 
                                                 <x-filament::button 
@@ -264,8 +273,13 @@
                                                     outlined
                                                     icon="heroicon-o-trash"
                                                     wire:click="removeHelpman({{ $helpman->id }})"
+                                                    wire:loading.attr="disabled"
+                                                    wire:target="removeHelpman({{ $helpman->id }})"
                                                     wire:confirm="Yakin ingin membatalkan penugasan Helpman {{ $helpman->name }} untuk transaksi ini?">
-                                                    Lepas
+                                                    <span wire:loading.remove wire:target="removeHelpman({{ $helpman->id }})">Lepas</span>
+                                                    <span wire:loading wire:target="removeHelpman({{ $helpman->id }})" class="inline-flex items-center gap-1">
+                                                        <x-filament::loading-indicator class="h-3 w-3" /> Melepas...
+                                                    </span>
                                                 </x-filament::button>
                                             </div>
                                         </div>
@@ -303,8 +317,11 @@
                                         </x-filament::input.select>
                                     </x-filament::input.wrapper>
                                 </div>
-                                <x-filament::button color="info" icon="heroicon-o-user-plus" wire:click="assignHelpman">
-                                    Tugaskan Helpman
+                                <x-filament::button color="info" icon="heroicon-o-user-plus" wire:click="assignHelpman" wire:loading.attr="disabled" wire:target="assignHelpman">
+                                    <span wire:loading.remove wire:target="assignHelpman">Tugaskan Helpman</span>
+                                    <span wire:loading wire:target="assignHelpman" class="inline-flex items-center gap-1.5">
+                                        <x-filament::loading-indicator class="h-4 w-4" /> Menugaskan...
+                                    </span>
                                 </x-filament::button>
                             </div>
                             <span class="text-[11px] text-gray-500 dark:text-gray-400 mt-2 block">
@@ -391,8 +408,11 @@
                                     :color="$record->status_transaksi === 'sukses' ? 'success' : 'gray'"
                                     :outlined="$record->status_transaksi !== 'sukses'"
                                     wire:click="setStatusTransaksi('sukses')"
+                                    wire:loading.attr="disabled"
+                                    wire:target="setStatusTransaksi"
                                     class="w-full justify-center">
-                                    Sukses
+                                    <span wire:loading.remove wire:target="setStatusTransaksi('sukses')">Sukses</span>
+                                    <span wire:loading wire:target="setStatusTransaksi('sukses')">...</span>
                                 </x-filament::button>
 
                                 <x-filament::button 
@@ -401,8 +421,11 @@
                                     :color="$record->status_transaksi === 'belum' ? 'warning' : 'gray'"
                                     :outlined="$record->status_transaksi !== 'belum'"
                                     wire:click="setStatusTransaksi('belum')"
+                                    wire:loading.attr="disabled"
+                                    wire:target="setStatusTransaksi"
                                     class="w-full justify-center">
-                                    Belum
+                                    <span wire:loading.remove wire:target="setStatusTransaksi('belum')">Belum</span>
+                                    <span wire:loading wire:target="setStatusTransaksi('belum')">...</span>
                                 </x-filament::button>
 
                                 <x-filament::button 
@@ -411,9 +434,12 @@
                                     :color="$record->status_transaksi === 'batal' ? 'danger' : 'gray'"
                                     :outlined="$record->status_transaksi !== 'batal'"
                                     wire:click="setStatusTransaksi('batal')"
+                                    wire:loading.attr="disabled"
+                                    wire:target="setStatusTransaksi"
                                     wire:confirm="Yakin ingin membatalkan transaksi ini?"
                                     class="w-full justify-center">
-                                    Batal
+                                    <span wire:loading.remove wire:target="setStatusTransaksi('batal')">Batal</span>
+                                    <span wire:loading wire:target="setStatusTransaksi('batal')">...</span>
                                 </x-filament::button>
                             </div>
                         </div>
@@ -430,8 +456,11 @@
                                     :color="$record->status_tugas === 'belum' ? 'warning' : 'gray'"
                                     :outlined="$record->status_tugas !== 'belum'"
                                     wire:click="setStatusTugas('belum')"
+                                    wire:loading.attr="disabled"
+                                    wire:target="setStatusTugas"
                                     class="w-full justify-center">
-                                    Belum
+                                    <span wire:loading.remove wire:target="setStatusTugas('belum')">Belum</span>
+                                    <span wire:loading wire:target="setStatusTugas('belum')">...</span>
                                 </x-filament::button>
 
                                 <x-filament::button 
@@ -440,8 +469,11 @@
                                     :color="$record->status_tugas === 'proses' ? 'info' : 'gray'"
                                     :outlined="$record->status_tugas !== 'proses'"
                                     wire:click="setStatusTugas('proses')"
+                                    wire:loading.attr="disabled"
+                                    wire:target="setStatusTugas"
                                     class="w-full justify-center">
-                                    Proses
+                                    <span wire:loading.remove wire:target="setStatusTugas('proses')">Proses</span>
+                                    <span wire:loading wire:target="setStatusTugas('proses')">...</span>
                                 </x-filament::button>
 
                                 <x-filament::button 
@@ -450,8 +482,11 @@
                                     :color="$record->status_tugas === 'selesai' ? 'success' : 'gray'"
                                     :outlined="$record->status_tugas !== 'selesai'"
                                     wire:click="setStatusTugas('selesai')"
+                                    wire:loading.attr="disabled"
+                                    wire:target="setStatusTugas"
                                     class="w-full justify-center">
-                                    Selesai
+                                    <span wire:loading.remove wire:target="setStatusTugas('selesai')">Selesai</span>
+                                    <span wire:loading wire:target="setStatusTugas('selesai')">...</span>
                                 </x-filament::button>
                             </div>
                         </div>

@@ -61,7 +61,7 @@ class CabangResource extends Resource
 
     public static function getEloquentQuery(): Builder
     {
-        $query = parent::getEloquentQuery();
+        $query = parent::getEloquentQuery()->withCount(['personils', 'managers']);
         $user = auth()->user();
 
         if ($user && $user->hasRole('manager_cabang') && ! $user->hasRole('super_admin')) {
@@ -446,11 +446,10 @@ class CabangResource extends Resource
                     ->sortable(),
 
                 TextColumn::make('personils_count')
-                    ->counts(['personils', 'managers'])
                     ->label('Total Personil')
                     ->getStateUsing(function (Cabang $record) {
-                        $total = $record->personils_count ?? $record->personils()->count();
-                        $managers = $record->managers_count ?? $record->managers()->count();
+                        $total = (int) ($record->personils_count ?? 0);
+                        $managers = (int) ($record->managers_count ?? 0);
                         $karyawans = max(0, $total - $managers);
                         return "{$total} Personil ({$managers} Manager, {$karyawans} Karyawan)";
                     })

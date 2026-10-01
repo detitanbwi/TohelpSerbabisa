@@ -46,6 +46,10 @@ class AdminPanelProvider extends PanelProvider
             ->path('admin')
             ->spa()
             ->unsavedChangesAlerts()
+            ->renderHook(
+                PanelsRenderHook::BODY_START,
+                fn () => view('filament.components.global-loading-indicator')
+            )
             ->favicon(asset('images/logo-tohelp-kecil.png?v=2'))
             ->login(\App\Filament\Pages\Auth\Login::class)
             ->colors([

@@ -284,14 +284,16 @@ class DetailTransaksi extends Page
         }
 
         $today = today()->toDateString();
+        $checkedInKaryawanIds = Absensi::whereDate('tanggal', $today)
+            ->pluck('karyawan_id')
+            ->flip()
+            ->toArray();
 
         return $query->with(['cabang'])
             ->orderBy('name')
             ->get()
-            ->map(function ($helpman) use ($today) {
-                $isStandBy = Absensi::where('karyawan_id', $helpman->id)
-                    ->whereDate('tanggal', $today)
-                    ->exists();
+            ->map(function ($helpman) use ($checkedInKaryawanIds) {
+                $isStandBy = isset($checkedInKaryawanIds[$helpman->id]);
 
                 return [
                     'id' => $helpman->id,

@@ -37,6 +37,10 @@ class KaryawanPanelProvider extends PanelProvider
             ->path('karyawan')
             ->spa()
             ->unsavedChangesAlerts()
+            ->renderHook(
+                PanelsRenderHook::BODY_START,
+                fn () => view('filament.components.global-loading-indicator')
+            )
             ->favicon(asset('images/logo-tohelp-kecil.png?v=2'))
             ->colors([
                 'primary' => Color::Amber,
