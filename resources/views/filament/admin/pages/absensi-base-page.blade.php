@@ -3,7 +3,7 @@
         {{ $this->form }}
 
         <x-filament::button class="mt-5" type="submit">
-            Simpan Waktu Absensi
+            Simpan Batas Waktu Presensi
         </x-filament::button>
     </form>
 </x-filament-panels::page>

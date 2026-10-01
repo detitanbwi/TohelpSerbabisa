@@ -34,9 +34,9 @@ class AbsensiOverviewWidget extends BaseWidget
 
         $statusDesc = match (true) {
             $employeeStatus['has_checked_in'] => "Check-In: {$employeeStatus['jam_masuk_formatted']} (Siap bertugas)",
-            $employeeStatus['time_status'] === 'early' => "Presensi dibuka pukul {$times['jam_masuk_formatted']} WIB",
-            $employeeStatus['time_status'] === 'open' => "Batas presensi pukul {$times['jam_keluar_formatted']} WIB. Segera presensi!",
-            default => "Lewat batas presensi ({$times['jam_keluar_formatted']} WIB). Anda tidak aktif hari ini.",
+            $employeeStatus['time_status'] === 'early' => "Batas awal presensi dibuka pukul {$times['jam_masuk_formatted']} WIB",
+            $employeeStatus['time_status'] === 'open' => "Batas akhir presensi pukul {$times['jam_keluar_formatted']} WIB. Segera presensi!",
+            default => "Melewati batas akhir presensi ({$times['jam_keluar_formatted']} WIB). Anda tidak aktif hari ini.",
         };
 
         $statUser = Stat::make('Status Anda Hari Ini', $statusValue)
@@ -44,9 +44,9 @@ class AbsensiOverviewWidget extends BaseWidget
             ->descriptionIcon($employeeStatus['status_keaktifan_icon'] ?? 'heroicon-m-information-circle')
             ->color($employeeStatus['status_keaktifan_badge'] ?? 'gray');
 
-        // Card 2: Ketentuan Jadwal Presensi Harian
-        $statJadwal = Stat::make('Ketentuan Jadwal Presensi', "{$times['jam_masuk_formatted']} - {$times['jam_keluar_formatted']} WIB")
-            ->description('Wajib presensi di rentang waktu ini agar berstatus Aktif')
+        // Card 2: Ketentuan Batas Presensi Harian
+        $statJadwal = Stat::make('Ketentuan Batas Presensi', "{$times['jam_masuk_formatted']} - {$times['jam_keluar_formatted']} WIB")
+            ->description("Batas Awal: {$times['jam_masuk_formatted']} WIB | Batas Akhir: {$times['jam_keluar_formatted']} WIB")
             ->descriptionIcon('heroicon-m-calendar-days')
             ->color('primary');
 
@@ -57,9 +57,9 @@ class AbsensiOverviewWidget extends BaseWidget
         $jamKeluar = $times['jam_keluar'];
 
         $waktuDesc = match ($timeStatus['status']) {
-            'early' => 'Menunggu jadwal presensi dibuka',
+            'early' => 'Menunggu batas awal presensi dibuka',
             'open' => '🟢 Sesi presensi sedang berlangsung',
-            default => '🔴 Sesi presensi telah berakhir',
+            default => '🔴 Melewati batas akhir presensi',
         };
 
         $clockHtml = new \Illuminate\Support\HtmlString("
@@ -102,11 +102,11 @@ class AbsensiOverviewWidget extends BaseWidget
                         const ss = String(jakarta.getUTCSeconds()).padStart(2, '0');
                         const cur = hh + ':' + mm + ':' + ss;
                         if (cur < '{$jamMasuk}') {
-                            this.descStr = 'Menunggu jadwal presensi dibuka';
+                            this.descStr = 'Menunggu batas awal presensi dibuka';
                         } else if (cur <= '{$jamKeluar}') {
                             this.descStr = '🟢 Sesi presensi sedang berlangsung';
                         } else {
-                            this.descStr = '🔴 Sesi presensi telah berakhir';
+                            this.descStr = '🔴 Melewati batas akhir presensi';
                         }
                     },
                     init() {

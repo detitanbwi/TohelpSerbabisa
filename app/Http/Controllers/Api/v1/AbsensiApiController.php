@@ -35,16 +35,16 @@ class AbsensiApiController extends Controller
 
         $isWithinTime = true;
         $timeStatus = 'open'; // 'early', 'open', 'late'
-        $timeMessage = "Jadwal presensi sedang dibuka ({$jamMasukSetting} - {$jamKeluarSetting} WIB).";
+        $timeMessage = "Sesi presensi sedang dibuka (Batas awal: {$jamMasukSetting} WIB - Batas akhir: {$jamKeluarSetting} WIB).";
 
         if ($nowTime < $times['jam_masuk']) {
             $isWithinTime = false;
             $timeStatus = 'early';
-            $timeMessage = "Presensi belum dibuka. Jadwal presensi dimulai pukul {$jamMasukSetting} hingga {$jamKeluarSetting} WIB.";
+            $timeMessage = "Presensi belum dibuka. Batas awal presensi dimulai pukul {$jamMasukSetting} WIB hingga batas akhir pukul {$jamKeluarSetting} WIB.";
         } elseif ($nowTime > $times['jam_keluar']) {
             $isWithinTime = false;
             $timeStatus = 'late';
-            $timeMessage = "Waktu presensi telah berakhir pada pukul {$jamKeluarSetting} WIB.";
+            $timeMessage = "Waktu presensi telah melewati batas akhir pada pukul {$jamKeluarSetting} WIB.";
         }
 
         return response()->json([
@@ -87,14 +87,14 @@ class AbsensiApiController extends Controller
         if ($nowTime < $jamMasuk) {
             return response()->json([
                 'status' => 'error',
-                'message' => "Presensi belum dibuka. Jadwal presensi dimulai pukul {$jamMasukFormatted} hingga {$jamKeluarFormatted} WIB.",
+                'message' => "Presensi belum dibuka. Batas awal presensi dimulai pukul {$jamMasukFormatted} WIB hingga batas akhir pukul {$jamKeluarFormatted} WIB.",
             ], 422);
         }
 
         if ($nowTime > $jamKeluar) {
             return response()->json([
                 'status' => 'error',
-                'message' => "Waktu presensi telah berakhir pada pukul {$jamKeluarFormatted} WIB. Presensi di luar jam yang ditentukan tidak dapat diterima.",
+                'message' => "Waktu presensi telah melewati batas akhir (pukul {$jamKeluarFormatted} WIB). Presensi di luar rentang jadwal tidak dapat diterima.",
             ], 422);
         }
 

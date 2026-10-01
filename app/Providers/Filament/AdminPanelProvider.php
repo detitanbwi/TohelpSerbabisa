@@ -122,7 +122,7 @@ class AdminPanelProvider extends PanelProvider
                             ...(KelolaLayananCabangPage::canAccess() ? KelolaLayananCabangPage::getNavigationItems() : []),
                             ...KaryawanResource::getNavigationItems(),
                             ...(UserLainResource::canAccess() ? UserLainResource::getNavigationItems() : []),
-                            ...AbsensiBasePage::getNavigationItems(),
+                            ...(AbsensiBasePage::canAccess() ? AbsensiBasePage::getNavigationItems() : []),
                         ]),
                     NavigationGroup::make('Pengaturan')
                         ->items([
