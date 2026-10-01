@@ -27,6 +27,51 @@ class Cabang extends Model
         'urutan_layanan' => 'array',
     ];
 
+    public function setOjekTarifMinimumAttribute($value): void
+    {
+        $this->attributes['ojek_tarif_minimum'] = ($value !== null && $value !== '') ? max(0, (int) $value) : null;
+    }
+
+    public function setOjekTarifPerKmAttribute($value): void
+    {
+        $this->attributes['ojek_tarif_per_km'] = ($value !== null && $value !== '') ? max(0, (int) $value) : null;
+    }
+
+    public function setOjekTarifPerKmLanjutanAttribute($value): void
+    {
+        $this->attributes['ojek_tarif_per_km_lanjutan'] = ($value !== null && $value !== '') ? max(0, (int) $value) : null;
+    }
+
+    public function setOjekSurchargePerKmAttribute($value): void
+    {
+        $this->attributes['ojek_surcharge_per_km'] = ($value !== null && $value !== '') ? max(0, (int) $value) : null;
+    }
+
+    public function setTaxiTarifMinimumAttribute($value): void
+    {
+        $this->attributes['taxi_tarif_minimum'] = ($value !== null && $value !== '') ? max(0, (int) $value) : null;
+    }
+
+    public function setTaxiTarifPerKmAttribute($value): void
+    {
+        $this->attributes['taxi_tarif_per_km'] = ($value !== null && $value !== '') ? max(0, (int) $value) : null;
+    }
+
+    public function setTaxiTarifPerKmLanjutanAttribute($value): void
+    {
+        $this->attributes['taxi_tarif_per_km_lanjutan'] = ($value !== null && $value !== '') ? max(0, (int) $value) : null;
+    }
+
+    public function setTaxiSurchargePerKmAttribute($value): void
+    {
+        $this->attributes['taxi_surcharge_per_km'] = ($value !== null && $value !== '') ? max(0, (int) $value) : null;
+    }
+
+    public function setFreeDistanceKmAttribute($value): void
+    {
+        $this->attributes['free_distance_km'] = ($value !== null && $value !== '') ? max(0, (float) $value) : 0;
+    }
+
     protected static function booted(): void
     {
         static::saved(function (Cabang $cabang) {

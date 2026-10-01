@@ -323,6 +323,83 @@ class KelolaLayananCabangPage extends Page
         }
     }
 
+    public function updatedItems($value, $key): void
+    {
+        if (str_ends_with($key, '.custom_harga')) {
+            $parts = explode('.', $key);
+            $subId = $parts[0] ?? null;
+            if ($subId && isset($this->items[$subId]['custom_harga'])) {
+                $val = $this->items[$subId]['custom_harga'];
+                if ($val !== null && $val !== '' && (float) $val < 0) {
+                    $this->items[$subId]['custom_harga'] = 0;
+                }
+            }
+        }
+    }
+
+    public function updatedOjekTarifMinimum($value): void
+    {
+        if ($value !== null && $value !== '' && (int) $value < 0) {
+            $this->ojek_tarif_minimum = 0;
+        }
+    }
+
+    public function updatedOjekTarifPerKm($value): void
+    {
+        if ($value !== null && $value !== '' && (int) $value < 0) {
+            $this->ojek_tarif_per_km = 0;
+        }
+    }
+
+    public function updatedOjekTarifPerKmLanjutan($value): void
+    {
+        if ($value !== null && $value !== '' && (int) $value < 0) {
+            $this->ojek_tarif_per_km_lanjutan = 0;
+        }
+    }
+
+    public function updatedOjekSurchargePerKm($value): void
+    {
+        if ($value !== null && $value !== '' && (int) $value < 0) {
+            $this->ojek_surcharge_per_km = 0;
+        }
+    }
+
+    public function updatedTaxiTarifMinimum($value): void
+    {
+        if ($value !== null && $value !== '' && (int) $value < 0) {
+            $this->taxi_tarif_minimum = 0;
+        }
+    }
+
+    public function updatedTaxiTarifPerKm($value): void
+    {
+        if ($value !== null && $value !== '' && (int) $value < 0) {
+            $this->taxi_tarif_per_km = 0;
+        }
+    }
+
+    public function updatedTaxiTarifPerKmLanjutan($value): void
+    {
+        if ($value !== null && $value !== '' && (int) $value < 0) {
+            $this->taxi_tarif_per_km_lanjutan = 0;
+        }
+    }
+
+    public function updatedTaxiSurchargePerKm($value): void
+    {
+        if ($value !== null && $value !== '' && (int) $value < 0) {
+            $this->taxi_surcharge_per_km = 0;
+        }
+    }
+
+    public function updatedFreeDistanceKm($value): void
+    {
+        if ($value !== null && $value !== '' && (float) $value < 0) {
+            $this->free_distance_km = 0;
+        }
+    }
+
     public function save(): void
     {
         if (!$this->selectedCabangId) {
@@ -334,6 +411,22 @@ class KelolaLayananCabangPage extends Page
             return;
         }
 
+        $this->validate([
+            'ojek_tarif_minimum' => 'nullable|numeric|min:0',
+            'ojek_tarif_per_km' => 'nullable|numeric|min:0',
+            'ojek_tarif_per_km_lanjutan' => 'nullable|numeric|min:0',
+            'ojek_surcharge_per_km' => 'nullable|numeric|min:0',
+            'taxi_tarif_minimum' => 'nullable|numeric|min:0',
+            'taxi_tarif_per_km' => 'nullable|numeric|min:0',
+            'taxi_tarif_per_km_lanjutan' => 'nullable|numeric|min:0',
+            'taxi_surcharge_per_km' => 'nullable|numeric|min:0',
+            'free_distance_km' => 'nullable|numeric|min:0',
+            'items.*.custom_harga' => 'nullable|numeric|min:0',
+        ], [
+            'min' => 'Nilai tidak boleh bernilai negatif / minus.',
+            'numeric' => 'Nilai harus berupa angka yang valid.',
+        ]);
+
         DB::beginTransaction();
         try {
             // 1. Simpan tarif transportasi Ojek & Taxi Cabang
@@ -341,18 +434,18 @@ class KelolaLayananCabangPage extends Page
             if ($cabang) {
                 $cabang->update([
                     'is_ojek_aktif' => (bool) $this->is_ojek_aktif,
-                    'ojek_tarif_minimum' => (int) ($this->ojek_tarif_minimum ?: $this->rekomendasi['ojek_tarif_minimum']),
-                    'ojek_tarif_per_km' => (int) ($this->ojek_tarif_per_km ?: $this->rekomendasi['ojek_tarif_per_km']),
-                    'ojek_tarif_per_km_lanjutan' => $this->ojek_tarif_per_km_lanjutan ? (int) $this->ojek_tarif_per_km_lanjutan : null,
-                    'ojek_surcharge_per_km' => (int) ($this->ojek_surcharge_per_km ?: $this->rekomendasi['ojek_surcharge_per_km']),
+                    'ojek_tarif_minimum' => max(0, (int) ($this->ojek_tarif_minimum ?: $this->rekomendasi['ojek_tarif_minimum'])),
+                    'ojek_tarif_per_km' => max(0, (int) ($this->ojek_tarif_per_km ?: $this->rekomendasi['ojek_tarif_per_km'])),
+                    'ojek_tarif_per_km_lanjutan' => ($this->ojek_tarif_per_km_lanjutan !== null && $this->ojek_tarif_per_km_lanjutan !== '') ? max(0, (int) $this->ojek_tarif_per_km_lanjutan) : null,
+                    'ojek_surcharge_per_km' => max(0, (int) ($this->ojek_surcharge_per_km ?: $this->rekomendasi['ojek_surcharge_per_km'])),
 
                     'is_taxi_aktif' => (bool) $this->is_taxi_aktif,
-                    'taxi_tarif_minimum' => (int) ($this->taxi_tarif_minimum ?: $this->rekomendasi['taxi_tarif_minimum']),
-                    'taxi_tarif_per_km' => (int) ($this->taxi_tarif_per_km ?: $this->rekomendasi['taxi_tarif_per_km']),
-                    'taxi_tarif_per_km_lanjutan' => (int) ($this->taxi_tarif_per_km_lanjutan ?: $this->rekomendasi['taxi_tarif_per_km_lanjutan']),
-                    'taxi_surcharge_per_km' => (int) ($this->taxi_surcharge_per_km ?: $this->rekomendasi['taxi_surcharge_per_km']),
+                    'taxi_tarif_minimum' => max(0, (int) ($this->taxi_tarif_minimum ?: $this->rekomendasi['taxi_tarif_minimum'])),
+                    'taxi_tarif_per_km' => max(0, (int) ($this->taxi_tarif_per_km ?: $this->rekomendasi['taxi_tarif_per_km'])),
+                    'taxi_tarif_per_km_lanjutan' => max(0, (int) ($this->taxi_tarif_per_km_lanjutan ?: $this->rekomendasi['taxi_tarif_per_km_lanjutan'])),
+                    'taxi_surcharge_per_km' => max(0, (int) ($this->taxi_surcharge_per_km ?: $this->rekomendasi['taxi_surcharge_per_km'])),
 
-                    'free_distance_km' => (float) ($this->free_distance_km ?: $this->rekomendasi['free_distance_km']),
+                    'free_distance_km' => max(0, (float) ($this->free_distance_km ?: $this->rekomendasi['free_distance_km'])),
                     'urutan_layanan' => $this->orderedLayananIds,
                 ]);
             }
@@ -364,9 +457,9 @@ class KelolaLayananCabangPage extends Page
                 if ($rawHarga !== '' && $rawHarga !== null) {
                     if (is_string($rawHarga)) {
                         $clean = preg_replace('/[^0-9]/', '', $rawHarga);
-                        $parsedHarga = $clean !== '' ? (float) $clean : null;
+                        $parsedHarga = $clean !== '' ? max(0, (float) $clean) : null;
                     } else {
-                        $parsedHarga = (float) $rawHarga;
+                        $parsedHarga = max(0, (float) $rawHarga);
                     }
                 }
 

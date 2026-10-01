@@ -8,6 +8,16 @@ class Transaksi extends Model
 {
     protected $guarded = ['id'];
 
+    public function setTotalHargaAttribute($value): void
+    {
+        $this->attributes['total_harga'] = ($value !== null && $value !== '') ? max(0, (int) $value) : 0;
+    }
+
+    public function setTipAttribute($value): void
+    {
+        $this->attributes['tip'] = ($value !== null && $value !== '') ? max(0, (int) $value) : 0;
+    }
+
     public function tugas()
     {
         return $this->belongsToMany(User::class, 'karyawan_tugas', 'tugas_id', 'karyawan_id')

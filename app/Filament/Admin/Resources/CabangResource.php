@@ -149,6 +149,12 @@ class CabangResource extends Resource
                                     ->label('Kuota Free Jemput (KM)')
                                     ->placeholder((string) $rekFreeDist)
                                     ->numeric()
+                                    ->minValue(0)
+                                    ->rules(['min:0'])
+                                    ->extraInputAttributes([
+                                        'min' => 0,
+                                        'onkeydown' => "if(['-', 'e', '+'].includes(event.key)) event.preventDefault()",
+                                    ])
                                     ->default($rekFreeDist)
                                     ->suffix('KM')
                                     ->helperText("Batas jarak penjemputan dari basecamp yang bebas biaya surcharge. (Rekomendasi Pusat: {$rekFreeDist} KM)")
@@ -221,6 +227,11 @@ class CabangResource extends Resource
                                     ->prefix('Rp')
                                     ->numeric()
                                     ->minValue(0)
+                                    ->rules(['min:0'])
+                                    ->extraInputAttributes([
+                                        'min' => 0,
+                                        'onkeydown' => "if(['-', 'e', '+'].includes(event.key)) event.preventDefault()",
+                                    ])
                                     ->default($rekOjekMin)
                                     ->placeholder((string) $rekOjekMin)
                                     ->helperText("Tarif pembuka perjalanan terendah. (Rekomendasi Super Admin: Rp " . number_format($rekOjekMin, 0, ',', '.') . ")")
@@ -232,6 +243,11 @@ class CabangResource extends Resource
                                     ->suffix('/KM')
                                     ->numeric()
                                     ->minValue(0)
+                                    ->rules(['min:0'])
+                                    ->extraInputAttributes([
+                                        'min' => 0,
+                                        'onkeydown' => "if(['-', 'e', '+'].includes(event.key)) event.preventDefault()",
+                                    ])
                                     ->default($rekOjekSurcharge)
                                     ->placeholder((string) $rekOjekSurcharge)
                                     ->helperText("Biaya per KM jika penjemputan melebihi radius kuota free. (Rekomendasi Super Admin: Rp " . number_format($rekOjekSurcharge, 0, ',', '.') . "/KM)")
@@ -243,6 +259,11 @@ class CabangResource extends Resource
                                     ->suffix('/KM')
                                     ->numeric()
                                     ->minValue(0)
+                                    ->rules(['min:0'])
+                                    ->extraInputAttributes([
+                                        'min' => 0,
+                                        'onkeydown' => "if(['-', 'e', '+'].includes(event.key)) event.preventDefault()",
+                                    ])
                                     ->default($rekOjekPerKm)
                                     ->placeholder((string) $rekOjekPerKm)
                                     ->helperText("Biaya per KM perjalanan standar. (Rekomendasi Super Admin: Rp " . number_format($rekOjekPerKm, 0, ',', '.') . "/KM)")
@@ -254,6 +275,11 @@ class CabangResource extends Resource
                                     ->suffix('/KM')
                                     ->numeric()
                                     ->minValue(0)
+                                    ->rules(['min:0'])
+                                    ->extraInputAttributes([
+                                        'min' => 0,
+                                        'onkeydown' => "if(['-', 'e', '+'].includes(event.key)) event.preventDefault()",
+                                    ])
                                     ->default($rekOjekLanjutan)
                                     ->placeholder($rekOjekLanjutan ? (string) $rekOjekLanjutan : 'Kosongkan jika tarif flat')
                                     ->helperText($rekOjekLanjutan 
@@ -282,6 +308,11 @@ class CabangResource extends Resource
                                     ->prefix('Rp')
                                     ->numeric()
                                     ->minValue(0)
+                                    ->rules(['min:0'])
+                                    ->extraInputAttributes([
+                                        'min' => 0,
+                                        'onkeydown' => "if(['-', 'e', '+'].includes(event.key)) event.preventDefault()",
+                                    ])
                                     ->default($rekTaxiMin)
                                     ->placeholder((string) $rekTaxiMin)
                                     ->helperText("Tarif perjalanan awal untuk 1 s/d 3 KM pertama. (Rekomendasi Super Admin: Rp " . number_format($rekTaxiMin, 0, ',', '.') . ")")
@@ -293,6 +324,11 @@ class CabangResource extends Resource
                                     ->suffix('/KM')
                                     ->numeric()
                                     ->minValue(0)
+                                    ->rules(['min:0'])
+                                    ->extraInputAttributes([
+                                        'min' => 0,
+                                        'onkeydown' => "if(['-', 'e', '+'].includes(event.key)) event.preventDefault()",
+                                    ])
                                     ->default($rekTaxiSurcharge)
                                     ->placeholder((string) $rekTaxiSurcharge)
                                     ->helperText("Biaya per KM jika penjemputan melebihi radius kuota free. (Rekomendasi Super Admin: Rp " . number_format($rekTaxiSurcharge, 0, ',', '.') . "/KM)")
@@ -304,6 +340,11 @@ class CabangResource extends Resource
                                     ->suffix('/KM')
                                     ->numeric()
                                     ->minValue(0)
+                                    ->rules(['min:0'])
+                                    ->extraInputAttributes([
+                                        'min' => 0,
+                                        'onkeydown' => "if(['-', 'e', '+'].includes(event.key)) event.preventDefault()",
+                                    ])
                                     ->default($rekTaxiPerKm)
                                     ->placeholder((string) $rekTaxiPerKm)
                                     ->helperText("Biaya per KM untuk perjalanan antara 3 KM s/d 10 KM. (Rekomendasi Super Admin: Rp " . number_format($rekTaxiPerKm, 0, ',', '.') . "/KM)")
@@ -315,6 +356,11 @@ class CabangResource extends Resource
                                     ->suffix('/KM')
                                     ->numeric()
                                     ->minValue(0)
+                                    ->rules(['min:0'])
+                                    ->extraInputAttributes([
+                                        'min' => 0,
+                                        'onkeydown' => "if(['-', 'e', '+'].includes(event.key)) event.preventDefault()",
+                                    ])
                                     ->default($rekTaxiLanjutan)
                                     ->placeholder((string) $rekTaxiLanjutan)
                                     ->helperText("Biaya per KM untuk perjalanan jarak jauh di atas 10 KM. (Rekomendasi Super Admin: Rp " . number_format($rekTaxiLanjutan, 0, ',', '.') . "/KM)")

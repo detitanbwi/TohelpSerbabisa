@@ -144,6 +144,12 @@ class LayananResource extends Resource
                                 TextInput::make('tarif_minimum')
                                     ->label('Rekomendasi Tarif Minimum Standar')
                                     ->numeric()
+                                    ->minValue(0)
+                                    ->rules(['min:0'])
+                                    ->extraInputAttributes([
+                                        'min' => 0,
+                                        'onkeydown' => "if(['-', 'e', '+'].includes(event.key)) event.preventDefault()",
+                                    ])
                                     ->prefix('Rp')
                                     ->placeholder('Contoh: 7000')
                                     ->required(fn (Forms\Get $get, ?Model $record) => 
@@ -154,6 +160,12 @@ class LayananResource extends Resource
                                 TextInput::make('tarif_per_km')
                                     ->label('Rekomendasi Tarif Per KM (1 - 10 km / Standar)')
                                     ->numeric()
+                                    ->minValue(0)
+                                    ->rules(['min:0'])
+                                    ->extraInputAttributes([
+                                        'min' => 0,
+                                        'onkeydown' => "if(['-', 'e', '+'].includes(event.key)) event.preventDefault()",
+                                    ])
                                     ->prefix('Rp')
                                     ->placeholder('Contoh: 2000')
                                     ->required(fn (Forms\Get $get, ?Model $record) => 
@@ -164,6 +176,12 @@ class LayananResource extends Resource
                                 TextInput::make('tarif_per_km_lanjutan')
                                     ->label('Rekomendasi Tarif Per KM Lanjutan (> 10 km)')
                                     ->numeric()
+                                    ->minValue(0)
+                                    ->rules(['min:0'])
+                                    ->extraInputAttributes([
+                                        'min' => 0,
+                                        'onkeydown' => "if(['-', 'e', '+'].includes(event.key)) event.preventDefault()",
+                                    ])
                                     ->prefix('Rp')
                                     ->placeholder('Contoh: 4000 (Kosongkan jika flat)')
                                     ->visible(fn (Forms\Get $get, ?Model $record) => 
@@ -174,6 +192,12 @@ class LayananResource extends Resource
                                 TextInput::make('surcharge_per_km')
                                     ->label('Rekomendasi Surcharge Jemput / KM')
                                     ->numeric()
+                                    ->minValue(0)
+                                    ->rules(['min:0'])
+                                    ->extraInputAttributes([
+                                        'min' => 0,
+                                        'onkeydown' => "if(['-', 'e', '+'].includes(event.key)) event.preventDefault()",
+                                    ])
                                     ->prefix('Rp')
                                     ->placeholder('Contoh: 1000')
                                     ->default(1000)
@@ -182,6 +206,12 @@ class LayananResource extends Resource
                                 TextInput::make('free_distance_km')
                                     ->label('Rekomendasi Kuota Jemput Gratis')
                                     ->numeric()
+                                    ->minValue(0)
+                                    ->rules(['min:0'])
+                                    ->extraInputAttributes([
+                                        'min' => 0,
+                                        'onkeydown' => "if(['-', 'e', '+'].includes(event.key)) event.preventDefault()",
+                                    ])
                                     ->suffix('KM')
                                     ->default(3.0)
                                     ->helperText('Rekomendasi batas jarak gratis dari basecamp driver ke titik penjemputan.'),
@@ -238,11 +268,23 @@ class LayananResource extends Resource
                                         TextInput::make('urutan')
                                             ->label('Urutan')
                                             ->numeric()
+                                            ->minValue(0)
+                                            ->rules(['min:0'])
+                                            ->extraInputAttributes([
+                                                'min' => 0,
+                                                'onkeydown' => "if(['-', 'e', '+'].includes(event.key)) event.preventDefault()",
+                                            ])
                                             ->default(0),
 
                                         TextInput::make('default_harga')
                                             ->label('Default Harga (Rp)')
                                             ->numeric()
+                                            ->minValue(0)
+                                            ->rules(['min:0'])
+                                            ->extraInputAttributes([
+                                                'min' => 0,
+                                                'onkeydown' => "if(['-', 'e', '+'].includes(event.key)) event.preventDefault()",
+                                            ])
                                             ->prefix('Rp')
                                             ->required()
                                             ->default(0),

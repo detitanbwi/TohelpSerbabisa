@@ -74,6 +74,20 @@ class DetailTransaksi extends Page
         ];
     }
 
+    public function updatedTotalHarga($value): void
+    {
+        if ($value !== null && $value !== '' && (int) $value < 0) {
+            $this->total_harga = 0;
+        }
+    }
+
+    public function updatedTip($value): void
+    {
+        if ($value !== null && $value !== '' && (int) $value < 0) {
+            $this->tip = 0;
+        }
+    }
+
     public function updateHarga(): void
     {
         $this->validate([
@@ -88,8 +102,8 @@ class DetailTransaksi extends Page
         ]);
 
         $this->record->update([
-            'total_harga' => (int) $this->total_harga,
-            'tip' => (int) ($this->tip ?? 0),
+            'total_harga' => max(0, (int) $this->total_harga),
+            'tip' => max(0, (int) ($this->tip ?? 0)),
         ]);
 
         $this->record->refresh();

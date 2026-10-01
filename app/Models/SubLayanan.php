@@ -17,6 +17,11 @@ class SubLayanan extends Model
         'urutan' => 'integer',
     ];
 
+    public function setDefaultHargaAttribute($value): void
+    {
+        $this->attributes['default_harga'] = ($value !== null && $value !== '') ? max(0, (float) $value) : 0;
+    }
+
     public function layanan(): BelongsTo
     {
         return $this->belongsTo(Layanan::class, 'layanan_id');

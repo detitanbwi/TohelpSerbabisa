@@ -105,6 +105,8 @@
                                         placeholder="0"
                                         required
                                         class="bg-transparent dark:!bg-gray-900 dark:text-white"
+                                        onkeydown="if(['-', 'e', '+'].includes(event.key)) event.preventDefault()"
+                                        oninput="if(this.value < 0) this.value = Math.abs(this.value); this.value = this.value.replace(/[^0-9]/g, '')"
                                     />
                                 </x-filament::input.wrapper>
                                 @error('total_harga')
@@ -123,6 +125,8 @@
                                         wire:model.live="tip"
                                         placeholder="0"
                                         class="bg-transparent dark:!bg-gray-900 dark:text-white"
+                                        onkeydown="if(['-', 'e', '+'].includes(event.key)) event.preventDefault()"
+                                        oninput="if(this.value < 0) this.value = Math.abs(this.value); this.value = this.value.replace(/[^0-9]/g, '')"
                                     />
                                 </x-filament::input.wrapper>
                                 @error('tip')

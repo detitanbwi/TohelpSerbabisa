@@ -16,6 +16,11 @@ class CabangLayanan extends Model
         'custom_harga' => 'decimal:2',
     ];
 
+    public function setCustomHargaAttribute($value): void
+    {
+        $this->attributes['custom_harga'] = ($value !== null && $value !== '') ? max(0, (float) $value) : null;
+    }
+
     public function cabang(): BelongsTo
     {
         return $this->belongsTo(Cabang::class, 'cabang_id');

@@ -41,6 +41,8 @@
                         min="0"
                         wire:model.defer="free_distance_km"
                         placeholder="{{ $rekomendasi['free_distance_km'] ?? 3.0 }}"
+                        onkeydown="if(['-', 'e', '+'].includes(event.key)) event.preventDefault()"
+                        oninput="if(this.value < 0) this.value = 0"
                     />
                 </x-filament::input.wrapper>
                 <span class="text-[11px] text-gray-500 mt-1 block">
@@ -218,6 +220,8 @@
                                                     min="0"
                                                     wire:model.defer="ojek_tarif_minimum"
                                                     placeholder="{{ $rekomendasi['ojek_tarif_minimum'] ?? 7000 }}"
+                                                    onkeydown="if(['-', 'e', '+'].includes(event.key)) event.preventDefault()"
+                                                    oninput="if(this.value < 0) this.value = Math.abs(this.value); this.value = this.value.replace(/[^0-9]/g, '')"
                                                 />
                                             </x-filament::input.wrapper>
                                             <span class="text-[11px] text-gray-500 mt-1 block">
@@ -233,6 +237,8 @@
                                                     min="0"
                                                     wire:model.defer="ojek_surcharge_per_km"
                                                     placeholder="{{ $rekomendasi['ojek_surcharge_per_km'] ?? 1000 }}"
+                                                    onkeydown="if(['-', 'e', '+'].includes(event.key)) event.preventDefault()"
+                                                    oninput="if(this.value < 0) this.value = Math.abs(this.value); this.value = this.value.replace(/[^0-9]/g, '')"
                                                 />
                                             </x-filament::input.wrapper>
                                             <span class="text-[11px] text-gray-500 mt-1 block">
@@ -248,6 +254,8 @@
                                                     min="0"
                                                     wire:model.defer="ojek_tarif_per_km"
                                                     placeholder="{{ $rekomendasi['ojek_tarif_per_km'] ?? 2000 }}"
+                                                    onkeydown="if(['-', 'e', '+'].includes(event.key)) event.preventDefault()"
+                                                    oninput="if(this.value < 0) this.value = Math.abs(this.value); this.value = this.value.replace(/[^0-9]/g, '')"
                                                 />
                                             </x-filament::input.wrapper>
                                             <span class="text-[11px] text-gray-500 mt-1 block">
@@ -263,6 +271,8 @@
                                                     min="0"
                                                     wire:model.defer="ojek_tarif_per_km_lanjutan"
                                                     placeholder="{{ $rekomendasi['ojek_tarif_per_km_lanjutan'] ?? 'Flat' }}"
+                                                    onkeydown="if(['-', 'e', '+'].includes(event.key)) event.preventDefault()"
+                                                    oninput="if(this.value < 0) this.value = Math.abs(this.value); this.value = this.value.replace(/[^0-9]/g, '')"
                                                 />
                                             </x-filament::input.wrapper>
                                             <span class="text-[11px] text-gray-500 mt-1 block">
@@ -298,6 +308,8 @@
                                                     min="0"
                                                     wire:model.defer="taxi_tarif_minimum"
                                                     placeholder="{{ $rekomendasi['taxi_tarif_minimum'] ?? 18000 }}"
+                                                    onkeydown="if(['-', 'e', '+'].includes(event.key)) event.preventDefault()"
+                                                    oninput="if(this.value < 0) this.value = Math.abs(this.value); this.value = this.value.replace(/[^0-9]/g, '')"
                                                 />
                                             </x-filament::input.wrapper>
                                             <span class="text-[11px] text-gray-500 mt-1 block">
@@ -313,6 +325,8 @@
                                                     min="0"
                                                     wire:model.defer="taxi_surcharge_per_km"
                                                     placeholder="{{ $rekomendasi['taxi_surcharge_per_km'] ?? 2000 }}"
+                                                    onkeydown="if(['-', 'e', '+'].includes(event.key)) event.preventDefault()"
+                                                    oninput="if(this.value < 0) this.value = Math.abs(this.value); this.value = this.value.replace(/[^0-9]/g, '')"
                                                 />
                                             </x-filament::input.wrapper>
                                             <span class="text-[11px] text-gray-500 mt-1 block">
@@ -328,6 +342,8 @@
                                                     min="0"
                                                     wire:model.defer="taxi_tarif_per_km"
                                                     placeholder="{{ $rekomendasi['taxi_tarif_per_km'] ?? 5000 }}"
+                                                    onkeydown="if(['-', 'e', '+'].includes(event.key)) event.preventDefault()"
+                                                    oninput="if(this.value < 0) this.value = Math.abs(this.value); this.value = this.value.replace(/[^0-9]/g, '')"
                                                 />
                                             </x-filament::input.wrapper>
                                             <span class="text-[11px] text-gray-500 mt-1 block">
@@ -343,6 +359,8 @@
                                                     min="0"
                                                     wire:model.defer="taxi_tarif_per_km_lanjutan"
                                                     placeholder="{{ $rekomendasi['taxi_tarif_per_km_lanjutan'] ?? 4000 }}"
+                                                    onkeydown="if(['-', 'e', '+'].includes(event.key)) event.preventDefault()"
+                                                    oninput="if(this.value < 0) this.value = Math.abs(this.value); this.value = this.value.replace(/[^0-9]/g, '')"
                                                 />
                                             </x-filament::input.wrapper>
                                             <span class="text-[11px] text-gray-500 mt-1 block">
@@ -401,10 +419,13 @@
                                                 <td style="padding: 10px 16px; vertical-align: middle;">
                                                     <x-filament::input.wrapper prefix="Rp">
                                                         <x-filament::input
-                                                            type="text"
+                                                            type="number"
+                                                            min="0"
                                                             inputmode="numeric"
                                                             wire:model.defer="items.{{ $id }}.custom_harga"
                                                             placeholder="{{ number_format($sub->default_harga, 0, ',', '.') }}"
+                                                            onkeydown="if(['-', 'e', '+'].includes(event.key)) event.preventDefault()"
+                                                            oninput="if(this.value < 0) this.value = Math.abs(this.value); this.value = this.value.replace(/[^0-9]/g, '')"
                                                         />
                                                     </x-filament::input.wrapper>
                                                 </td>

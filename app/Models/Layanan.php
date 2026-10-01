@@ -21,6 +21,31 @@ class Layanan extends Model
         'free_distance_km' => 'float',
     ];
 
+    public function setTarifMinimumAttribute($value): void
+    {
+        $this->attributes['tarif_minimum'] = ($value !== null && $value !== '') ? max(0, (int) $value) : null;
+    }
+
+    public function setTarifPerKmAttribute($value): void
+    {
+        $this->attributes['tarif_per_km'] = ($value !== null && $value !== '') ? max(0, (int) $value) : null;
+    }
+
+    public function setTarifPerKmLanjutanAttribute($value): void
+    {
+        $this->attributes['tarif_per_km_lanjutan'] = ($value !== null && $value !== '') ? max(0, (int) $value) : null;
+    }
+
+    public function setSurchargePerKmAttribute($value): void
+    {
+        $this->attributes['surcharge_per_km'] = ($value !== null && $value !== '') ? max(0, (int) $value) : null;
+    }
+
+    public function setFreeDistanceKmAttribute($value): void
+    {
+        $this->attributes['free_distance_km'] = ($value !== null && $value !== '') ? max(0, (float) $value) : 0;
+    }
+
     /**
      * Check if this service is distance-based transportation (Ojek, Taxi, etc.).
      */
