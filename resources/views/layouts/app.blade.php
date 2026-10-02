@@ -10,9 +10,10 @@
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="author" content="templatesjungle">
     <meta name="keywords" content="website template">
-    <link rel="icon" type="image/x-icon" href="{{ asset('favicon.ico') }}">
-    <link rel="shortcut icon" type="image/x-icon" href="{{ asset('favicon.ico') }}">
-    <link rel="icon" type="image/png" href="{{ asset('logo-tohelp-kecil.png') }}">
+    <link rel="icon" type="image/x-icon" href="{{ asset('favicon.ico') }}?v=3">
+    <link rel="shortcut icon" type="image/x-icon" href="{{ asset('favicon.ico') }}?v=3">
+    <link rel="icon" type="image/png" sizes="32x32" href="{{ asset('logo-tohelp-kecil.png') }}?v=3">
+    <link rel="apple-touch-icon" href="{{ asset('logo-tohelp-kecil.png') }}?v=3">
 
     <!--Bootstrap ================================================== -->
     <link rel="stylesheet" type="text/css" href="{{ asset('css/bootstrap.min.css') }}">

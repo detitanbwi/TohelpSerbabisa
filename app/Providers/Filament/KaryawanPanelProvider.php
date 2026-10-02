@@ -41,7 +41,7 @@ class KaryawanPanelProvider extends PanelProvider
                 PanelsRenderHook::BODY_START,
                 fn () => view('filament.components.global-loading-indicator')
             )
-            ->favicon(asset('favicon.ico'))
+            ->favicon(asset('favicon.ico') . '?v=3')
             ->colors([
                 'primary' => Color::Amber,
             ])
