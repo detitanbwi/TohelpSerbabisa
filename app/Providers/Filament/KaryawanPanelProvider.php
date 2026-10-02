@@ -41,7 +41,7 @@ class KaryawanPanelProvider extends PanelProvider
                 PanelsRenderHook::BODY_START,
                 fn () => view('filament.components.global-loading-indicator')
             )
-            ->favicon(asset('images/logo-tohelp-kecil.png?v=2'))
+            ->favicon(asset('favicon.ico'))
             ->colors([
                 'primary' => Color::Amber,
             ])

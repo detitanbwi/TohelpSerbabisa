@@ -10,7 +10,9 @@
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="author" content="templatesjungle">
     <meta name="keywords" content="website template">
-    <link rel="icon" type="image/png" href="{{ asset('images/logo-tohelp-kecil.png?v=2') }}">
+    <link rel="icon" type="image/x-icon" href="{{ asset('favicon.ico') }}">
+    <link rel="shortcut icon" type="image/x-icon" href="{{ asset('favicon.ico') }}">
+    <link rel="icon" type="image/png" href="{{ asset('logo-tohelp-kecil.png') }}">
 
     <!--Bootstrap ================================================== -->
     <link rel="stylesheet" type="text/css" href="{{ asset('css/bootstrap.min.css') }}">
