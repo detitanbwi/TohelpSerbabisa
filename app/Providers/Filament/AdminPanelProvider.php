@@ -50,7 +50,7 @@ class AdminPanelProvider extends PanelProvider
                 PanelsRenderHook::BODY_START,
                 fn () => view('filament.components.global-loading-indicator')
             )
-            ->favicon(asset('favicon.ico'))
+            ->favicon(asset('favicon.ico') . '?v=3')
             ->login(\App\Filament\Pages\Auth\Login::class)
             ->colors([
                 'primary' => Color::Amber,
