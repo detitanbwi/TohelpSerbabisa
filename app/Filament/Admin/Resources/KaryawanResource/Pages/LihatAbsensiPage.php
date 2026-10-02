@@ -5,10 +5,7 @@ namespace App\Filament\Admin\Resources\KaryawanResource\Pages;
 use App\Filament\Admin\Resources\KaryawanResource;
 use App\Models\Absensi;
 use Carbon\Carbon;
-use Filament\Actions\Contracts\HasActions;
-use Filament\Forms\Components\Select;
 use Filament\Infolists\Components\Grid;
-use Filament\Infolists\Components\ImageEntry;
 use Filament\Infolists\Components\TextEntry;
 use Filament\Resources\Pages\Concerns\InteractsWithRecord;
 use Filament\Resources\Pages\Page;
@@ -65,15 +62,9 @@ class LihatAbsensiPage extends Page implements HasTable
                         Grid::make()
                             ->columns(1)
                             ->schema([
-                                ImageEntry::make('bukti_foto')
+                                \Filament\Infolists\Components\SpatieMediaLibraryImageEntry::make('bukti-absensi')
                                     ->label('Foto Bukti Kehadiran')
-                                    ->state(function (Absensi $record) {
-                                        $media = $record->getFirstMedia('bukti-absensi');
-                                        if ($media && (file_exists($media->getPath()) || Storage::disk($media->disk ?? 'public')->exists($media->getPathRelativeToRoot()))) {
-                                            return $media->getUrl();
-                                        }
-                                        return null;
-                                    })
+                                    ->collection('bukti-absensi')
                                     ->defaultImageUrl('https://placehold.co/600x400/e2e8f0/475569?text=Bukti+Foto+Tidak+Tersedia')
                                     ->extraImgAttributes([
                                         'style' => 'max-height: 480px; width: auto; object-fit: contain; border-radius: 8px; margin: 0 auto; display: block;',

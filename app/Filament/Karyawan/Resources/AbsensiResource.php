@@ -96,9 +96,9 @@ class AbsensiResource extends Resource
                     ->modalSubmitAction(false)
                     ->modalCancelActionLabel('Tutup')
                     ->infolist([
-                        \Filament\Infolists\Components\ImageEntry::make('bukti_foto')
+                        \Filament\Infolists\Components\SpatieMediaLibraryImageEntry::make('bukti-absensi')
                             ->label('Foto Bukti Kehadiran')
-                            ->state(fn (Absensi $record) => $record->getFirstMediaUrl('bukti-absensi') ?: null)
+                            ->collection('bukti-absensi')
                             ->extraImgAttributes([
                                 'style' => 'max-height: 480px; width: auto; object-fit: contain; border-radius: 8px; margin: 0 auto; display: block;',
                             ]),
