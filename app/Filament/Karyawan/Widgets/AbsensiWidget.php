@@ -97,9 +97,15 @@ class AbsensiWidget extends BaseWidget
                     ->form([
                         FileUpload::make('bukti_absen')
                             ->label('Foto Bukti Kehadiran / Selfie Siap Tugas')
-                            ->helperText('Unggah foto bukti kehadiran atau foto selfie Anda yang menunjukkan siap menjalankan tugas.')
+                            ->helperText('Unggah foto selfie / bukti kehadiran (Otomatis dikompresi agar upload cepat & lancar).')
                             ->image()
+                            ->imageResizeMode('contain')
+                            ->imageResizeTargetWidth('1024')
+                            ->imageResizeTargetHeight('1024')
+                            ->imageResizeUpscale(false)
                             ->maxFiles(1)
+                            ->maxSize(10240)
+                            ->acceptedFileTypes(['image/jpeg', 'image/png', 'image/webp', 'image/jpg'])
                             ->disk('public')
                             ->directory('presensi/temp')
                             ->required(),
