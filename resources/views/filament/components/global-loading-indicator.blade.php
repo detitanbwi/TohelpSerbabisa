@@ -19,6 +19,27 @@
         <span>Memuat halaman tujuan...</span>
     </div>
 </div>
+{{-- Anti-FOUC and Smooth Modal / FileUpload Styles --}}
+<style>
+    [x-cloak] {
+        display: none !important;
+    }
+
+    /* Prevent raw HTML file input flash before FilePond initializes */
+    .filepond--root input[type="file"],
+    .fi-fo-file-upload input[type="file"]:not(.filepond--browser) {
+        opacity: 0 !important;
+        position: absolute !important;
+        width: 0 !important;
+        height: 0 !important;
+        pointer-events: none !important;
+    }
+
+    /* Smooth modal transition */
+    .fi-modal-window {
+        transition: transform 0.15s ease-out, opacity 0.15s ease-out !important;
+    }
+</style>
 
 <script>
     (function() {

@@ -87,6 +87,11 @@ class AbsensiWidget extends BaseWidget
                     ->icon('heroicon-o-camera')
                     ->color('warning')
                     ->button()
+                    ->modalHeading('Form Presensi Kehadiran Karyawan')
+                    ->modalDescription('Silakan unggah foto selfie / bukti kehadiran Anda untuk memulai tugas hari ini.')
+                    ->modalIcon('heroicon-o-camera')
+                    ->modalWidth('md')
+                    ->modalSubmitActionLabel('Kirim & Simpan Presensi')
                     ->visible(function (User $record) {
                         if (auth()->id() !== $record->id) {
                             return false;
