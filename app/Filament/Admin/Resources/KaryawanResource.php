@@ -92,13 +92,14 @@ class KaryawanResource extends Resource
                             ])
                             ->autocomplete(false),
                         TextInput::make('email')
-                            ->label('Email (Opsional)')
+                            ->label('Email')
                             ->placeholder('Contoh: karyawan@tohelp.com')
-                            ->nullable()
+                            ->required()
                             ->email()
                             ->unique(ignoreRecord: true)
                             ->validationMessages([
                                 'unique' => 'Email ini sudah digunakan.',
+                                'required' => 'Email wajib diisi.',
                             ])
                             ->autocomplete(false),
                         Select::make('cabang_id')
